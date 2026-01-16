@@ -12,6 +12,7 @@ import {
   Users,
   LogOut,
   ChevronUp,
+  Bot,
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
@@ -31,11 +32,12 @@ import { Button } from '../ui/button';
 
 const menuItems = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { href: '/dashboard/ai-chat', label: 'AI Chat', icon: Bot },
   { href: '/dashboard/tasks', label: 'Daily Tasks', icon: ClipboardList },
   { href: '/dashboard/deep-cleaning', label: 'Deep Cleaning', icon: CalendarCheck },
   { href: '/dashboard/inventory', label: 'Inventory', icon: Warehouse },
   { href: '/dashboard/performance', label: 'Performance', icon: BarChart3 },
-  { href: '/dashboard/supervisor', label: 'Supervisor Tools', icon: Users, roles: ['Supervisor', 'Admin'] },
+  { href: '/dashboard/supervisor', label: 'User Management', icon: Users, roles: ['Supervisor', 'Admin'] },
   { href: '/dashboard/audit', label: 'Audit Compliance', icon: FileText, roles: ['Supervisor', 'Admin'] },
 ];
 
