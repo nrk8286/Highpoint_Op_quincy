@@ -1,3 +1,46 @@
 {
-  "placeholderImages": []
+  "placeholderImages": [
+    {
+      "id": "login-bg",
+      "description": "A bright and clean hallway in a modern luxury residential building.",
+      "imageUrl": "https://images.unsplash.com/photo-1599281874238-0c30e1034fb2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxsdXh1cnklMjByZXNpZGVuY2UlMjBoYWxsd2F5fGVufDB8fHx8MTc2ODUzOTg5OHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "luxury residence hallway"
+    },
+    {
+      "id": "avatar-1",
+      "description": "A friendly looking female staff member.",
+      "imageUrl": "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8d29tYW4lMjBwb3J0cmFpdHxlbnwwfHx8fDE3Njg0NjQzODN8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "woman portrait"
+    },
+    {
+      "id": "avatar-2",
+      "description": "A smiling male staff member.",
+      "imageUrl": "https://images.unsplash.com/photo-1607031542107-f6f46b5d54e9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxtYW4lMjBwb3J0cmFpdHxlbnwwfHx8fDE3Njg0ODUwMTR8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "man portrait"
+    },
+    {
+      "id": "avatar-3",
+      "description": "A person in housekeeping uniform.",
+      "imageUrl": "https://images.unsplash.com/photo-1734089915353-e7477e358fcc?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxob3VzZWtlZXBlciUyMHBvcnRyYWl0fGVufDB8fHx8MTc2ODUzOTg5OHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "housekeeper portrait"
+    },
+    {
+      "id": "facility-map",
+      "description": "A floor plan of a residential building.",
+      "imageUrl": "https://images.unsplash.com/photo-1608303588026-884930af2559?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxmbG9vciUyMHBsYW58ZW58MHx8fHwxNzY4NDY0Njk5fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "floor plan"
+    },
+    {
+      "id": "pre-clean-1",
+      "description": "A room before cleaning",
+      "imageUrl": "https://images.unsplash.com/photo-1570129476815-ba368ac77013?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8bWVzc3klMjByb29tfGVufDB8fHx8MTc2ODUzOTg5OHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "messy room"
+    },
+    {
+      "id": "post-clean-1",
+      "description": "A room after cleaning",
+      "imageUrl": "https://images.unsplash.com/photo-1583847268964-b28dc8f51f92?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxjbGVhbiUyMHJvb218ZW58MHx8fHwxNzY4NTMxMDk4fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "clean room"
+    }
+  ]
 }
