@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { useFormState, useFormStatus } from 'react-dom';
+import { useFormStatus } from 'react-dom';
 import { format } from 'date-fns';
 import { Calendar as CalendarIcon, Bot, FileDown } from 'lucide-react';
 import { DateRange } from 'react-day-picker';
@@ -43,7 +43,7 @@ export function AuditReportForm() {
   });
 
   const initialState: FormState = { message: '' };
-  const [state, dispatch] = useFormState(generateReportAction, initialState);
+  const [state, dispatch] = React.useActionState(generateReportAction, initialState);
 
   return (
     <div className="space-y-6">
