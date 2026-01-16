@@ -7,9 +7,10 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
 import { signInWithEmailAndPassword } from 'firebase/auth';
+import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 
 import { PlaceHolderImages } from '@/lib/placeholder-images';
-import { useAuth } from '@/firebase';
+import { useAuth, useFirestore } from '@/firebase';
 import { Button } from '@/components/ui/button';
 import {
   Form,
@@ -23,6 +24,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { Logo } from '@/components/logo';
+import type { User } from '@/lib/types';
 
 const loginSchema = z.object({
   email: z.string().email({ message: 'Please enter a valid email.' }),
@@ -31,10 +33,18 @@ const loginSchema = z.object({
 
 type LoginFormValues = z.infer<typeof loginSchema>;
 
+const preconfiguredUsers: { [email: string]: Partial<User> } = {
+  'admin@example.com': { name: 'Admin User', role: 'Admin', avatarUrl: 'https://images.unsplash.com/photo-1599566150163-29194dcaad36?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxwb3J0cmFpdHxlbnwwfHx8fDE3Njg1NjQxMDZ8MA&ixlib=rb-4.1.0&q=80&w=1080' },
+  'supervisor@example.com': { name: 'Sarah Johnson', role: 'Supervisor', avatarUrl: PlaceHolderImages.find(i => i.id === 'avatar-1')?.imageUrl },
+  'housekeeper1@example.com': { name: 'Audry Meadows', role: 'Housekeeper', avatarUrl: PlaceHolderImages.find(i => i.id === 'avatar-2')?.imageUrl },
+  'housekeeper2@example.com': { name: 'Hannah Steele', role: 'Housekeeper', avatarUrl: PlaceHolderImages.find(i => i.id === 'avatar-3')?.imageUrl },
+};
+
 export default function LoginPage() {
   const router = useRouter();
   const { toast } = useToast();
   const auth = useAuth();
+  const firestore = useFirestore();
   const loginBg = PlaceHolderImages.find((img) => img.id === 'login-bg');
 
   const form = useForm<LoginFormValues>({
@@ -47,7 +57,33 @@ export default function LoginPage() {
 
   const onSubmit = async (data: LoginFormValues) => {
     try {
-      await signInWithEmailAndPassword(auth, data.email, data.password);
+      const userCredential = await signInWithEmailAndPassword(auth, data.email, data.password);
+      const user = userCredential.user;
+      
+      // Check if user profile exists, create it if it doesn't
+      const userDocRef = doc(firestore, 'users', user.uid);
+      const userDoc = await getDoc(userDocRef);
+
+      if (!userDoc.exists()) {
+        const userEmail = user.email || '';
+        const predefinedData = preconfiguredUsers[userEmail] || {};
+        
+        const newProfile: Omit<User, 'id'> = {
+          name: predefinedData.name || 'New User',
+          email: userEmail,
+          role: predefinedData.role || 'Housekeeper',
+          avatarUrl: predefinedData.avatarUrl || `https://i.pravatar.cc/150?u=${user.uid}`,
+          createdAt: serverTimestamp(),
+        };
+
+        await setDoc(userDocRef, { ...newProfile, id: user.uid });
+
+        toast({
+            title: 'Profile Created',
+            description: 'Your user profile has been initialized.',
+        });
+      }
+
       toast({
         title: 'Login Successful',
         description: 'Redirecting to your dashboard...',
@@ -75,13 +111,13 @@ export default function LoginPage() {
           priority
         />
       )}
-      <div className="relative z-10 w-full max-w-sm space-y-6">
+      <div className="relative z-10 w-full max-w-md space-y-6">
         <Card className="shadow-2xl">
           <CardHeader className="text-center">
             <div className="mx-auto mb-4">
               <Logo size="large" />
             </div>
-            <CardTitle className="text-3xl font-bold tracking-tight font-headline">
+            <CardTitle className="text-4xl font-bold tracking-tight font-headline">
               HighPoint HouseKeep
             </CardTitle>
             <CardDescription className="text-lg">

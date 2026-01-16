@@ -22,9 +22,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { useToast } from '@/hooks/use-toast';
-import { UserRole, User } from '@/lib/types';
-import { addUser } from '@/lib/firebase';
-import { useFirestore } from '@/firebase';
+import { UserRole } from '@/lib/types';
 import { AlertTriangle } from 'lucide-react';
 
 
@@ -35,35 +33,17 @@ type AddUserDialogProps = {
 
 export function AddUserDialog({ open, onOpenChange }: AddUserDialogProps) {
     const { toast } = useToast();
-    const firestore = useFirestore();
     const [name, setName] = React.useState('');
     const [email, setEmail] = React.useState('');
     const [role, setRole] = React.useState<UserRole>('Housekeeper');
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        
-        const newUser: Omit<User, 'id' | 'createdAt'> = {
-            name,
-            email,
-            role,
-            avatarUrl: 'https://images.unsplash.com/photo-1599566150163-29194dcaad36?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxwb3J0cmFpdHxlbnwwfHx8fDE3Njg1NjQxMDZ8MA&ixlib=rb-4.1.0&q=80&w=1080',
-        };
-
-        try {
-            // This is a mock. See /lib/firebase.ts for details.
-            addUser(firestore, newUser);
-            toast({
-                title: "User Added to List",
-                description: `User ${name} has been added to the users collection.`
-            });
-            onOpenChange(false);
-            setName('');
-            setEmail('');
-            setRole('Housekeeper');
-        } catch (error) {
-            console.error(error);
-        }
+        toast({
+            title: "Manual Process Required",
+            description: "Please create the user in the Firebase Authentication console. Their profile will be automatically created on their first login."
+        });
+        onOpenChange(false);
     };
 
   return (
@@ -73,14 +53,14 @@ export function AddUserDialog({ open, onOpenChange }: AddUserDialogProps) {
             <DialogHeader>
             <DialogTitle>Add New User</DialogTitle>
             <DialogDescription>
-                Enter the details for the new staff member below.
+                Follow the steps below to add a new staff member.
             </DialogDescription>
             </DialogHeader>
             <Alert variant="destructive" className="my-4">
                 <AlertTriangle className="h-4 w-4" />
-                <AlertTitle>Important</AlertTitle>
+                <AlertTitle>Important: Manual Process</AlertTitle>
                 <AlertDescription>
-                    This form only adds a user to the Firestore database for display. To allow them to log in, you must manually create an account for them in the Firebase Authentication console with the same email.
+                    To add a new user, you must first create an account for them in the Firebase Authentication console using their email and a temporary password. Once they log in for the first time, their profile will be created here automatically.
                 </AlertDescription>
             </Alert>
             <div className="grid gap-4 py-4">
@@ -88,13 +68,13 @@ export function AddUserDialog({ open, onOpenChange }: AddUserDialogProps) {
                     <Label htmlFor="name" className="text-right">
                     Full Name
                     </Label>
-                    <Input id="name" value={name} onChange={e => setName(e.target.value)} className="col-span-3" required />
+                    <Input id="name" value={name} onChange={e => setName(e.target.value)} className="col-span-3" required placeholder="Enter name for reference" />
                 </div>
                 <div className="grid grid-cols-4 items-center gap-4">
                     <Label htmlFor="email" className="text-right">
                     Email
                     </Label>
-                    <Input id="email" type="email" value={email} onChange={e => setEmail(e.target.value)} className="col-span-3" required />
+                    <Input id="email" type="email" value={email} onChange={e => setEmail(e.target.value)} className="col-span-3" required placeholder="user@example.com" />
                 </div>
                 <div className="grid grid-cols-4 items-center gap-4">
                     <Label htmlFor="role" className="text-right">
@@ -118,7 +98,7 @@ export function AddUserDialog({ open, onOpenChange }: AddUserDialogProps) {
                         Cancel
                     </Button>
                 </DialogClose>
-                <Button type="submit">Create User</Button>
+                <Button type="submit">Understood</Button>
             </DialogFooter>
         </form>
       </DialogContent>

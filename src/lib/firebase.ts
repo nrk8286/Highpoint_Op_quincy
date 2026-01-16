@@ -6,6 +6,9 @@ import {
   setDoc,
   writeBatch,
   serverTimestamp,
+  query,
+  where,
+  getDocs,
   Firestore,
 } from 'firebase/firestore';
 import { errorEmitter } from '@/firebase/error-emitter';
@@ -13,15 +16,6 @@ import { FirestorePermissionError } from '@/firebase/errors';
 import type { DailyTask, DeepCleanTask, InventoryItem, User } from '@/lib/types';
 import { PlaceHolderImages } from './placeholder-images';
 
-// --- Seed Data based on High Point Residence Spec ---
-
-const usersToSeed: Omit<User, 'id' | 'createdAt'>[] = [
-    { name: 'Sarah Johnson', email: 'supervisor@example.com', role: 'Supervisor', avatarUrl: PlaceHolderImages.find(i => i.id === 'avatar-1')?.imageUrl || '' },
-    { name: 'Audry Meadows', email: 'housekeeper1@example.com', role: 'Housekeeper', avatarUrl: PlaceHolderImages.find(i => i.id === 'avatar-2')?.imageUrl || '' },
-    { name: 'Hannah Steele', email: 'housekeeper2@example.com', role: 'Housekeeper', avatarUrl: PlaceHolderImages.find(i => i.id === 'avatar-3')?.imageUrl || '' },
-    { name: 'Admin User', email: 'admin@example.com', role: 'Admin', avatarUrl: 'https://images.unsplash.com/photo-1599566150163-29194dcaad36?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxwb3J0cmFpdHxlbnwwfHx8fDE3Njg1NjQxMDZ8MA&ixlib=rb-4.1.0&q=80&w=1080' },
-];
-  
 const dailyTasksToSeed: Omit<DailyTask, 'id' | 'createdAt' | 'updatedAt' | 'assignedTo'>[] = [
     { roomNumber: 'A1', roomType: 'Daily Clean', status: 'Completed', date: new Date().toISOString().split('T')[0] },
     { roomNumber: 'B1', roomType: 'Daily Clean', status: 'In Progress', date: new Date().toISOString().split('T')[0] },
@@ -51,18 +45,32 @@ const inventoryToSeed: Omit<InventoryItem, 'id' | 'createdAt' | 'updatedAt' | 's
 export const seedDatabase = async (db: Firestore) => {
   const batch = writeBatch(db);
 
-  // Note: This does not create Firebase Auth users. You must create them in the Firebase Console.
-  const userIds: { [key: string]: string } = {};
-  usersToSeed.forEach((user) => {
-    const userId = `${user.email.split('@')[0]}-id`;
-    userIds[user.email] = userId;
-    const userRef = doc(db, 'users', userId);
-    batch.set(userRef, { ...user, id: userId, createdAt: serverTimestamp() });
+  // Step 1: Get the UIDs for the housekeepers from the 'users' collection.
+  const usersRef = collection(db, 'users');
+  const housekeepersQuery = query(usersRef, where('email', 'in', ['housekeeper1@example.com', 'housekeeper2@example.com']));
+  
+  const querySnapshot = await getDocs(housekeepersQuery);
+
+  let audreyId: string | undefined;
+  let hannahId: string | undefined;
+
+  querySnapshot.forEach((doc) => {
+    const user = doc.data() as User;
+    if (user.email === 'housekeeper1@example.com') {
+      audreyId = user.id;
+    }
+    if (user.email === 'housekeeper2@example.com') {
+      hannahId = user.id;
+    }
   });
 
-  const audreyId = userIds['housekeeper1@example.com'];
-  const hannahId = userIds['housekeeper2@example.com'];
+  // Guard against missing users.
+  if (!audreyId || !hannahId) {
+    throw new Error("Seeding failed: Could not find housekeeper profiles. Please ensure 'housekeeper1@example.com' and 'housekeeper2@example.com' have logged into the application at least once before seeding the database.");
+  }
 
+
+  // Step 2: Seed tasks and assign them using the retrieved UIDs.
   dailyTasksToSeed.forEach((task) => {
     const taskRef = doc(collection(db, 'daily_tasks'));
     let assignedTo = audreyId; // Default
@@ -108,23 +116,6 @@ export function addItem(db: Firestore, item: Omit<InventoryItem, 'id' | 'created
           path: itemRef.path,
           operation: 'create',
           requestResourceData: item,
-        });
-        errorEmitter.emit('permission-error', permissionError);
-        throw permissionError;
-      });
-}
-
-export function addUser(db: Firestore, user: Omit<User, 'id' | 'createdAt'>) {
-    // This is a mock implementation. Creating a Firebase Auth user requires a backend function (e.g., a Genkit flow or Cloud Function).
-    // This function only adds the user to the 'users' collection in Firestore, so they will appear in the list,
-    // but they will NOT be able to log in.
-    const userRef = doc(collection(db, 'users'));
-    setDoc(userRef, { ...user, id: userRef.id, createdAt: serverTimestamp() })
-      .catch(async (serverError) => {
-        const permissionError = new FirestorePermissionError({
-          path: userRef.path,
-          operation: 'create',
-          requestResourceData: user,
         });
         errorEmitter.emit('permission-error', permissionError);
         throw permissionError;
