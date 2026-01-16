@@ -1,9 +1,21 @@
+'use client';
+import React, { useMemo } from 'react';
 import { Calendar } from '@/components/ui/calendar';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { deepCleanTasks } from '@/lib/data';
+import { useCollection, useFirestore } from '@/firebase';
+import { collection, query, where } from 'firebase/firestore';
+import type { DeepCleanTask } from '@/lib/types';
 
 export default function DeepCleaningPage() {
+  const firestore = useFirestore();
+
+  const queryRef = useMemo(() => query(collection(firestore, 'deep_clean_tasks')), [firestore]);
+  const { data: deepCleanTasks, loading } = useCollection<DeepCleanTask>(queryRef);
+
+  const scheduledTasks = useMemo(() => deepCleanTasks?.filter(task => task.status === 'Scheduled') || [], [deepCleanTasks]);
+  const selectedDates = useMemo(() => deepCleanTasks?.map(task => new Date(task.scheduledDate)) || [], [deepCleanTasks]);
+
   return (
     <div className="space-y-8">
       <div>
@@ -22,7 +34,7 @@ export default function DeepCleaningPage() {
                 <CardContent>
                     <Calendar
                     mode="multiple"
-                    selected={deepCleanTasks.map(task => new Date(task.scheduledDate))}
+                    selected={selectedDates}
                     className="p-0"
                     />
                 </CardContent>
@@ -34,9 +46,8 @@ export default function DeepCleaningPage() {
               <CardTitle>Upcoming Schedule</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              {deepCleanTasks
-                .filter(task => task.status === 'Scheduled')
-                .map(task => (
+              {loading && <p>Loading schedule...</p>}
+              {scheduledTasks.map(task => (
                   <div key={task.id} className="p-3 rounded-lg border">
                     <div className="flex justify-between items-start">
                         <div>
@@ -49,6 +60,9 @@ export default function DeepCleaningPage() {
                     </div>
                   </div>
                 ))}
+                {scheduledTasks.length === 0 && !loading && (
+                    <p className="text-sm text-muted-foreground">No upcoming deep cleans scheduled.</p>
+                )}
             </CardContent>
           </Card>
         </div>

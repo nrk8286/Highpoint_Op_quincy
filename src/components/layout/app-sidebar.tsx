@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import {
   LayoutDashboard,
   ClipboardList,
@@ -26,9 +26,10 @@ import {
   SidebarSeparator,
 } from '@/components/ui/sidebar';
 import { Logo } from '@/components/logo';
-import { currentUser, users } from '@/lib/data';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 import { Button } from '../ui/button';
+import { useAuth } from '@/firebase';
+import type { User } from '@/lib/types';
 
 const menuItems = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -41,8 +42,15 @@ const menuItems = [
   { href: '/dashboard/audit', label: 'Audit Compliance', icon: FileText, roles: ['Supervisor', 'Admin'] },
 ];
 
-export default function AppSidebar() {
+export default function AppSidebar({ currentUser }: { currentUser: User }) {
   const pathname = usePathname();
+  const router = useRouter();
+  const auth = useAuth();
+
+  const handleLogout = async () => {
+    await auth.signOut();
+    router.push('/');
+  };
 
   return (
     <Sidebar collapsible="icon">
@@ -94,12 +102,10 @@ export default function AppSidebar() {
                 <p className="text-sm text-muted-foreground">{currentUser.role}</p>
             </div>
             <SidebarSeparator/>
-            <Link href="/">
-                <Button variant="ghost" className="w-full justify-start gap-2">
-                    <LogOut className="h-4 w-4"/>
-                    Logout
-                </Button>
-            </Link>
+            <Button variant="ghost" className="w-full justify-start gap-2" onClick={handleLogout}>
+                <LogOut className="h-4 w-4"/>
+                Logout
+            </Button>
           </PopoverContent>
         </Popover>
       </SidebarFooter>

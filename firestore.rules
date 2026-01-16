@@ -1,0 +1,44 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+    
+    function getUserRole(userId) {
+      return get(/databases/$(database)/documents/users/$(userId)).data.role;
+    }
+
+    function isManager() {
+        let userRole = getUserRole(request.auth.uid);
+        return userRole == 'Admin' || userRole == 'Supervisor';
+    }
+
+    match /users/{userId} {
+      allow read: if isSignedIn();
+      allow write: if isOwner(userId) || isManager();
+    }
+
+    match /daily_tasks/{taskId} {
+      allow read: if isSignedIn();
+      allow write: if isManager();
+      allow update: if isSignedIn() && (isManager() || resource.data.assignedTo == request.auth.uid);
+    }
+
+    match /deep_clean_tasks/{taskId} {
+        allow read: if isSignedIn();
+        allow write: if isManager();
+        allow update: if isSignedIn() && (isManager() || resource.data.assignedTo == request.auth.uid);
+    }
+    
+    match /inventory/{itemId} {
+      allow read: if isSignedIn();
+      allow write: if isManager();
+    }
+  }
+}

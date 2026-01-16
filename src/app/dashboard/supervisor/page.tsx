@@ -1,5 +1,5 @@
 'use client';
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   Card,
   CardContent,
@@ -17,9 +17,8 @@ import {
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { users, currentUser } from '@/lib/data';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { MoreHorizontal, UserPlus } from 'lucide-react';
+import { MoreHorizontal, UserPlus, Database } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -30,13 +29,39 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { useToast } from '@/hooks/use-toast';
 import { AddUserDialog } from './add-user-dialog';
+import { useCollection, useUser, useFirestore } from '@/firebase';
+import { seedDatabase } from '@/lib/firebase';
+import { collection, query } from 'firebase/firestore';
+import type { User } from '@/lib/types';
 
 
 export default function SupervisorPage() {
     const { toast } = useToast();
+    const firestore = useFirestore();
+    const { user: currentUser } = useUser();
     const [showAddUserDialog, setShowAddUserDialog] = React.useState(false);
+    
+    const usersQuery = useMemo(() => query(collection(firestore, 'users')), [firestore]);
+    const {data: users, loading: usersLoading} = useCollection<User>(usersQuery);
 
-    const otherUsers = users.filter(u => u.id !== currentUser.id);
+    const otherUsers = useMemo(() => users?.filter(u => u.id !== currentUser?.id) || [], [users, currentUser]);
+
+    const handleSeedDatabase = async () => {
+        try {
+            await seedDatabase(firestore);
+            toast({
+                title: "Database Seeded",
+                description: "Initial data has been added to Firestore."
+            })
+        } catch (error) {
+            console.error(error);
+            toast({
+                variant: 'destructive',
+                title: "Seeding Failed",
+                description: "Could not seed the database. Check console for errors."
+            })
+        }
+    }
 
   return (
     <>
@@ -45,6 +70,22 @@ export default function SupervisorPage() {
             <h1 className="text-3xl font-bold font-headline">User Management</h1>
             <p className="text-muted-foreground">Manage staff accounts and permissions.</p>
         </div>
+
+        {currentUser?.role === 'Admin' && (
+             <Card>
+                <CardHeader>
+                    <CardTitle>Admin Tools</CardTitle>
+                    <CardDescription>Actions for setting up and managing the application.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <Button onClick={handleSeedDatabase}><Database className="mr-2 h-4 w-4" /> Seed Database</Button>
+                    <p className="text-sm text-muted-foreground mt-2">
+                        Click here to populate your database with initial sample data. This is useful for first-time setup.
+                        Note: This will not create Firebase Auth users. You must create them in the Firebase Console with matching emails.
+                    </p>
+                </CardContent>
+             </Card>
+        )}
 
         <Card>
             <CardHeader className="flex-row justify-between items-center">
@@ -68,6 +109,11 @@ export default function SupervisorPage() {
                 </TableRow>
                 </TableHeader>
                 <TableBody>
+                {usersLoading && (
+                    <TableRow>
+                        <TableCell colSpan={3} className="text-center">Loading users...</TableCell>
+                    </TableRow>
+                )}
                 {otherUsers.map((user) => (
                     <TableRow key={user.id}>
                     <TableCell>
@@ -108,6 +154,11 @@ export default function SupervisorPage() {
                     </TableCell>
                     </TableRow>
                 ))}
+                {otherUsers.length === 0 && !usersLoading && (
+                    <TableRow>
+                        <TableCell colSpan={3} className="text-center text-muted-foreground">No other users found.</TableCell>
+                    </TableRow>
+                )}
                 </TableBody>
             </Table>
             </CardContent>

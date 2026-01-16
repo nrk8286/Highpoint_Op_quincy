@@ -5,11 +5,11 @@ import { useFormStatus } from 'react-dom';
 import { Bot, User, CornerDownLeft, CircleUser, Loader } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { chatAction, type ChatState } from './actions';
-import { currentUser } from '@/lib/data';
+import { useUser } from '@/firebase';
 
 function SubmitButton() {
   const { pending } = useFormStatus();
@@ -29,6 +29,7 @@ const quickActions = [
 ];
 
 export default function AiChatPage() {
+    const { user } = useUser();
     const initialState: ChatState = {
         messages: [{ role: 'assistant', content: "Hello! I'm Goldie, your AI assistant. How can I help you today?" }]
     };
@@ -70,7 +71,7 @@ export default function AiChatPage() {
                             </div>
                             {message.role === 'user' && (
                                 <Avatar className="w-8 h-8 border">
-                                    <AvatarImage src={currentUser.avatarUrl} />
+                                    <AvatarImage src={user?.avatarUrl} />
                                     <AvatarFallback><CircleUser /></AvatarFallback>
                                 </Avatar>
                             )}

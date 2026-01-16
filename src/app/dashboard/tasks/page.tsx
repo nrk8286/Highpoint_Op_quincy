@@ -1,9 +1,13 @@
+'use client';
+import React, { useMemo } from 'react';
+import { collection, query, orderBy } from 'firebase/firestore';
+import { useCollection, useFirestore, useUser } from '@/firebase';
+
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { FilePlus2, Upload } from 'lucide-react';
-import { dailyTasks } from '@/lib/data';
-import { DailyTask } from '@/lib/types';
+import { DailyTask, User } from '@/lib/types';
 import { CheckCircle2, AlertCircle, Clock, XCircle } from 'lucide-react';
 import {
   Table,
@@ -13,6 +17,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { AddTaskDialog } from './add-task-dialog';
 
 const getStatusBadge = (status: DailyTask['status']) => {
   const variantMap: { [key in DailyTask['status']]: 'default' | 'secondary' | 'destructive' | 'outline' } = {
@@ -39,7 +44,25 @@ const getStatusBadge = (status: DailyTask['status']) => {
 
 
 export default function TasksPage() {
+  const firestore = useFirestore();
+  const { user } = useUser();
+  const [showAddTaskDialog, setShowAddTaskDialog] = React.useState(false);
+
+  const tasksQuery = useMemo(() => query(collection(firestore, 'daily_tasks'), orderBy('createdAt', 'desc')), [firestore]);
+  const usersQuery = useMemo(() => query(collection(firestore, 'users')), [firestore]);
+
+  const { data: dailyTasks, loading: tasksLoading } = useCollection<DailyTask>(tasksQuery);
+  const { data: users, loading: usersLoading } = useCollection<User>(usersQuery);
+
+  const usersMap = useMemo(() => {
+    if (!users) return new Map();
+    return new Map(users.map(u => [u.id, u.name]));
+  }, [users]);
+
+  const canAddTask = user?.role === 'Admin' || user?.role === 'Supervisor';
+
   return (
+    <>
     <div className="space-y-8">
        <div>
         <h1 className="text-3xl font-bold font-headline">Daily Task Management</h1>
@@ -52,10 +75,12 @@ export default function TasksPage() {
             <CardTitle>All Tasks</CardTitle>
             <CardDescription>A list of all housekeeping tasks for today.</CardDescription>
           </div>
-          <Button>
-            <FilePlus2 className="mr-2 h-4 w-4" />
-            Add Task
-          </Button>
+          {canAddTask && (
+            <Button onClick={() => setShowAddTaskDialog(true)}>
+              <FilePlus2 className="mr-2 h-4 w-4" />
+              Add Task
+            </Button>
+          )}
         </CardHeader>
         <CardContent>
           <Table>
@@ -70,12 +95,17 @@ export default function TasksPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {dailyTasks.map((task) => (
+              {(tasksLoading || usersLoading) && (
+                <TableRow>
+                    <TableCell colSpan={6} className="text-center">Loading tasks...</TableCell>
+                </TableRow>
+              )}
+              {dailyTasks?.map((task) => (
                 <TableRow key={task.id}>
                   <TableCell className="font-medium">{task.roomNumber}</TableCell>
                   <TableCell>{task.roomType}</TableCell>
                   <TableCell>{getStatusBadge(task.status)}</TableCell>
-                  <TableCell>User {task.assignedTo.split('-')[1]}</TableCell>
+                  <TableCell>{usersMap.get(task.assignedTo) || task.assignedTo}</TableCell>
                   <TableCell className="max-w-[200px] truncate">{task.notes || '-'}</TableCell>
                   <TableCell className="text-right">
                     <Button variant="ghost" size="icon">
@@ -85,10 +115,17 @@ export default function TasksPage() {
                   </TableCell>
                 </TableRow>
               ))}
+              {dailyTasks?.length === 0 && !tasksLoading && (
+                <TableRow>
+                    <TableCell colSpan={6} className="text-center text-muted-foreground">No tasks found.</TableCell>
+                </TableRow>
+              )}
             </TableBody>
           </Table>
         </CardContent>
       </Card>
     </div>
+    {canAddTask && users && <AddTaskDialog open={showAddTaskDialog} onOpenChange={setShowAddTaskDialog} housekeepers={users.filter(u => u.role === 'Housekeeper')} />}
+    </>
   );
 }

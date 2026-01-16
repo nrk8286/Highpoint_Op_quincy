@@ -1,3 +1,5 @@
+import { Timestamp } from 'firebase/firestore';
+
 export type UserRole = 'Admin' | 'Supervisor' | 'Housekeeper';
 
 export interface User {
@@ -6,6 +8,7 @@ export interface User {
   email: string;
   role: UserRole;
   avatarUrl: string;
+  createdAt?: Timestamp;
 }
 
 export type TaskStatus = 'Pending' | 'In Progress' | 'Completed' | 'Overdue' | 'Declined';
@@ -18,6 +21,8 @@ export interface DailyTask {
   status: TaskStatus;
   date: string; // YYYY-MM-DD
   notes?: string;
+  createdAt?: Timestamp;
+  updatedAt?: Timestamp;
 }
 
 export interface DeepCleanTask {
@@ -27,6 +32,8 @@ export interface DeepCleanTask {
   completedDate?: string;
   assignedTo: string; // User ID
   status: 'Scheduled' | 'In Progress' | 'Completed';
+  createdAt?: Timestamp;
+  updatedAt?: Timestamp;
 }
 
 export interface InventoryItem {
@@ -36,6 +43,8 @@ export interface InventoryItem {
   quantity: number;
   reorderLevel: number;
   status: 'In Stock' | 'Low Stock' | 'Out of Stock';
+  createdAt?: Timestamp;
+  updatedAt?: Timestamp;
 }
 
 export interface Inspection {
@@ -46,4 +55,5 @@ export interface Inspection {
     status: 'Pass' | 'Fail' | 'Corrective Action';
     notes: string;
     photoUrl?: string;
+    createdAt?: Timestamp;
 }

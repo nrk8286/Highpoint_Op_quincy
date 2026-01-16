@@ -1,0 +1,87 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "A user profile.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "role": { "type": "string", "enum": ["Admin", "Supervisor", "Housekeeper"] },
+        "avatarUrl": { "type": "string", "format": "uri" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "name", "email", "role", "createdAt"]
+    },
+    "DailyTask": {
+      "title": "Daily Task",
+      "description": "A daily cleaning task.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "roomNumber": { "type": "string" },
+        "roomType": { "type": "string" },
+        "assignedTo": { "type": "string" },
+        "status": { "type": "string", "enum": ["Pending", "In Progress", "Completed", "Overdue", "Declined"] },
+        "date": { "type": "string", "format": "date" },
+        "notes": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["roomNumber", "roomType", "assignedTo", "status", "date", "createdAt", "updatedAt"]
+    },
+    "DeepCleanTask": {
+      "title": "Deep Clean Task",
+      "description": "A scheduled deep cleaning task.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "zone": { "type": "string" },
+        "scheduledDate": { "type": "string", "format": "date" },
+        "completedDate": { "type": "string", "format": "date" },
+        "assignedTo": { "type": "string" },
+        "status": { "type": "string", "enum": ["Scheduled", "In Progress", "Completed"] },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["zone", "scheduledDate", "assignedTo", "status", "createdAt", "updatedAt"]
+    },
+    "InventoryItem": {
+      "title": "Inventory Item",
+      "description": "An inventory item.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "category": { "type": "string" },
+        "quantity": { "type": "number" },
+        "reorderLevel": { "type": "number" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["name", "category", "quantity", "reorderLevel", "createdAt", "updatedAt"]
+    }
+  },
+  "auth": {
+    "providers": ["email-password"]
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/User" },
+      "description": "User profile documents."
+    },
+    "/daily_tasks/{taskId}": {
+      "schema": { "$ref": "#/entities/DailyTask" },
+      "description": "Collection of all daily tasks."
+    },
+    "/deep_clean_tasks/{taskId}": {
+        "schema": { "$ref": "#/entities/DeepCleanTask" },
+        "description": "Collection of all deep clean tasks."
+    },
+    "/inventory/{itemId}": {
+      "schema": { "$ref": "#/entities/InventoryItem" },
+      "description": "Collection of all inventory items."
+    }
+  }
+}

@@ -14,17 +14,26 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
-import { users } from '@/lib/data';
 import { PerformanceTrendChart } from '@/components/charts/performance-trend-chart';
 import { Trophy, Star, Zap } from 'lucide-react';
+import { PlaceHolderImages } from '@/lib/placeholder-images';
+
+// This is mock data. In a real application, this would be fetched from Firestore.
+const users = [
+    { id: 'user-2', name: 'Audry Meadows', avatarUrl: PlaceHolderImages.find(i => i.id === 'avatar-2')?.imageUrl, role: 'Housekeeper' },
+    { id: 'user-3', name: 'Hannah Steele', avatarUrl: PlaceHolderImages.find(i => i.id === 'avatar-3')?.imageUrl, role: 'Housekeeper' },
+];
 
 const mockPerformance = {
   'user-2': { roomsPerShift: 18, inspectionPassRate: 95, avgSpeed: '22 min/room' },
   'user-3': { roomsPerShift: 16, inspectionPassRate: 98, avgSpeed: '25 min/room' },
 };
 
+
 export default function PerformancePage() {
+  const topPerformer = users.find(u => u.id === 'user-3');
+  const fastestResponder = users.find(u => u.id === 'user-2');
+
   return (
     <div className="space-y-8">
        <div>
@@ -39,11 +48,11 @@ export default function PerformancePage() {
             </CardHeader>
             <CardContent className="flex items-center gap-4">
                 <Avatar className="h-16 w-16">
-                    <AvatarImage src={users.find(u => u.id === 'user-3')?.avatarUrl} />
-                    <AvatarFallback>JB</AvatarFallback>
+                    <AvatarImage src={topPerformer?.avatarUrl} />
+                    <AvatarFallback>HS</AvatarFallback>
                 </Avatar>
                 <div>
-                    <p className="font-bold text-lg">{users.find(u => u.id === 'user-3')?.name}</p>
+                    <p className="font-bold text-lg">{topPerformer?.name}</p>
                     <p className="text-sm text-muted-foreground">98% Pass Rate</p>
                 </div>
             </CardContent>
@@ -54,11 +63,11 @@ export default function PerformancePage() {
             </CardHeader>
             <CardContent className="flex items-center gap-4">
                 <Avatar className="h-16 w-16">
-                    <AvatarImage src={users.find(u => u.id === 'user-3')?.avatarUrl} />
-                    <AvatarFallback>JB</AvatarFallback>
+                    <AvatarImage src={topPerformer?.avatarUrl} />
+                    <AvatarFallback>HS</AvatarFallback>
                 </Avatar>
                 <div>
-                    <p className="font-bold text-lg">{users.find(u => u.id === 'user-3')?.name}</p>
+                    <p className="font-bold text-lg">{topPerformer?.name}</p>
                     <p className="text-sm text-muted-foreground">100% Tasks On-time</p>
                 </div>
             </CardContent>
@@ -69,11 +78,11 @@ export default function PerformancePage() {
             </CardHeader>
             <CardContent className="flex items-center gap-4">
                  <Avatar className="h-16 w-16">
-                    <AvatarImage src={users.find(u => u.id === 'user-2')?.avatarUrl} />
-                    <AvatarFallback>MW</AvatarFallback>
+                    <AvatarImage src={fastestResponder?.avatarUrl} />
+                    <AvatarFallback>AM</AvatarFallback>
                 </Avatar>
                 <div>
-                    <p className="font-bold text-lg">{users.find(u => u.id === 'user-2')?.name}</p>
+                    <p className="font-bold text-lg">{fastestResponder?.name}</p>
                     <p className="text-sm text-muted-foreground">22 min/room Avg.</p>
                 </div>
             </CardContent>

@@ -1,3 +1,5 @@
+'use client';
+import React, { useMemo } from 'react';
 import {
   Card,
   CardContent,
@@ -15,12 +17,20 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { inventoryItems } from '@/lib/data';
-import type { InventoryItem } from '@/lib/types';
+import { InventoryItem } from '@/lib/types';
 import { AlertTriangle, CheckCircle, PackagePlus, ShieldAlert } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
+import { useCollection, useFirestore, useUser } from '@/firebase';
+import { collection, query, orderBy } from 'firebase/firestore';
+import { AddItemDialog } from './add-item-dialog';
 
-const getStatusBadge = (status: InventoryItem['status']) => {
+const getStatus = (item: InventoryItem) => {
+    if (item.quantity <= 0) return 'Out of Stock';
+    if (item.quantity <= item.reorderLevel) return 'Low Stock';
+    return 'In Stock';
+}
+
+const getStatusBadge = (status: 'In Stock' | 'Low Stock' | 'Out of Stock') => {
     switch (status) {
         case 'In Stock':
             return <Badge variant="secondary" className="bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300"><CheckCircle className="mr-1 h-3 w-3"/>In Stock</Badge>;
@@ -34,7 +44,16 @@ const getStatusBadge = (status: InventoryItem['status']) => {
 }
 
 export default function InventoryPage() {
+    const firestore = useFirestore();
+    const { user } = useUser();
+    const [showAddItemDialog, setShowAddItemDialog] = React.useState(false);
+
+    const queryRef = useMemo(() => query(collection(firestore, 'inventory'), orderBy('createdAt', 'desc')), [firestore]);
+    const { data: inventoryItems, loading } = useCollection<InventoryItem>(queryRef);
+    const canAddItem = user?.role === 'Admin' || user?.role === 'Supervisor';
+
   return (
+    <>
     <div className="space-y-8">
       <div>
         <h1 className="text-3xl font-bold font-headline">Inventory Management</h1>
@@ -47,7 +66,9 @@ export default function InventoryPage() {
             <CardTitle>Supply Levels</CardTitle>
             <CardDescription>Automated alerts are triggered at threshold levels.</CardDescription>
           </div>
-          <Button><PackagePlus className="mr-2 h-4 w-4"/>Add Item</Button>
+          {canAddItem && (
+            <Button onClick={() => setShowAddItemDialog(true)}><PackagePlus className="mr-2 h-4 w-4"/>Add Item</Button>
+          )}
         </CardHeader>
         <CardContent>
           <Table>
@@ -62,27 +83,42 @@ export default function InventoryPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {inventoryItems.map((item) => (
-                <TableRow key={item.id}>
-                  <TableCell className="font-medium">{item.name}</TableCell>
-                  <TableCell>{item.category}</TableCell>
-                  <TableCell>{item.quantity}</TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                        <Progress value={(item.quantity / (item.reorderLevel * 2)) * 100} className="h-2"/>
-                        <span className="text-xs text-muted-foreground">{item.quantity} / {item.reorderLevel * 2}</span>
-                    </div>
-                  </TableCell>
-                  <TableCell>{getStatusBadge(item.status)}</TableCell>
-                  <TableCell className="text-right">
-                    <Button variant="outline" size="sm">Reorder</Button>
-                  </TableCell>
+              {loading && (
+                <TableRow>
+                    <TableCell colSpan={6} className="text-center">Loading inventory...</TableCell>
                 </TableRow>
-              ))}
+              )}
+              {inventoryItems?.map((item) => {
+                const status = getStatus(item);
+                return (
+                    <TableRow key={item.id}>
+                    <TableCell className="font-medium">{item.name}</TableCell>
+                    <TableCell>{item.category}</TableCell>
+                    <TableCell>{item.quantity}</TableCell>
+                    <TableCell>
+                        <div className="flex items-center gap-2">
+                            <Progress value={(item.quantity / (item.reorderLevel * 2)) * 100} className="h-2"/>
+                            <span className="text-xs text-muted-foreground">{item.quantity} / {item.reorderLevel * 2}</span>
+                        </div>
+                    </TableCell>
+                    <TableCell>{getStatusBadge(status)}</TableCell>
+                    <TableCell className="text-right">
+                        <Button variant="outline" size="sm" disabled={status === 'Out of Stock'}>Reorder</Button>
+                    </TableCell>
+                    </TableRow>
+                )
+              })}
+              {inventoryItems?.length === 0 && !loading && (
+                <TableRow>
+                    <TableCell colSpan={6} className="text-center text-muted-foreground">No inventory items found.</TableCell>
+                </TableRow>
+              )}
             </TableBody>
           </Table>
         </CardContent>
       </Card>
     </div>
+    {canAddItem && <AddItemDialog open={showAddItemDialog} onOpenChange={setShowAddItemDialog} />}
+    </>
   );
 }

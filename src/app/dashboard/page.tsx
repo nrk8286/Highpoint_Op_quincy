@@ -1,3 +1,8 @@
+'use client';
+import { useMemo } from 'react';
+import { collection, query, where } from 'firebase/firestore';
+import { useCollection, useUser, useFirestore } from '@/firebase';
+
 import {
   Card,
   CardContent,
@@ -14,14 +19,9 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Progress } from '@/components/ui/progress';
-import { dailyTasks, deepCleanTasks, inventoryItems, currentUser } from '@/lib/data';
-import type { DailyTask } from '@/lib/types';
 import { CheckCircle2, AlertCircle, Clock, XCircle } from 'lucide-react';
 import { CompletionRingChart } from '@/components/charts/completion-ring-chart';
-import { PerformanceTrendChart } from '@/components/charts/performance-trend-chart';
-import { format, addDays, differenceInDays } from 'date-fns';
+import type { DailyTask, InventoryItem } from '@/lib/types';
 
 const getStatusIcon = (status: DailyTask['status']) => {
   switch (status) {
@@ -39,14 +39,30 @@ const getStatusIcon = (status: DailyTask['status']) => {
 };
 
 export default function DashboardPage() {
-  const completedTasks = dailyTasks.filter(t => t.status === 'Completed').length;
-  const totalTasks = dailyTasks.length;
+  const { user } = useUser();
+  const firestore = useFirestore();
+
+  const tasksQuery = useMemo(() => user ? query(collection(firestore, 'daily_tasks')) : null, [firestore, user]);
+  const inventoryQuery = useMemo(() => user ? query(collection(firestore, 'inventory')) : null, [firestore, user]);
+  const deepCleansQuery = useMemo(() => user ? query(collection(firestore, 'deep_clean_tasks'), where('status', '==', 'Scheduled')) : null, [firestore, user]);
+  
+  const { data: dailyTasks, loading: tasksLoading } = useCollection<DailyTask>(tasksQuery);
+  const { data: inventoryItems, loading: inventoryLoading } = useCollection<InventoryItem>(inventoryQuery);
+  const { data: deepCleanTasks, loading: deepCleansLoading } = useCollection<DailyTask>(deepCleansQuery);
+
+  const completedTasks = dailyTasks?.filter(t => t.status === 'Completed').length || 0;
+  const totalTasks = dailyTasks?.length || 0;
   const completionPercentage = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+  const overdueTasks = dailyTasks?.filter(t => t.status === 'Overdue').length || 0;
+  const lowStockItems = inventoryItems?.filter(i => i.quantity <= i.reorderLevel).length || 0;
+
+  const myPriorityTasks = dailyTasks?.filter(t => t.assignedTo === user?.id && ['Pending', 'In Progress'].includes(t.status)).slice(0, 5) || [];
+
 
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-3xl font-bold font-headline">Welcome back, {currentUser.name}!</h1>
+        <h1 className="text-3xl font-bold font-headline">Welcome back, {user?.name}!</h1>
         <p className="text-muted-foreground">Here's a summary of housekeeping operations.</p>
       </div>
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
@@ -68,7 +84,7 @@ export default function DashboardPage() {
             <AlertCircle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-red-500">{dailyTasks.filter(t => t.status === 'Overdue').length}</div>
+            <div className="text-2xl font-bold text-red-500">{overdueTasks}</div>
             <p className="text-xs text-muted-foreground">Require immediate attention</p>
           </CardContent>
         </Card>
@@ -78,7 +94,7 @@ export default function DashboardPage() {
             <AlertCircle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{inventoryItems.filter(i => i.status === 'Low Stock').length}</div>
+            <div className="text-2xl font-bold">{lowStockItems}</div>
             <p className="text-xs text-muted-foreground">Review inventory and reorder</p>
           </CardContent>
         </Card>
@@ -88,7 +104,7 @@ export default function DashboardPage() {
             <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{deepCleanTasks.filter(t => t.status === 'Scheduled').length}</div>
+            <div className="text-2xl font-bold">{deepCleanTasks?.length || 0}</div>
             <p className="text-xs text-muted-foreground">Scheduled for this quarter</p>
           </CardContent>
         </Card>
@@ -110,7 +126,7 @@ export default function DashboardPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {dailyTasks.filter(t => ['Pending', 'In Progress'].includes(t.status)).slice(0, 5).map(task => (
+                {myPriorityTasks.map(task => (
                   <TableRow key={task.id}>
                     <TableCell className="font-medium">{task.roomNumber}</TableCell>
                     <TableCell>
@@ -124,6 +140,11 @@ export default function DashboardPage() {
                     </TableCell>
                   </TableRow>
                 ))}
+                 {myPriorityTasks.length === 0 && (
+                    <TableRow>
+                        <TableCell colSpan={3} className="text-center text-muted-foreground">No priority tasks assigned.</TableCell>
+                    </TableRow>
+                )}
               </TableBody>
             </Table>
           </CardContent>
