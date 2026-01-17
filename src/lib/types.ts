@@ -1,6 +1,6 @@
 import { Timestamp } from 'firebase/firestore';
 
-export type UserRole = 'Admin' | 'Supervisor' | 'Housekeeper' | 'Director' | 'Administrator';
+export type UserRole = 'Admin' | 'Supervisor' | 'Housekeeper' | 'Director' | 'Administrator' | 'Maintenance';
 
 export interface User {
   id: string;
@@ -46,6 +46,24 @@ export interface InventoryItem {
   createdAt?: Timestamp;
   updatedAt?: Timestamp;
 }
+
+export type MaintenanceStatus = 'Open' | 'In Progress' | 'Completed' | 'On Hold';
+export type MaintenancePriority = 'Low' | 'Medium' | 'High' | 'Urgent';
+export type MaintenanceIssueType = 'Plumbing' | 'Electrical' | 'HVAC' | 'Painting' | 'General Repair';
+
+export interface MaintenanceWorkOrder {
+    id: string;
+    location: string; // e.g. Room number or area name
+    issueType: MaintenanceIssueType;
+    description: string;
+    status: MaintenanceStatus;
+    priority: MaintenancePriority;
+    createdBy: string; // User ID
+    assignedTo?: string; // User ID
+    createdAt?: Timestamp;
+    updatedAt?: Timestamp;
+}
+
 
 export interface Inspection {
     id: string;

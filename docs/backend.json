@@ -8,7 +8,7 @@
         "id": { "type": "string" },
         "name": { "type": "string" },
         "email": { "type": "string", "format": "email" },
-        "role": { "type": "string", "enum": ["Admin", "Supervisor", "Housekeeper", "Director", "Administrator"] },
+        "role": { "type": "string", "enum": ["Admin", "Supervisor", "Housekeeper", "Director", "Administrator", "Maintenance"] },
         "avatarUrl": { "type": "string", "format": "uri" },
         "createdAt": { "type": "string", "format": "date-time" }
       },
@@ -61,6 +61,24 @@
         "updatedAt": { "type": "string", "format": "date-time" }
       },
       "required": ["name", "category", "quantity", "reorderLevel", "createdAt", "updatedAt"]
+    },
+    "MaintenanceWorkOrder": {
+      "title": "Maintenance Work Order",
+      "description": "A maintenance work order ticket.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "location": { "type": "string" },
+        "issueType": { "type": "string", "enum": ["Plumbing", "Electrical", "HVAC", "Painting", "General Repair"] },
+        "description": { "type": "string" },
+        "status": { "type": "string", "enum": ["Open", "In Progress", "Completed", "On Hold"] },
+        "priority": { "type": "string", "enum": ["Low", "Medium", "High", "Urgent"] },
+        "createdBy": { "type": "string" },
+        "assignedTo": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["location", "issueType", "description", "status", "priority", "createdBy", "createdAt", "updatedAt"]
     }
   },
   "auth": {
@@ -82,6 +100,10 @@
     "/inventory/{itemId}": {
       "schema": { "$ref": "#/entities/InventoryItem" },
       "description": "Collection of all inventory items."
+    },
+    "/maintenance_work_orders/{workOrderId}": {
+      "schema": { "$ref": "#/entities/MaintenanceWorkOrder" },
+      "description": "Collection of all maintenance work orders."
     }
   }
 }

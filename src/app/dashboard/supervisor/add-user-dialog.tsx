@@ -86,6 +86,7 @@ export function AddUserDialog({ open, onOpenChange }: AddUserDialogProps) {
                         </SelectTrigger>
                         <SelectContent>
                             <SelectItem value="Housekeeper">Housekeeper</SelectItem>
+                            <SelectItem value="Maintenance">Maintenance</SelectItem>
                             <SelectItem value="Supervisor">Supervisor</SelectItem>
                             <SelectItem value="Director">Director</SelectItem>
                             <SelectItem value="Admin">Admin</SelectItem>

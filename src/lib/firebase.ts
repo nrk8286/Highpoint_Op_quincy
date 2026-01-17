@@ -13,7 +13,7 @@ import {
 } from 'firebase/firestore';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
-import type { DailyTask, DeepCleanTask, InventoryItem, User } from '@/lib/types';
+import type { DailyTask, DeepCleanTask, InventoryItem, User, MaintenanceWorkOrder } from '@/lib/types';
 import { PlaceHolderImages } from './placeholder-images';
 
 const dailyTasksToSeed: Omit<DailyTask, 'id' | 'createdAt' | 'updatedAt' | 'assignedTo'>[] = [
@@ -93,6 +93,20 @@ export const seedDatabase = async (db: Firestore) => {
 
   await batch.commit();
 };
+
+export function addWorkOrder(db: Firestore, workOrder: Omit<MaintenanceWorkOrder, 'id' | 'createdAt' | 'updatedAt'>) {
+    const workOrderRef = collection(db, 'maintenance_work_orders');
+    addDoc(workOrderRef, { ...workOrder, createdAt: serverTimestamp(), updatedAt: serverTimestamp() })
+        .catch(async (serverError) => {
+            const permissionError = new FirestorePermissionError({
+                path: workOrderRef.path,
+                operation: 'create',
+                requestResourceData: workOrder,
+            });
+            errorEmitter.emit('permission-error', permissionError);
+            throw permissionError;
+        });
+}
 
 export function addTask(db: Firestore, task: Omit<DailyTask, 'id' | 'createdAt' | 'updatedAt'>) {
     const taskRef = collection(db, 'daily_tasks');

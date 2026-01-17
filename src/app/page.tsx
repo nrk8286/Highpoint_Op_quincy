@@ -39,6 +39,7 @@ const preconfiguredUsers: { [email: string]: Partial<Omit<User, 'id' | 'createdA
   'director@example.com': { name: 'The Director', role: 'Director', avatarUrl: PlaceHolderImages.find(i => i.id === 'avatar-1')?.imageUrl },
   'housekeeper1@example.com': { name: 'Audry Howell', role: 'Housekeeper', avatarUrl: PlaceHolderImages.find(i => i.id === 'avatar-2')?.imageUrl },
   'housekeeper2@example.com': { name: 'Hannah Steele', role: 'Housekeeper', avatarUrl: PlaceHolderImages.find(i => i.id === 'avatar-3')?.imageUrl },
+  'maintenance@example.com': { name: 'Mike Rowe', role: 'Maintenance', avatarUrl: PlaceHolderImages.find(i => i.id === 'avatar-2')?.imageUrl },
 };
 
 
@@ -117,7 +118,7 @@ export default function LoginPage() {
         <Card className="shadow-2xl">
           <CardHeader className="text-center">
             <div className="mx-auto mb-4">
-              <Logo size="large" />
+              <Logo size="xlarge" />
             </div>
             <CardTitle className="text-4xl font-bold tracking-tight font-headline">
               HighPoint HouseKeep

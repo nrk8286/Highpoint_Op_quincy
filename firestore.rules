@@ -19,6 +19,10 @@ service cloud.firestore {
         return userRole == 'Admin' || userRole == 'Supervisor' || userRole == 'Director' || userRole == 'Administrator';
     }
 
+    function isMaintenance() {
+        return getUserRole(request.auth.uid) == 'Maintenance';
+    }
+
     match /users/{userId} {
       allow read: if isSignedIn();
       allow write: if isOwner(userId) || isManager();
@@ -39,6 +43,13 @@ service cloud.firestore {
     match /inventory/{itemId} {
       allow read: if isSignedIn();
       allow write: if isManager();
+    }
+
+    match /maintenance_work_orders/{workOrderId} {
+        allow read: if isSignedIn();
+        allow create: if isSignedIn();
+        allow update: if isManager() || isMaintenance();
+        allow delete: if isManager();
     }
   }
 }
