@@ -34,7 +34,7 @@ const loginSchema = z.object({
 type LoginFormValues = z.infer<typeof loginSchema>;
 
 const preconfiguredUsers: { [email: string]: Partial<Omit<User, 'id' | 'createdAt'>> } = {
-  'admin@example.com': { name: 'Nicholas Kelly', role: 'Admin', avatarUrl: 'https://images.unsplash.com/photo-1599566150163-29194dcaad36?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxwb3J0cmFpdHxlbnwwfHx8fDE3Njg1NjQxMDZ8MA&ixlib=rb-4.1.0&q=80&w=1080' },
+  'nrk8286@gmail.com': { name: 'Nicholas Kelly', role: 'Admin', avatarUrl: 'https://images.unsplash.com/photo-1599566150163-29194dcaad36?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxwb3J0cmFpdHxlbnwwfHx8fDE3Njg1NjQxMDZ8MA&ixlib=rb-4.1.0&q=80&w=1080' },
   'admin2@example.com': { name: 'Lonnie Kurr', role: 'Administrator', avatarUrl: PlaceHolderImages.find(i => i.id === 'avatar-1')?.imageUrl },
   'director@example.com': { name: 'The Director', role: 'Director', avatarUrl: PlaceHolderImages.find(i => i.id === 'avatar-1')?.imageUrl },
   'housekeeper1@example.com': { name: 'Audry Howell', role: 'Housekeeper', avatarUrl: PlaceHolderImages.find(i => i.id === 'avatar-2')?.imageUrl },
