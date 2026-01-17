@@ -129,7 +129,7 @@ export default function SupervisorPage() {
                         </div>
                     </TableCell>
                     <TableCell>
-                        <Badge variant={user.role === 'Admin' || user.role === 'Supervisor' ? 'secondary' : 'outline'}>{user.role}</Badge>
+                        <Badge variant={user.role === 'Admin' || user.role === 'Supervisor' || user.role === 'Director' || user.role === 'Administrator' ? 'secondary' : 'outline'}>{user.role}</Badge>
                     </TableCell>
                     <TableCell>
                         <DropdownMenu>

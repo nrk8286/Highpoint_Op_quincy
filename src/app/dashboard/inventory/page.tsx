@@ -50,7 +50,7 @@ export default function InventoryPage() {
 
     const queryRef = useMemo(() => query(collection(firestore, 'inventory'), orderBy('createdAt', 'desc')), [firestore]);
     const { data: inventoryItems, loading } = useCollection<InventoryItem>(queryRef);
-    const canAddItem = user?.role === 'Admin' || user?.role === 'Supervisor';
+    const canAddItem = user?.role === 'Admin' || user?.role === 'Supervisor' || user?.role === 'Director' || user?.role === 'Administrator';
 
   return (
     <>

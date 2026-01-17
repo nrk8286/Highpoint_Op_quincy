@@ -16,7 +16,7 @@ service cloud.firestore {
 
     function isManager() {
         let userRole = getUserRole(request.auth.uid);
-        return userRole == 'Admin' || userRole == 'Supervisor';
+        return userRole == 'Admin' || userRole == 'Supervisor' || userRole == 'Director' || userRole == 'Administrator';
     }
 
     match /users/{userId} {

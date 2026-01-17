@@ -59,7 +59,7 @@ export default function TasksPage() {
     return new Map(users.map(u => [u.id, u.name]));
   }, [users]);
 
-  const canAddTask = user?.role === 'Admin' || user?.role === 'Supervisor';
+  const canAddTask = user?.role === 'Admin' || user?.role === 'Supervisor' || user?.role === 'Director' || user?.role === 'Administrator';
 
   return (
     <>

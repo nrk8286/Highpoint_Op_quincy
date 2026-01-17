@@ -38,8 +38,8 @@ const menuItems = [
   { href: '/dashboard/deep-cleaning', label: 'Deep Cleaning', icon: CalendarCheck },
   { href: '/dashboard/inventory', label: 'Inventory', icon: Warehouse },
   { href: '/dashboard/performance', label: 'Performance', icon: BarChart3 },
-  { href: '/dashboard/supervisor', label: 'User Management', icon: Users, roles: ['Supervisor', 'Admin'] },
-  { href: '/dashboard/audit', label: 'Audit Compliance', icon: FileText, roles: ['Supervisor', 'Admin'] },
+  { href: '/dashboard/supervisor', label: 'User Management', icon: Users, roles: ['Supervisor', 'Admin', 'Director', 'Administrator'] },
+  { href: '/dashboard/audit', label: 'Audit Compliance', icon: FileText, roles: ['Supervisor', 'Admin', 'Director', 'Administrator'] },
 ];
 
 export default function AppSidebar({ currentUser }: { currentUser: User }) {

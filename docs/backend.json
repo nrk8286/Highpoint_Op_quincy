@@ -8,7 +8,7 @@
         "id": { "type": "string" },
         "name": { "type": "string" },
         "email": { "type": "string", "format": "email" },
-        "role": { "type": "string", "enum": ["Admin", "Supervisor", "Housekeeper"] },
+        "role": { "type": "string", "enum": ["Admin", "Supervisor", "Housekeeper", "Director", "Administrator"] },
         "avatarUrl": { "type": "string", "format": "uri" },
         "createdAt": { "type": "string", "format": "date-time" }
       },
