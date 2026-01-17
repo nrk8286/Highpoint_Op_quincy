@@ -6,7 +6,7 @@ import { useCollection, useFirestore, useUser } from '@/firebase';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Wrench, ShieldAlert } from 'lucide-react';
+import { Wrench, ShieldAlert, MoreHorizontal } from 'lucide-react';
 import { MaintenanceWorkOrder, MaintenanceStatus, MaintenancePriority, User } from '@/lib/types';
 import {
   Table,
@@ -16,7 +16,16 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { AddWorkOrderDialog } from './add-work-order-dialog';
+import { updateWorkOrder } from '@/lib/firebase';
+import { useToast } from '@/hooks/use-toast';
 
 const getStatusBadge = (status: MaintenanceStatus) => {
   const variantMap: { [key in MaintenanceStatus]: 'default' | 'secondary' | 'destructive' | 'outline' } = {
@@ -39,6 +48,7 @@ const getPriorityBadge = (priority: MaintenancePriority) => {
 export default function MaintenancePage() {
   const firestore = useFirestore();
   const { user } = useUser();
+  const { toast } = useToast();
   const [showAddDialog, setShowAddDialog] = React.useState(false);
 
   const workOrdersQuery = useMemo(() => query(collection(firestore, 'maintenance_work_orders'), orderBy('createdAt', 'desc')), [firestore]);
@@ -53,6 +63,24 @@ export default function MaintenancePage() {
   }, [users]);
   
   const maintenanceStaff = useMemo(() => users?.filter(u => u.role === 'Maintenance') || [], [users]);
+
+  const canManageWorkOrders = useMemo(() => {
+    if (!user) return false;
+    const managerRoles: User['role'][] = ['Admin', 'Supervisor', 'Director', 'Administrator'];
+    return managerRoles.includes(user.role) || user.role === 'Maintenance';
+  }, [user]);
+
+  const handleUpdateStatus = (workOrderId: string, status: MaintenanceStatus) => {
+    try {
+      updateWorkOrder(firestore, workOrderId, { status });
+      toast({
+        title: 'Work Order Updated',
+        description: `Work order status has been set to ${status}.`
+      });
+    } catch(error) {
+      // Error is handled by global error listener via the Firebase module
+    }
+  };
 
   return (
     <>
@@ -81,9 +109,9 @@ export default function MaintenancePage() {
                 <TableHead>Issue Type</TableHead>
                 <TableHead>Priority</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead>Created By</TableHead>
                 <TableHead>Assigned To</TableHead>
-                <TableHead>Description</TableHead>
+                <TableHead className="max-w-[200px]">Description</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -98,9 +126,41 @@ export default function MaintenancePage() {
                   <TableCell>{order.issueType}</TableCell>
                   <TableCell>{getPriorityBadge(order.priority)}</TableCell>
                   <TableCell>{getStatusBadge(order.status)}</TableCell>
-                  <TableCell>{usersMap.get(order.createdBy) || 'Unknown'}</TableCell>
                   <TableCell>{usersMap.get(order.assignedTo || '') || 'Unassigned'}</TableCell>
-                  <TableCell className="max-w-[300px] truncate">{order.description}</TableCell>
+                  <TableCell className="max-w-[200px] truncate">{order.description}</TableCell>
+                  <TableCell className="text-right">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          aria-haspopup="true"
+                          size="icon"
+                          variant="ghost"
+                          disabled={!canManageWorkOrders}
+                        >
+                          <MoreHorizontal className="h-4 w-4" />
+                          <span className="sr-only">Toggle menu</span>
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuLabel>Change Status</DropdownMenuLabel>
+                        {order.status !== 'In Progress' && (
+                          <DropdownMenuItem onSelect={() => handleUpdateStatus(order.id, 'In Progress')}>
+                            Start Work
+                          </DropdownMenuItem>
+                        )}
+                        {order.status !== 'On Hold' && (
+                           <DropdownMenuItem onSelect={() => handleUpdateStatus(order.id, 'On Hold')}>
+                            Place on Hold
+                          </DropdownMenuItem>
+                        )}
+                        {order.status !== 'Completed' && (
+                          <DropdownMenuItem onSelect={() => handleUpdateStatus(order.id, 'Completed')}>
+                            Complete Work Order
+                          </DropdownMenuItem>
+                        )}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
                 </TableRow>
               ))}
               {workOrders?.length === 0 && !workOrdersLoading && (

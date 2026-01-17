@@ -10,10 +10,11 @@ import {
   where,
   getDocs,
   Firestore,
+  updateDoc,
 } from 'firebase/firestore';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
-import type { DailyTask, DeepCleanTask, InventoryItem, User, MaintenanceWorkOrder } from '@/lib/types';
+import type { DailyTask, DeepCleanTask, InventoryItem, User, MaintenanceWorkOrder, MaintenanceStatus } from '@/lib/types';
 import { PlaceHolderImages } from './placeholder-images';
 
 const dailyTasksToSeed: Omit<DailyTask, 'id' | 'createdAt' | 'updatedAt' | 'assignedTo'>[] = [
@@ -120,6 +121,34 @@ export function addTask(db: Firestore, task: Omit<DailyTask, 'id' | 'createdAt' 
         errorEmitter.emit('permission-error', permissionError);
         throw permissionError;
       });
+}
+
+export function updateTask(db: Firestore, taskId: string, data: Partial<Omit<DailyTask, 'id'>>) {
+    const taskRef = doc(db, 'daily_tasks', taskId);
+    updateDoc(taskRef, { ...data, updatedAt: serverTimestamp() })
+        .catch(async (serverError) => {
+            const permissionError = new FirestorePermissionError({
+                path: taskRef.path,
+                operation: 'update',
+                requestResourceData: data,
+            });
+            errorEmitter.emit('permission-error', permissionError);
+            throw permissionError;
+        });
+}
+
+export function updateWorkOrder(db: Firestore, workOrderId: string, data: Partial<Omit<MaintenanceWorkOrder, 'id'>>) {
+    const workOrderRef = doc(db, 'maintenance_work_orders', workOrderId);
+    updateDoc(workOrderRef, { ...data, updatedAt: serverTimestamp() })
+        .catch(async (serverError) => {
+            const permissionError = new FirestorePermissionError({
+                path: workOrderRef.path,
+                operation: 'update',
+                requestResourceData: data,
+            });
+            errorEmitter.emit('permission-error', permissionError);
+            throw permissionError;
+        });
 }
 
 export function addItem(db: Firestore, item: Omit<InventoryItem, 'id' | 'createdAt' | 'updatedAt' | 'status'>) {

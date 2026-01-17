@@ -6,7 +6,7 @@ import { useCollection, useFirestore, useUser } from '@/firebase';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { FilePlus2, Upload } from 'lucide-react';
+import { FilePlus2, MoreHorizontal } from 'lucide-react';
 import { DailyTask, User } from '@/lib/types';
 import { CheckCircle2, AlertCircle, Clock, XCircle } from 'lucide-react';
 import {
@@ -17,7 +17,17 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import { AddTaskDialog } from './add-task-dialog';
+import { updateTask } from '@/lib/firebase';
+import { useToast } from '@/hooks/use-toast';
 
 const getStatusBadge = (status: DailyTask['status']) => {
   const variantMap: { [key in DailyTask['status']]: 'default' | 'secondary' | 'destructive' | 'outline' } = {
@@ -46,6 +56,7 @@ const getStatusBadge = (status: DailyTask['status']) => {
 export default function TasksPage() {
   const firestore = useFirestore();
   const { user } = useUser();
+  const { toast } = useToast();
   const [showAddTaskDialog, setShowAddTaskDialog] = React.useState(false);
 
   const tasksQuery = useMemo(() => query(collection(firestore, 'daily_tasks'), orderBy('createdAt', 'desc')), [firestore]);
@@ -60,6 +71,18 @@ export default function TasksPage() {
   }, [users]);
 
   const canAddTask = user?.role === 'Admin' || user?.role === 'Supervisor' || user?.role === 'Director' || user?.role === 'Administrator';
+
+  const handleUpdateStatus = (taskId: string, status: DailyTask['status']) => {
+    try {
+      updateTask(firestore, taskId, { status });
+      toast({
+        title: "Task Updated",
+        description: `Task status has been set to ${status}.`
+      })
+    } catch(error) {
+        // Error is handled globally by the Firebase module
+    }
+  };
 
   return (
     <>
@@ -100,21 +123,53 @@ export default function TasksPage() {
                     <TableCell colSpan={6} className="text-center">Loading tasks...</TableCell>
                 </TableRow>
               )}
-              {dailyTasks?.map((task) => (
-                <TableRow key={task.id}>
-                  <TableCell className="font-medium">{task.roomNumber}</TableCell>
-                  <TableCell>{task.roomType}</TableCell>
-                  <TableCell>{getStatusBadge(task.status)}</TableCell>
-                  <TableCell>{usersMap.get(task.assignedTo) || task.assignedTo}</TableCell>
-                  <TableCell className="max-w-[200px] truncate">{task.notes || '-'}</TableCell>
-                  <TableCell className="text-right">
-                    <Button variant="ghost" size="icon">
-                      <Upload className="h-4 w-4" />
-                      <span className="sr-only">Upload Photo</span>
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
+              {dailyTasks?.map((task) => {
+                const isAuthorized = canAddTask || task.assignedTo === user?.id;
+                return (
+                  <TableRow key={task.id}>
+                    <TableCell className="font-medium">{task.roomNumber}</TableCell>
+                    <TableCell>{task.roomType}</TableCell>
+                    <TableCell>{getStatusBadge(task.status)}</TableCell>
+                    <TableCell>{usersMap.get(task.assignedTo) || task.assignedTo}</TableCell>
+                    <TableCell className="max-w-[200px] truncate">{task.notes || '-'}</TableCell>
+                    <TableCell className="text-right">
+                       <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button
+                                aria-haspopup="true"
+                                size="icon"
+                                variant="ghost"
+                                disabled={!isAuthorized}
+                            >
+                                <MoreHorizontal className="h-4 w-4" />
+                                <span className="sr-only">Toggle menu</span>
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                             {task.status === 'Pending' && (
+                                <DropdownMenuItem onSelect={() => handleUpdateStatus(task.id, 'In Progress')}>
+                                    Start Task
+                                </DropdownMenuItem>
+                            )}
+                            {task.status === 'In Progress' && (
+                                <DropdownMenuItem onSelect={() => handleUpdateStatus(task.id, 'Completed')}>
+                                    Complete Task
+                                </DropdownMenuItem>
+                            )}
+                            {(task.status === 'Pending' || task.status === 'In Progress') && (
+                                <DropdownMenuItem onSelect={() => handleUpdateStatus(task.id, 'Declined')}>
+                                    Decline Task
+                                </DropdownMenuItem>
+                            )}
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem disabled>View Details</DropdownMenuItem>
+                        </DropdownMenuContent>
+                        </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                )
+              })}
               {dailyTasks?.length === 0 && !tasksLoading && (
                 <TableRow>
                     <TableCell colSpan={6} className="text-center text-muted-foreground">No tasks found.</TableCell>
