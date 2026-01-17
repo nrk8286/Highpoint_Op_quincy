@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { onAuthStateChanged, type User as FirebaseUser } from 'firebase/auth';
 import { doc } from 'firebase/firestore';
 import { useAuth, useFirestore, useDoc } from '@/firebase';
@@ -11,7 +11,11 @@ export function useUser() {
   const firestore = useFirestore();
   const [firebaseUser, setFirebaseUser] = useState<FirebaseUser | null | undefined>(undefined);
   
-  const userDocRef = firebaseUser ? doc(firestore, 'users', firebaseUser.uid) : null;
+  const userDocRef = useMemo(() => {
+    if (!firebaseUser || !firestore) return null;
+    return doc(firestore, 'users', firebaseUser.uid);
+  }, [firebaseUser, firestore]);
+  
   const { data: userProfile, loading: profileLoading } = useDoc<User>(userDocRef);
 
   useEffect(() => {
