@@ -63,8 +63,11 @@ export function AddWorkOrderDialog({ open, onOpenChange, maintenanceStaff }: Add
         description,
         status: 'Open',
         createdBy: user.id,
-        assignedTo: assignedTo || undefined,
     };
+
+    if (assignedTo) {
+        newWorkOrder.assignedTo = assignedTo;
+    }
 
     try {
         addWorkOrder(firestore, newWorkOrder);
