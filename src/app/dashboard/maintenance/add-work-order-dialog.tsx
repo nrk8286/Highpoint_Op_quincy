@@ -129,7 +129,6 @@ export function AddWorkOrderDialog({ open, onOpenChange, maintenanceStaff }: Add
                             <SelectValue placeholder="Unassigned" />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="">Unassigned</SelectItem>
                             {maintenanceStaff.map(staff => (
                                 <SelectItem key={staff.id} value={staff.id}>{staff.name}</SelectItem>
                             ))}
