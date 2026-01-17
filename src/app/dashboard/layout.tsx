@@ -19,7 +19,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     }
   }, [loading, isAuthenticated, router]);
 
-  if (loading || !isAuthenticated) {
+  if (loading || !isAuthenticated || !user) {
     return (
         <div className="flex min-h-screen">
             <div className="hidden md:block">
