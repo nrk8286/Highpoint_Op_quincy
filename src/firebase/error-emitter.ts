@@ -26,10 +26,9 @@ class ErrorEmitter {
   }
 
   emit(eventName: EventName, error: FirestorePermissionError) {
-    if (!this.listeners[eventName]) {
-      return;
+    if (this.listeners[eventName]) {
+      this.listeners[eventName].forEach((listener) => listener(error));
     }
-    this.listeners[eventName].forEach((listener) => listener(error));
   }
 }
 
