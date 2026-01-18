@@ -44,7 +44,7 @@ export default function AiChatPage() {
                 behavior: 'smooth'
             });
         }
-    }, [state.messages]);
+    }, [state.messages, state.error]);
 
   return (
     <div className="h-full flex flex-col">
@@ -91,6 +91,19 @@ export default function AiChatPage() {
                             </div>
                         </div>
                     )}
+                    {state.error && (
+                        <div className="flex items-start gap-4">
+                            <Avatar className="w-8 h-8 border">
+                                <div className="w-full h-full bg-destructive/20 flex items-center justify-center">
+                                    <Bot className="h-5 w-5 text-destructive" />
+                                </div>
+                            </Avatar>
+                            <div className="rounded-lg p-3 bg-destructive text-destructive-foreground">
+                                <p className="font-bold">An error occurred</p>
+                                <p className="text-sm">{state.error}</p>
+                            </div>
+                        </div>
+                    )}
                 </div>
             </ScrollArea>
             <div className="p-4 border-t bg-background/50">
@@ -114,7 +127,7 @@ export default function AiChatPage() {
                     formRef.current?.reset();
                 }} ref={formRef} className="relative">
                     <Input name="message" placeholder="Ask a question..." className="pr-12 h-12" disabled={isPending}/>
-                    <input type="hidden" name="history" value={JSON.stringify(state.messages)} />
+                    <input type="hidden" name="history" value={JSON.stringify(state.messages.filter(m => !state.error))} />
                     <SubmitButton />
                 </form>
             </div>

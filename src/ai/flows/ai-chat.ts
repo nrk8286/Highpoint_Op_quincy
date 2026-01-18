@@ -37,19 +37,16 @@ const chatPrompt = ai.definePrompt(
     output: { schema: AiChatOutputSchema },
     prompt: `You are a helpful AI assistant for HighPoint HouseKeep, a facilities management app. Your name is Goldie.
     Answer the user's questions based on the provided history.
+    The role 'user' is the human user, and the role 'model' is you, Goldie.
     Be concise and helpful.
     
     History:
     {{#each history}}
-      {{#if (eq role 'user')}}
-        User: {{#each content}}{{text}}{{/each}}
-      {{else}}
-        Goldie: {{#each content}}{{text}}{{/each}}
-      {{/if}}
+    {{role}}: {{#each content}}{{text}}{{/each}}
     {{/each}}
     
-    Current Question: {{message}}
-    `,
+    Current Question (from user): {{message}}
+    Response (from Goldie):`,
   },
 );
 
