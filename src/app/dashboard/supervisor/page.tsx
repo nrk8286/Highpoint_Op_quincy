@@ -47,18 +47,27 @@ export default function SupervisorPage() {
     const otherUsers = useMemo(() => users?.filter(u => u.id !== currentUser?.id) || [], [users, currentUser]);
 
     const handleSeedDatabase = async () => {
+        if (!currentUser) {
+            toast({
+                variant: 'destructive',
+                title: "Authentication Error",
+                description: "Could not identify current user. Please log in again."
+            });
+            return;
+        }
         try {
-            await seedDatabase(firestore);
+            await seedDatabase(firestore, currentUser.id);
             toast({
                 title: "Database Seeded",
                 description: "Initial data has been added to Firestore."
             })
         } catch (error) {
             console.error(error);
+            const errorMessage = error instanceof Error ? error.message : "Could not seed the database. Check console for errors.";
             toast({
                 variant: 'destructive',
                 title: "Seeding Failed",
-                description: "Could not seed the database. Check console for errors."
+                description: errorMessage,
             })
         }
     }

@@ -43,7 +43,7 @@ const inventoryToSeed: Omit<InventoryItem, 'id' | 'createdAt' | 'updatedAt' | 's
 ];
 
 
-export const seedDatabase = async (db: Firestore) => {
+export const seedDatabase = async (db: Firestore, fallbackUserId: string) => {
   const batch = writeBatch(db);
 
   // Step 1: Get the UIDs for the housekeepers from the 'users' collection.
@@ -65,25 +65,23 @@ export const seedDatabase = async (db: Firestore) => {
     }
   });
 
-  // Guard against missing users.
-  if (!audreyId || !hannahId) {
-    throw new Error("Seeding failed: Could not find housekeeper profiles. Please ensure 'housekeeper1@example.com' and 'housekeeper2@example.com' have logged into the application at least once before seeding the database.");
-  }
-
+  // If housekeepers don't exist, assign tasks to the user who initiated the seed.
+  const audrey = audreyId || fallbackUserId;
+  const hannah = hannahId || fallbackUserId;
 
   // Step 2: Seed tasks and assign them using the retrieved UIDs.
   dailyTasksToSeed.forEach((task) => {
     const taskRef = doc(collection(db, 'daily_tasks'));
-    let assignedTo = audreyId; // Default
+    let assignedTo = audrey; // Default
     if (task.roomNumber.startsWith('B') || task.roomNumber.startsWith('C')) {
-        assignedTo = hannahId;
+        assignedTo = hannah;
     }
     batch.set(taskRef, { ...task, assignedTo, createdAt: serverTimestamp(), updatedAt: serverTimestamp() });
   });
 
   deepCleanTasksToSeed.forEach((task, index) => {
     const taskRef = doc(collection(db, 'deep_clean_tasks'));
-    const assignedTo = index % 2 === 0 ? audreyId : hannahId;
+    const assignedTo = index % 2 === 0 ? audrey : hannah;
     batch.set(taskRef, { ...task, assignedTo, createdAt: serverTimestamp(), updatedAt: serverTimestamp() });
   });
 
