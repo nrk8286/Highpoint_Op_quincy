@@ -10,7 +10,7 @@ import { signInWithEmailAndPassword } from 'firebase/auth';
 import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 
 import { PlaceHolderImages } from '@/lib/placeholder-images';
-import { useAuth, useFirestore } from '@/firebase';
+import { useAuth, useFirestore, useUser } from '@/firebase';
 import { Button } from '@/components/ui/button';
 import {
   Form,
@@ -25,6 +25,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { useToast } from '@/hooks/use-toast';
 import { Logo } from '@/components/logo';
 import type { User } from '@/lib/types';
+import { useEffect } from 'react';
 
 const loginSchema = z.object({
   email: z.string().email({ message: 'Please enter a valid email.' }),
@@ -48,6 +49,7 @@ export default function LoginPage() {
   const { toast } = useToast();
   const auth = useAuth();
   const firestore = useFirestore();
+  const { loading, isAuthenticated } = useUser();
   const loginBg = PlaceHolderImages.find((img) => img.id === 'login-bg');
 
   const form = useForm<LoginFormValues>({
@@ -57,6 +59,12 @@ export default function LoginPage() {
       password: '',
     },
   });
+
+  useEffect(() => {
+    if (!loading && isAuthenticated) {
+      router.push('/dashboard');
+    }
+  }, [loading, isAuthenticated, router]);
 
   const onSubmit = async (data: LoginFormValues) => {
     try {
@@ -101,6 +109,16 @@ export default function LoginPage() {
       });
     }
   };
+
+  if (loading || isAuthenticated) {
+    return (
+      <div className="flex h-screen w-full items-center justify-center bg-background">
+        <div className="animate-pulse">
+          <Logo size="xlarge" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="relative flex min-h-screen flex-col items-center justify-center bg-background">
