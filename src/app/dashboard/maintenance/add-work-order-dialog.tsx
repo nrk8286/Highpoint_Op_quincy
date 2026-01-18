@@ -45,7 +45,7 @@ export function AddWorkOrderDialog({ open, onOpenChange, maintenanceStaff }: Add
   const [description, setDescription] = React.useState('');
   const [assignedTo, setAssignedTo] = React.useState<string>('');
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!location || !description || !user) {
         toast({
@@ -66,26 +66,21 @@ export function AddWorkOrderDialog({ open, onOpenChange, maintenanceStaff }: Add
     };
 
     if (assignedTo) {
-        newWorkOrder.assignedTo = assignedTo;
+        (newWorkOrder as MaintenanceWorkOrder).assignedTo = assignedTo;
     }
 
-    try {
-        addWorkOrder(firestore, newWorkOrder);
-        toast({
-            title: "Work Order Created",
-            description: `A new maintenance ticket has been created for ${location}.`
-        });
-        onOpenChange(false);
-        // Reset form
-        setLocation('');
-        setIssueType('General Repair');
-        setPriority('Medium');
-        setDescription('');
-        setAssignedTo('');
-    } catch(error) {
-        console.error("Error adding work order: ", error);
-        // Error is handled by global error listener
-    }
+    addWorkOrder(firestore, newWorkOrder);
+    toast({
+        title: "Work Order Created",
+        description: `A new maintenance ticket has been created for ${location}.`
+    });
+    onOpenChange(false);
+    // Reset form
+    setLocation('');
+    setIssueType('General Repair');
+    setPriority('Medium');
+    setDescription('');
+    setAssignedTo('');
   };
 
   return (

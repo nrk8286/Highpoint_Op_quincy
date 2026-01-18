@@ -30,7 +30,7 @@ export function AddItemDialog({ open, onOpenChange }: AddItemDialogProps) {
   const [quantity, setQuantity] = React.useState(0);
   const [reorderLevel, setReorderLevel] = React.useState(0);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!name || !category || quantity < 0 || reorderLevel < 0) {
         toast({
@@ -48,22 +48,17 @@ export function AddItemDialog({ open, onOpenChange }: AddItemDialogProps) {
         reorderLevel,
     };
 
-    try {
-        await addItem(firestore, newItem);
-        toast({
-            title: "Item Added",
-            description: `${name} has been added to the inventory.`
-        });
-        onOpenChange(false);
-        // Reset form
-        setName('');
-        setCategory('');
-        setQuantity(0);
-        setReorderLevel(0);
-    } catch(error) {
-        console.error("Error adding item: ", error);
-        // Error is handled by global error listener
-    }
+    addItem(firestore, newItem);
+    toast({
+        title: "Item Added",
+        description: `${name} has been added to the inventory.`
+    });
+    onOpenChange(false);
+    // Reset form
+    setName('');
+    setCategory('');
+    setQuantity(0);
+    setReorderLevel(0);
   };
 
   return (

@@ -38,7 +38,7 @@ export function AddTaskDialog({ open, onOpenChange, housekeepers }: AddTaskDialo
   const [assignedTo, setAssignedTo] = React.useState<string>('');
   const [notes, setNotes] = React.useState('');
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!roomNumber || !assignedTo) {
         toast({
@@ -58,22 +58,17 @@ export function AddTaskDialog({ open, onOpenChange, housekeepers }: AddTaskDialo
         notes,
     };
 
-    try {
-        await addTask(firestore, newTask);
-        toast({
-            title: "Task Created",
-            description: `Task for room ${roomNumber} has been assigned.`
-        });
-        onOpenChange(false);
-        // Reset form
-        setRoomNumber('');
-        setRoomType('Daily Clean');
-        setAssignedTo('');
-        setNotes('');
-    } catch(error) {
-        console.error("Error adding task: ", error);
-        // Error is handled by global error listener
-    }
+    addTask(firestore, newTask);
+    toast({
+        title: "Task Created",
+        description: `Task for room ${roomNumber} has been assigned.`
+    });
+    onOpenChange(false);
+    // Reset form
+    setRoomNumber('');
+    setRoomType('Daily Clean');
+    setAssignedTo('');
+    setNotes('');
   };
 
   return (

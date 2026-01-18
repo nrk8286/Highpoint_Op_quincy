@@ -96,13 +96,28 @@ export const seedDatabase = async (db: Firestore) => {
 };
 
 export function addWorkOrder(db: Firestore, workOrder: Omit<MaintenanceWorkOrder, 'id' | 'createdAt' | 'updatedAt'>) {
+    const dataToAdd: { [key: string]: any } = {
+        location: workOrder.location,
+        issueType: workOrder.issueType,
+        priority: workOrder.priority,
+        description: workOrder.description,
+        status: workOrder.status,
+        createdBy: workOrder.createdBy,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+    };
+
+    if (workOrder.assignedTo) {
+        dataToAdd.assignedTo = workOrder.assignedTo;
+    }
+
     const workOrderRef = collection(db, 'maintenance_work_orders');
-    addDoc(workOrderRef, { ...workOrder, createdAt: serverTimestamp(), updatedAt: serverTimestamp() })
+    addDoc(workOrderRef, dataToAdd)
         .catch(async (serverError) => {
             const permissionError = new FirestorePermissionError({
                 path: workOrderRef.path,
                 operation: 'create',
-                requestResourceData: workOrder,
+                requestResourceData: dataToAdd,
             });
             errorEmitter.emit('permission-error', permissionError);
             throw permissionError;
@@ -110,13 +125,27 @@ export function addWorkOrder(db: Firestore, workOrder: Omit<MaintenanceWorkOrder
 }
 
 export function addTask(db: Firestore, task: Omit<DailyTask, 'id' | 'createdAt' | 'updatedAt'>) {
+    const dataToAdd: { [key: string]: any } = {
+        roomNumber: task.roomNumber,
+        roomType: task.roomType,
+        assignedTo: task.assignedTo,
+        status: task.status,
+        date: task.date,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+    };
+
+    if (task.notes) {
+        dataToAdd.notes = task.notes;
+    }
+
     const taskRef = collection(db, 'daily_tasks');
-    addDoc(taskRef, { ...task, createdAt: serverTimestamp(), updatedAt: serverTimestamp() })
+    addDoc(taskRef, dataToAdd)
       .catch(async (serverError) => {
         const permissionError = new FirestorePermissionError({
           path: taskRef.path,
           operation: 'create',
-          requestResourceData: task,
+          requestResourceData: dataToAdd,
         });
         errorEmitter.emit('permission-error', permissionError);
         throw permissionError;
