@@ -1,0 +1,17 @@
+# Git and Node
+.git
+.gitignore
+node_modules
+
+# Docker
+Dockerfile
+.dockerignore
+
+# Next.js
+.next
+.DS_Store
+
+# Local Environment
+.env.local
+npm-debug.log*
+README.md
