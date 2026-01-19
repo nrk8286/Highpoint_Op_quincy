@@ -1,5 +1,5 @@
 'use client';
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -20,23 +20,30 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { useToast } from '@/hooks/use-toast';
-import { useFirestore } from '@/firebase';
+import { useCollection, useFirestore } from '@/firebase';
 import { addTask } from '@/lib/firebase';
 import type { DailyTask, User } from '@/lib/types';
+import { collection, query, where } from 'firebase/firestore';
 
 type AddTaskDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  housekeepers: User[];
 };
 
-export function AddTaskDialog({ open, onOpenChange, housekeepers }: AddTaskDialogProps) {
+export function AddTaskDialog({ open, onOpenChange }: AddTaskDialogProps) {
   const { toast } = useToast();
   const firestore = useFirestore();
   const [roomNumber, setRoomNumber] = React.useState('');
   const [roomType, setRoomType] = React.useState('Daily Clean');
   const [assignedTo, setAssignedTo] = React.useState<string>('');
   const [notes, setNotes] = React.useState('');
+
+  const housekeepersQuery = useMemo(() => 
+    query(collection(firestore, 'users'), where('role', '==', 'Housekeeper')),
+    [firestore]
+  );
+  const { data: housekeepers, loading: housekeepersLoading } = useCollection<User>(housekeepersQuery);
+
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -110,10 +117,10 @@ export function AddTaskDialog({ open, onOpenChange, housekeepers }: AddTaskDialo
                     </Label>
                     <Select value={assignedTo} onValueChange={(value) => setAssignedTo(value)}>
                         <SelectTrigger className="col-span-3">
-                            <SelectValue placeholder="Select a housekeeper" />
+                            <SelectValue placeholder={housekeepersLoading ? "Loading..." : "Select a housekeeper"} />
                         </SelectTrigger>
                         <SelectContent>
-                            {housekeepers.map(hk => (
+                            {housekeepers?.map(hk => (
                                 <SelectItem key={hk.id} value={hk.id}>{hk.name}</SelectItem>
                             ))}
                         </SelectContent>

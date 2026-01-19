@@ -33,9 +33,10 @@ import { useCollection, useUser, useFirestore } from '@/firebase';
 import { seedDatabase } from '@/lib/firebase';
 import { collection, query } from 'firebase/firestore';
 import type { User } from '@/lib/types';
+import withAuth from '@/components/auth/withAuth';
 
 
-export default function SupervisorPage() {
+function SupervisorPage() {
     const { toast } = useToast();
     const firestore = useFirestore();
     const { user: currentUser } = useUser();
@@ -138,7 +139,7 @@ export default function SupervisorPage() {
                         </div>
                     </TableCell>
                     <TableCell>
-                        <Badge variant={user.role === 'Admin' || user.role === 'Supervisor' || user.role === 'Director' || user.role === 'Administrator' ? 'secondary' : 'outline'}>{user.role}</Badge>
+                        <Badge variant={user.role === 'Admin' || user.role === 'Supervisor' ? 'secondary' : 'outline'}>{user.role}</Badge>
                     </TableCell>
                     <TableCell>
                         <DropdownMenu>
@@ -177,3 +178,5 @@ export default function SupervisorPage() {
     </>
   );
 }
+
+export default withAuth(SupervisorPage, { allowedRoles: ['Admin', 'Supervisor'] });

@@ -11,6 +11,14 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+  } from "@/components/ui/dropdown-menu"
+import {
   Table,
   TableBody,
   TableCell,
@@ -19,8 +27,11 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { CheckCircle2, AlertCircle, Clock, XCircle } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { MoreHorizontal, CheckCircle2, AlertCircle, Clock, XCircle } from 'lucide-react';
 import { CompletionRingChart } from '@/components/charts/completion-ring-chart';
+import { updateTask } from '@/lib/firebase';
+import { useToast } from '@/hooks/use-toast';
 import type { DailyTask, InventoryItem } from '@/lib/types';
 
 const getStatusIcon = (status: DailyTask['status']) => {
@@ -41,6 +52,7 @@ const getStatusIcon = (status: DailyTask['status']) => {
 export default function DashboardPage() {
   const { user } = useUser();
   const firestore = useFirestore();
+  const { toast } = useToast();
 
   const tasksQuery = useMemo(() => user ? query(collection(firestore, 'daily_tasks')) : null, [firestore, user]);
   const inventoryQuery = useMemo(() => user ? query(collection(firestore, 'inventory')) : null, [firestore, user]);
@@ -58,6 +70,17 @@ export default function DashboardPage() {
 
   const myPriorityTasks = dailyTasks?.filter(t => t.assignedTo === user?.id && ['Pending', 'In Progress'].includes(t.status)).slice(0, 5) || [];
 
+  const handleUpdateStatus = (taskId: string, status: DailyTask['status']) => {
+    try {
+      updateTask(firestore, taskId, { status });
+      toast({
+        title: "Task Updated",
+        description: `Task status has been set to ${status}.`
+      })
+    } catch(error) {
+        // Error is handled globally by the Firebase module
+    }
+  };
 
   return (
     <div className="space-y-8">
@@ -136,7 +159,38 @@ export default function DashboardPage() {
                       </Badge>
                     </TableCell>
                     <TableCell className="text-right">
-                      {/* Action buttons would go here */}
+                        <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button
+                                aria-haspopup="true"
+                                size="icon"
+                                variant="ghost"
+                            >
+                                <MoreHorizontal className="h-4 w-4" />
+                                <span className="sr-only">Toggle menu</span>
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                             {task.status === 'Pending' && (
+                                <DropdownMenuItem onSelect={() => handleUpdateStatus(task.id, 'In Progress')}>
+                                    Start Task
+                                </DropdownMenuItem>
+                            )}
+                            {task.status === 'In Progress' && (
+                                <DropdownMenuItem onSelect={() => handleUpdateStatus(task.id, 'Completed')}>
+                                    Complete Task
+                                </DropdownMenuItem>
+                            )}
+                            {(task.status === 'Pending' || task.status === 'In Progress') && (
+                                <DropdownMenuItem onSelect={() => handleUpdateStatus(task.id, 'Declined')}>
+                                    Decline Task
+                                </DropdownMenuItem>
+                            )}
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem disabled>View Details</DropdownMenuItem>
+                        </DropdownMenuContent>
+                        </DropdownMenu>
                     </TableCell>
                   </TableRow>
                 ))}

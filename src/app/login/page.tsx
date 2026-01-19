@@ -35,13 +35,10 @@ const loginSchema = z.object({
 type LoginFormValues = z.infer<typeof loginSchema>;
 
 const preconfiguredUsers: { [email: string]: Partial<Omit<User, 'id' | 'createdAt'>> } = {
-  'nrk8286@gmail.com': { name: 'Nicholas Kelly', role: 'Admin', avatarUrl: 'https://images.unsplash.com/photo-1599566150163-29194dcaad36?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxwb3J0cmFpdHxlbnwwfHx8fDE3Njg1NjQxMDZ8MA&ixlib=rb-4.1.0&q=80&w=1080' },
-  'admin2@example.com': { name: 'Lonnie Kurr', role: 'Administrator', avatarUrl: PlaceHolderImages.find(i => i.id === 'avatar-1')?.imageUrl },
-  'director@example.com': { name: 'The Director', role: 'Director', avatarUrl: PlaceHolderImages.find(i => i.id === 'avatar-1')?.imageUrl },
-  'housekeeper1@example.com': { name: 'Audry Howell', role: 'Housekeeper', avatarUrl: PlaceHolderImages.find(i => i.id === 'avatar-2')?.imageUrl },
+  'admin@example.com': { name: 'Nicholas Kelly', role: 'Admin', avatarUrl: 'https://images.unsplash.com/photo-1599566150163-29194dcaad36?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxwb3J0cmFpdHxlbnwwfHx8fDE3Njg1NjQxMDZ8MA&ixlib=rb-4.1.0&q=80&w=1080' },
+  'supervisor@example.com': { name: 'Lonnie Kurr', role: 'Supervisor', avatarUrl: PlaceHolderImages.find(i => i.id === 'avatar-1')?.imageUrl },
+  'housekeeper@example.com': { name: 'Audry Howell', role: 'Housekeeper', avatarUrl: PlaceHolderImages.find(i => i.id === 'avatar-2')?.imageUrl },
   'housekeeper2@example.com': { name: 'Hannah Steele', role: 'Housekeeper', avatarUrl: PlaceHolderImages.find(i => i.id === 'avatar-3')?.imageUrl },
-  'maintenance@example.com': { name: 'Mike Rowe', role: 'Maintenance', avatarUrl: PlaceHolderImages.find(i => i.id === 'avatar-2')?.imageUrl },
-  'nurse@example.com': { name: 'Florence Nightingale', role: 'Nurse', avatarUrl: PlaceHolderImages.find(i => i.id === 'avatar-1')?.imageUrl },
 };
 
 
@@ -72,7 +69,6 @@ export default function LoginPage() {
       const userCredential = await signInWithEmailAndPassword(auth, data.email, data.password);
       const user = userCredential.user;
       
-      // Check if user profile exists, create it if it doesn't
       const userDocRef = doc(firestore, 'users', user.uid);
       const userDoc = await getDoc(userDocRef);
 
@@ -140,7 +136,7 @@ export default function LoginPage() {
               <Logo size="xlarge" />
             </div>
             <CardDescription className="text-lg">
-              Sign in to manage facility operations.
+              Sign in to HighPoint HouseKeep
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -199,5 +195,3 @@ export default function LoginPage() {
     </div>
   );
 }
-
-    

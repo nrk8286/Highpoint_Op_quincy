@@ -70,7 +70,7 @@ export default function TasksPage() {
     return new Map(users.map(u => [u.id, u.name]));
   }, [users]);
 
-  const canAddTask = user?.role === 'Admin' || user?.role === 'Supervisor' || user?.role === 'Director' || user?.role === 'Administrator';
+  const canAddTask = user?.role === 'Admin' || user?.role === 'Supervisor';
 
   const handleUpdateStatus = (taskId: string, status: DailyTask['status']) => {
     try {
@@ -88,8 +88,8 @@ export default function TasksPage() {
     <>
     <div className="space-y-8">
        <div>
-        <h1 className="text-3xl font-bold font-headline">Daily Task Management</h1>
-        <p className="text-muted-foreground">View, claim, and complete your daily assignments.</p>
+        <h1 className="text-3xl font-bold font-headline">Daily Housekeeping Tasks</h1>
+        <p className="text-muted-foreground">Review, claim, and complete daily assignments.</p>
       </div>
 
       <Card>
@@ -180,7 +180,7 @@ export default function TasksPage() {
         </CardContent>
       </Card>
     </div>
-    {canAddTask && users && <AddTaskDialog open={showAddTaskDialog} onOpenChange={setShowAddTaskDialog} housekeepers={users.filter(u => u.role === 'Housekeeper')} />}
+    <AddTaskDialog open={showAddTaskDialog} onOpenChange={setShowAddTaskDialog} />
     </>
   );
 }

@@ -1,6 +1,6 @@
 import { Timestamp } from 'firebase/firestore';
 
-export type UserRole = 'Admin' | 'Supervisor' | 'Housekeeper' | 'Director' | 'Administrator' | 'Maintenance' | 'Nurse';
+export type UserRole = 'Admin' | 'Supervisor' | 'Housekeeper';
 
 export interface User {
   id: string;
@@ -100,5 +100,3 @@ export interface ShiftReport {
     createdAt?: Timestamp;
     updatedAt?: Timestamp;
 }
-
-    
