@@ -16,6 +16,8 @@ import {
   Wrench,
   ClipboardCheck as InspectionIcon,
   HeartPulse,
+  FilePieChart,
+  History
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
@@ -44,6 +46,8 @@ const menuItems = [
   { href: '/dashboard/inventory', label: 'Inventory', icon: Warehouse },
   { href: '/dashboard/nursing', label: 'Nursing', icon: HeartPulse, roles: ['Nurse', 'Director', 'Administrator'] },
   { href: '/dashboard/performance', label: 'Performance', icon: BarChart3, roles: ['Supervisor', 'Admin', 'Director', 'Administrator'] },
+  { href: '/dashboard/reports', label: 'Reports', icon: FilePieChart, roles: ['Supervisor', 'Admin', 'Director', 'Administrator'] },
+  { href: '/dashboard/data-tracing', label: 'Data Tracing', icon: History, roles: ['Supervisor', 'Admin', 'Director', 'Administrator'] },
   { href: '/dashboard/supervisor', label: 'User Management', icon: Users, roles: ['Supervisor', 'Admin', 'Director', 'Administrator'] },
   { href: '/dashboard/audit', label: 'Audit Compliance', icon: FileText, roles: ['Supervisor', 'Admin', 'Director', 'Administrator'] },
 ];
@@ -118,5 +122,3 @@ export default function AppSidebar({ currentUser }: { currentUser: User }) {
     </Sidebar>
   );
 }
-
-    
