@@ -1,6 +1,6 @@
 {
   "mcpServers": {
-    "firebase": {
+    "configred": {
       "command": "npx",
       "args": [
         "-y",
