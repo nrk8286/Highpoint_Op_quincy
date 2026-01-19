@@ -14,7 +14,7 @@ import {
 } from 'firebase/firestore';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
-import type { DailyTask, DeepCleanTask, InventoryItem, User, MaintenanceWorkOrder, Inspection } from '@/lib/types';
+import type { DailyTask, DeepCleanTask, InventoryItem, User, MaintenanceWorkOrder, Inspection, Resident, ShiftReport } from '@/lib/types';
 import { PlaceHolderImages } from './placeholder-images';
 
 const dailyTasksToSeed: Omit<DailyTask, 'id' | 'createdAt' | 'updatedAt' | 'assignedTo'>[] = [
@@ -42,32 +42,36 @@ const inventoryToSeed: Omit<InventoryItem, 'id' | 'createdAt' | 'updatedAt' | 's
     { name: 'Microfiber Cloths', category: 'Supplies', quantity: 150, reorderLevel: 100 },
 ];
 
+const residentsToSeed: Omit<Resident, 'id'>[] = [
+    { name: 'John Doe', roomNumber: 'A1', dateOfBirth: '1945-01-15' },
+    { name: 'Jane Smith', roomNumber: 'B1', dateOfBirth: '1952-07-22' },
+]
 
 export const seedDatabase = async (db: Firestore, fallbackUserId: string) => {
   const batch = writeBatch(db);
 
   // Step 1: Get the UIDs for the housekeepers from the 'users' collection.
   const usersRef = collection(db, 'users');
-  const housekeepersQuery = query(usersRef, where('email', 'in', ['housekeeper1@example.com', 'housekeeper2@example.com']));
+  const staffQuery = query(usersRef, where('email', 'in', ['housekeeper1@example.com', 'housekeeper2@example.com', 'nurse@example.com']));
   
-  const querySnapshot = await getDocs(housekeepersQuery);
+  const querySnapshot = await getDocs(staffQuery);
 
   let audreyId: string | undefined;
   let hannahId: string | undefined;
+  let nurseId: string | undefined;
 
   querySnapshot.forEach((doc) => {
     const user = doc.data() as User;
-    if (user.email === 'housekeeper1@example.com') {
-      audreyId = user.id;
-    }
-    if (user.email === 'housekeeper2@example.com') {
-      hannahId = user.id;
-    }
+    if (user.email === 'housekeeper1@example.com') audreyId = user.id;
+    if (user.email === 'housekeeper2@example.com') hannahId = user.id;
+    if (user.email === 'nurse@example.com') nurseId = user.id;
   });
 
-  // If housekeepers don't exist, assign tasks to the user who initiated the seed.
+  // If users don't exist, assign tasks to the user who initiated the seed.
   const audrey = audreyId || fallbackUserId;
   const hannah = hannahId || fallbackUserId;
+  const nurse = nurseId || fallbackUserId;
+
 
   // Step 2: Seed tasks and assign them using the retrieved UIDs.
   dailyTasksToSeed.forEach((task) => {
@@ -89,6 +93,27 @@ export const seedDatabase = async (db: Firestore, fallbackUserId: string) => {
     const itemRef = doc(collection(db, 'inventory'));
     batch.set(itemRef, { ...item, createdAt: serverTimestamp(), updatedAt: serverTimestamp() });
   });
+
+  residentsToSeed.forEach((resident) => {
+    const residentRef = doc(collection(db, 'residents'));
+    batch.set(residentRef, { ...resident, id: residentRef.id, createdAt: serverTimestamp(), updatedAt: serverTimestamp() });
+
+    // Add a sample shift report for the first resident
+    if (resident.name === 'John Doe') {
+        const reportRef = doc(collection(db, 'shift_reports'));
+        const report: Omit<ShiftReport, 'id'> = {
+            residentId: residentRef.id,
+            authorId: nurse,
+            shift: 'Day',
+            date: new Date().toISOString(),
+            reportText: 'Resident had a good day. No issues to report.',
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp(),
+        }
+        batch.set(reportRef, report);
+    }
+  });
+
 
   await batch.commit();
 };
@@ -192,6 +217,20 @@ export function addItem(db: Firestore, item: Omit<InventoryItem, 'id' | 'created
       });
 }
 
+export function updateInventoryItem(db: Firestore, itemId: string, data: Partial<Omit<InventoryItem, 'id'>>) {
+    const itemRef = doc(db, 'inventory', itemId);
+    updateDoc(itemRef, { ...data, updatedAt: serverTimestamp() })
+        .catch(async (serverError) => {
+            const permissionError = new FirestorePermissionError({
+                path: itemRef.path,
+                operation: 'update',
+                requestResourceData: data,
+            });
+            errorEmitter.emit('permission-error', permissionError);
+            throw permissionError;
+        });
+}
+
 export function addInspection(db: Firestore, inspection: Omit<Inspection, 'id' | 'createdAt' | 'updatedAt'>) {
     const dataToAdd = {
         ...inspection,
@@ -210,3 +249,33 @@ export function addInspection(db: Firestore, inspection: Omit<Inspection, 'id' |
         throw permissionError;
       });
 }
+
+export function addResident(db: Firestore, resident: Omit<Resident, 'id' | 'createdAt' | 'updatedAt'>) {
+    const resRef = collection(db, 'residents');
+    addDoc(resRef, { ...resident, createdAt: serverTimestamp(), updatedAt: serverTimestamp() })
+      .catch(async (serverError) => {
+        const permissionError = new FirestorePermissionError({
+          path: resRef.path,
+          operation: 'create',
+          requestResourceData: resident,
+        });
+        errorEmitter.emit('permission-error', permissionError);
+        throw permissionError;
+      });
+}
+
+export function addShiftReport(db: Firestore, report: Omit<ShiftReport, 'id' | 'createdAt' | 'updatedAt'>) {
+    const reportRef = collection(db, 'shift_reports');
+    addDoc(reportRef, { ...report, createdAt: serverTimestamp(), updatedAt: serverTimestamp() })
+      .catch(async (serverError) => {
+        const permissionError = new FirestorePermissionError({
+          path: reportRef.path,
+          operation: 'create',
+          requestResourceData: report,
+        });
+        errorEmitter.emit('permission-error', permissionError);
+        throw permissionError;
+      });
+}
+
+    

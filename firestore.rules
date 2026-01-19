@@ -23,6 +23,11 @@ service cloud.firestore {
         return getUserRole(request.auth.uid) == 'Maintenance';
     }
 
+    function isClinicalStaff() {
+      let userRole = getUserRole(request.auth.uid);
+      return userRole == 'Nurse' || userRole == 'Director' || userRole == 'Administrator';
+    }
+
     match /users/{userId} {
       allow read: if isSignedIn();
       allow write: if isOwner(userId) || isManager();
@@ -42,7 +47,8 @@ service cloud.firestore {
     
     match /inventory/{itemId} {
       allow read: if isSignedIn();
-      allow write: if isManager();
+      allow create, delete: if isManager();
+      allow update: if isSignedIn();
     }
 
     match /maintenance_work_orders/{workOrderId} {
@@ -58,5 +64,15 @@ service cloud.firestore {
       allow update: if isManager();
       allow delete: if isManager();
     }
+
+    match /residents/{residentId} {
+      allow read, write: if isClinicalStaff();
+    }
+
+    match /shift_reports/{reportId} {
+      allow read, write: if isClinicalStaff();
+    }
   }
 }
+
+    

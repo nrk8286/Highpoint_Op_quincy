@@ -87,6 +87,7 @@ export function AddUserDialog({ open, onOpenChange }: AddUserDialogProps) {
                         <SelectContent>
                             <SelectItem value="Housekeeper">Housekeeper</SelectItem>
                             <SelectItem value="Maintenance">Maintenance</SelectItem>
+                            <SelectItem value="Nurse">Nurse</SelectItem>
                             <SelectItem value="Supervisor">Supervisor</SelectItem>
                             <SelectItem value="Director">Director</SelectItem>
                             <SelectItem value="Admin">Admin</SelectItem>
@@ -108,3 +109,5 @@ export function AddUserDialog({ open, onOpenChange }: AddUserDialogProps) {
     </Dialog>
   );
 }
+
+    

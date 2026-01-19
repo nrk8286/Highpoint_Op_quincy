@@ -1,5 +1,5 @@
 'use client';
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   Card,
   CardContent,
@@ -15,14 +15,23 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { InventoryItem } from '@/lib/types';
-import { AlertTriangle, CheckCircle, PackagePlus, ShieldAlert } from 'lucide-react';
+import { AlertTriangle, CheckCircle, PackagePlus, ShieldAlert, MoreHorizontal } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { useCollection, useFirestore, useUser } from '@/firebase';
 import { collection, query, orderBy } from 'firebase/firestore';
 import { AddItemDialog } from './add-item-dialog';
+import { UseItemDialog } from './use-item-dialog';
+import { RestockItemDialog } from './restock-item-dialog';
 
 const getStatus = (item: InventoryItem) => {
     if (item.quantity <= 0) return 'Out of Stock';
@@ -46,11 +55,24 @@ const getStatusBadge = (status: 'In Stock' | 'Low Stock' | 'Out of Stock') => {
 export default function InventoryPage() {
     const firestore = useFirestore();
     const { user } = useUser();
-    const [showAddItemDialog, setShowAddItemDialog] = React.useState(false);
+    const [showAddItemDialog, setShowAddItemDialog] = useState(false);
+    const [showUseItemDialog, setShowUseItemDialog] = useState(false);
+    const [showRestockItemDialog, setShowRestockItemDialog] = useState(false);
+    const [selectedItem, setSelectedItem] = useState<InventoryItem | null>(null);
 
     const queryRef = useMemo(() => query(collection(firestore, 'inventory'), orderBy('createdAt', 'desc')), [firestore]);
     const { data: inventoryItems, loading } = useCollection<InventoryItem>(queryRef);
-    const canAddItem = user?.role === 'Admin' || user?.role === 'Supervisor' || user?.role === 'Director' || user?.role === 'Administrator';
+    const canManageInventory = user?.role === 'Admin' || user?.role === 'Supervisor' || user?.role === 'Director' || user?.role === 'Administrator';
+
+    const handleUseItem = (item: InventoryItem) => {
+      setSelectedItem(item);
+      setShowUseItemDialog(true);
+    }
+    
+    const handleRestockItem = (item: InventoryItem) => {
+      setSelectedItem(item);
+      setShowRestockItemDialog(true);
+    }
 
   return (
     <>
@@ -66,7 +88,7 @@ export default function InventoryPage() {
             <CardTitle>Supply Levels</CardTitle>
             <CardDescription>Automated alerts are triggered at threshold levels.</CardDescription>
           </div>
-          {canAddItem && (
+          {canManageInventory && (
             <Button onClick={() => setShowAddItemDialog(true)}><PackagePlus className="mr-2 h-4 w-4"/>Add Item</Button>
           )}
         </CardHeader>
@@ -103,7 +125,23 @@ export default function InventoryPage() {
                     </TableCell>
                     <TableCell>{getStatusBadge(status)}</TableCell>
                     <TableCell className="text-right">
-                        <Button variant="outline" size="sm" disabled={status === 'Out of Stock'}>Reorder</Button>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            aria-haspopup="true"
+                            size="icon"
+                            variant="ghost"
+                          >
+                            <MoreHorizontal className="h-4 w-4" />
+                            <span className="sr-only">Toggle menu</span>
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                          <DropdownMenuItem onSelect={() => handleUseItem(item)}>Use Item</DropdownMenuItem>
+                          <DropdownMenuItem onSelect={() => handleRestockItem(item)}>Restock Item</DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </TableCell>
                     </TableRow>
                 )
@@ -118,7 +156,11 @@ export default function InventoryPage() {
         </CardContent>
       </Card>
     </div>
-    {canAddItem && <AddItemDialog open={showAddItemDialog} onOpenChange={setShowAddItemDialog} />}
+    {canManageInventory && <AddItemDialog open={showAddItemDialog} onOpenChange={setShowAddItemDialog} />}
+    {selectedItem && <UseItemDialog open={showUseItemDialog} onOpenChange={setShowUseItemDialog} item={selectedItem} />}
+    {selectedItem && <RestockItemDialog open={showRestockItemDialog} onOpenChange={setShowRestockItemDialog} item={selectedItem} />}
     </>
   );
 }
+
+    

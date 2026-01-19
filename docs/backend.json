@@ -8,7 +8,7 @@
         "id": { "type": "string" },
         "name": { "type": "string" },
         "email": { "type": "string", "format": "email" },
-        "role": { "type": "string", "enum": ["Admin", "Supervisor", "Housekeeper", "Director", "Administrator", "Maintenance"] },
+        "role": { "type": "string", "enum": ["Admin", "Supervisor", "Housekeeper", "Director", "Administrator", "Maintenance", "Nurse"] },
         "avatarUrl": { "type": "string", "format": "uri" },
         "createdAt": { "type": "string", "format": "date-time" }
       },
@@ -95,6 +95,33 @@
         "updatedAt": { "type": "string", "format": "date-time" }
       },
       "required": ["location", "inspectorId", "date", "status", "createdAt", "updatedAt"]
+    },
+    "Resident": {
+      "title": "Resident",
+      "description": "A resident of the facility.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "roomNumber": { "type": "string" },
+        "dateOfBirth": { "type": "string", "format": "date" },
+        "notes": { "type": "string" }
+      },
+      "required": ["id", "name", "roomNumber"]
+    },
+    "ShiftReport": {
+      "title": "Shift Report",
+      "description": "A nursing shift report.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "residentId": { "type": "string" },
+        "authorId": { "type": "string" },
+        "shift": { "type": "string", "enum": ["Day", "Evening", "Night"] },
+        "date": { "type": "string", "format": "date-time" },
+        "reportText": { "type": "string" }
+      },
+      "required": ["id", "residentId", "authorId", "shift", "date", "reportText"]
     }
   },
   "auth": {
@@ -124,6 +151,16 @@
     "/inspections/{inspectionId}": {
       "schema": { "$ref": "#/entities/Inspection" },
       "description": "Collection of all quality control inspections."
+    },
+    "/residents/{residentId}": {
+      "schema": { "$ref": "#/entities/Resident" },
+      "description": "Collection of all residents."
+    },
+    "/shift_reports/{reportId}": {
+      "schema": { "$ref": "#/entities/ShiftReport" },
+      "description": "Collection of all nursing shift reports."
     }
   }
 }
+
+    

@@ -1,6 +1,6 @@
 import { Timestamp } from 'firebase/firestore';
 
-export type UserRole = 'Admin' | 'Supervisor' | 'Housekeeper' | 'Director' | 'Administrator' | 'Maintenance';
+export type UserRole = 'Admin' | 'Supervisor' | 'Housekeeper' | 'Director' | 'Administrator' | 'Maintenance' | 'Nurse';
 
 export interface User {
   id: string;
@@ -77,3 +77,28 @@ export interface Inspection {
     createdAt?: Timestamp;
     updatedAt?: Timestamp;
 }
+
+export interface Resident {
+    id: string;
+    name: string;
+    roomNumber: string;
+    dateOfBirth: string; // YYYY-MM-DD
+    notes?: string;
+    createdAt?: Timestamp;
+    updatedAt?: Timestamp;
+}
+
+export type Shift = 'Day' | 'Evening' | 'Night';
+
+export interface ShiftReport {
+    id: string;
+    residentId: string;
+    authorId: string; // User ID
+    shift: Shift;
+    date: string; // ISO String
+    reportText: string;
+    createdAt?: Timestamp;
+    updatedAt?: Timestamp;
+}
+
+    

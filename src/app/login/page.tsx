@@ -41,6 +41,7 @@ const preconfiguredUsers: { [email: string]: Partial<Omit<User, 'id' | 'createdA
   'housekeeper1@example.com': { name: 'Audry Howell', role: 'Housekeeper', avatarUrl: PlaceHolderImages.find(i => i.id === 'avatar-2')?.imageUrl },
   'housekeeper2@example.com': { name: 'Hannah Steele', role: 'Housekeeper', avatarUrl: PlaceHolderImages.find(i => i.id === 'avatar-3')?.imageUrl },
   'maintenance@example.com': { name: 'Mike Rowe', role: 'Maintenance', avatarUrl: PlaceHolderImages.find(i => i.id === 'avatar-2')?.imageUrl },
+  'nurse@example.com': { name: 'Florence Nightingale', role: 'Nurse', avatarUrl: PlaceHolderImages.find(i => i.id === 'avatar-1')?.imageUrl },
 };
 
 
@@ -198,3 +199,5 @@ export default function LoginPage() {
     </div>
   );
 }
+
+    
