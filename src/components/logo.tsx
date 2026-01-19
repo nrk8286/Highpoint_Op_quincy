@@ -7,11 +7,13 @@ type LogoProps = {
 };
 
 export function Logo({ className, size = 'default' }: LogoProps) {
-  const imageSize =
-    size === 'xlarge' ? 64 : size === 'large' ? 48 : 24;
-
-  const textSizeClasses =
-    size === 'xlarge' ? 'text-4xl' : size === 'large' ? 'text-3xl' : 'text-lg';
+  const sizes = {
+    // Aspect ratio approx 3:2 from the image
+    default: { width: 42, height: 28 },
+    large: { width: 90, height: 60 },
+    xlarge: { width: 120, height: 80 },
+  };
+  const { width, height } = sizes[size];
 
   return (
     <div
@@ -22,12 +24,11 @@ export function Logo({ className, size = 'default' }: LogoProps) {
     >
       <Image
         src="/logo.png"
-        alt="HighPoint HouseKeep Logo"
-        width={imageSize}
-        height={imageSize}
+        alt="High Point Residence Logo"
+        width={width}
+        height={height}
         className="rounded-md"
       />
-      <span className={cn('font-bold', textSizeClasses, 'group-data-[collapsible=icon]:hidden')}>HighPoint HouseKeep</span>
     </div>
   );
 }
