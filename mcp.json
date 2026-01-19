@@ -1,1 +1,9 @@
-{}
+{
+  "appName": "HighPoint Solutions",
+  "version": "1.0.0",
+  "description": "All-in-one solution to streamline housekeeping, maintenance, and compliance for modern facilities.",
+  "frameworks": {
+    "frontend": "Next.js",
+    "backend": "Firebase"
+  }
+}
