@@ -1,4 +1,4 @@
-import { Building2 } from 'lucide-react';
+import Image from 'next/image';
 import { cn } from '@/lib/utils';
 
 type LogoProps = {
@@ -7,24 +7,26 @@ type LogoProps = {
 };
 
 export function Logo({ className, size = 'default' }: LogoProps) {
-  const sizeClasses = 
-      size === 'xlarge' ? 'h-16 w-16'
-    : size === 'large' ? 'h-12 w-12' 
-    : 'h-6 w-6';
-  
-  const textSizeClasses = 
-      size === 'xlarge' ? 'text-4xl'
-    : size === 'large' ? 'text-3xl'
-    : 'text-lg';
+  const imageSize =
+    size === 'xlarge' ? 64 : size === 'large' ? 48 : 24;
+
+  const textSizeClasses =
+    size === 'xlarge' ? 'text-4xl' : size === 'large' ? 'text-3xl' : 'text-lg';
 
   return (
     <div
       className={cn(
-        'flex items-center gap-2 text-primary font-headline',
+        'flex items-center gap-2 font-headline text-primary',
         className
       )}
     >
-      <Building2 className={cn(sizeClasses)} />
+      <Image
+        src="/logo.png"
+        alt="HighPoint HouseKeep Logo"
+        width={imageSize}
+        height={imageSize}
+        className="rounded-md"
+      />
       <span className={cn('font-bold', textSizeClasses, 'group-data-[collapsible=icon]:hidden')}>HighPoint HouseKeep</span>
     </div>
   );
