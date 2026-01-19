@@ -4,6 +4,6 @@
   "description": "All-in-one solution to streamline housekeeping, maintenance, and compliance for modern facilities.",
   "frameworks": {
     "frontend": "Next.js",
-    "backend": "Firebase"
+    "backend": "Cloudflare Pages"
   }
 }
