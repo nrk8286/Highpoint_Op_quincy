@@ -65,13 +65,15 @@ export interface MaintenanceWorkOrder {
 }
 
 
+export type InspectionStatus = 'Pass' | 'Fail' | 'Corrective Action Required';
+
 export interface Inspection {
     id: string;
-    roomId: string;
+    location: string;
     inspectorId: string; // User ID
-    date: string;
-    status: 'Pass' | 'Fail' | 'Corrective Action';
-    notes: string;
-    photoUrl?: string;
+    date: string; // ISO String
+    status: InspectionStatus;
+    notes?: string;
     createdAt?: Timestamp;
+    updatedAt?: Timestamp;
 }

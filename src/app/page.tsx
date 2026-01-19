@@ -1,203 +1,132 @@
-'use client';
-
 import Image from 'next/image';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
-import * as z from 'zod';
-import { signInWithEmailAndPassword } from 'firebase/auth';
-import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
-
-import { PlaceHolderImages } from '@/lib/placeholder-images';
-import { useAuth, useFirestore, useUser } from '@/firebase';
+import { CheckCircle, Zap, ShieldCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { useToast } from '@/hooks/use-toast';
 import { Logo } from '@/components/logo';
-import type { User } from '@/lib/types';
-import { useEffect } from 'react';
+import { PlaceHolderImages } from '@/lib/placeholder-images';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
-const loginSchema = z.object({
-  email: z.string().email({ message: 'Please enter a valid email.' }),
-  password: z.string().min(1, { message: 'Password is required.' }),
-});
-
-type LoginFormValues = z.infer<typeof loginSchema>;
-
-const preconfiguredUsers: { [email: string]: Partial<Omit<User, 'id' | 'createdAt'>> } = {
-  'nrk8286@gmail.com': { name: 'Nicholas Kelly', role: 'Admin', avatarUrl: 'https://images.unsplash.com/photo-1599566150163-29194dcaad36?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxwb3J0cmFpdHxlbnwwfHx8fDE3Njg1NjQxMDZ8MA&ixlib=rb-4.1.0&q=80&w=1080' },
-  'admin2@example.com': { name: 'Lonnie Kurr', role: 'Administrator', avatarUrl: PlaceHolderImages.find(i => i.id === 'avatar-1')?.imageUrl },
-  'director@example.com': { name: 'The Director', role: 'Director', avatarUrl: PlaceHolderImages.find(i => i.id === 'avatar-1')?.imageUrl },
-  'housekeeper1@example.com': { name: 'Audry Howell', role: 'Housekeeper', avatarUrl: PlaceHolderImages.find(i => i.id === 'avatar-2')?.imageUrl },
-  'housekeeper2@example.com': { name: 'Hannah Steele', role: 'Housekeeper', avatarUrl: PlaceHolderImages.find(i => i.id === 'avatar-3')?.imageUrl },
-  'maintenance@example.com': { name: 'Mike Rowe', role: 'Maintenance', avatarUrl: PlaceHolderImages.find(i => i.id === 'avatar-2')?.imageUrl },
-};
-
-
-export default function LoginPage() {
-  const router = useRouter();
-  const { toast } = useToast();
-  const auth = useAuth();
-  const firestore = useFirestore();
-  const { loading, isAuthenticated } = useUser();
-  const loginBg = PlaceHolderImages.find((img) => img.id === 'login-bg');
-
-  const form = useForm<LoginFormValues>({
-    resolver: zodResolver(loginSchema),
-    defaultValues: {
-      email: '',
-      password: '',
-    },
-  });
-
-  useEffect(() => {
-    if (!loading && isAuthenticated) {
-      router.push('/dashboard');
-    }
-  }, [loading, isAuthenticated, router]);
-
-  const onSubmit = async (data: LoginFormValues) => {
-    try {
-      const userCredential = await signInWithEmailAndPassword(auth, data.email, data.password);
-      const user = userCredential.user;
-      
-      // Check if user profile exists, create it if it doesn't
-      const userDocRef = doc(firestore, 'users', user.uid);
-      const userDoc = await getDoc(userDocRef);
-
-      if (!userDoc.exists()) {
-        const userEmail = user.email || '';
-        const predefinedData = preconfiguredUsers[userEmail] || {};
-        
-        const newProfile: Omit<User, 'id'> = {
-          name: predefinedData.name || 'New User',
-          email: userEmail,
-          role: predefinedData.role || 'Housekeeper',
-          avatarUrl: predefinedData.avatarUrl || `https://i.pravatar.cc/150?u=${user.uid}`,
-          createdAt: serverTimestamp(),
-        };
-
-        await setDoc(userDocRef, { ...newProfile, id: user.uid });
-
-        toast({
-            title: 'Profile Created',
-            description: 'Your user profile has been initialized.',
-        });
-      }
-
-      toast({
-        title: 'Login Successful',
-        description: 'Redirecting to your dashboard...',
-      });
-      router.push('/dashboard');
-    } catch (error) {
-      console.error(error);
-      toast({
-        variant: 'destructive',
-        title: 'Login Failed',
-        description: 'Invalid email or password. Please try again.',
-      });
-    }
-  };
-
-  if (loading || isAuthenticated) {
-    return (
-      <div className="flex h-screen w-full items-center justify-center bg-background">
-        <div className="animate-pulse">
-          <Logo size="xlarge" />
-        </div>
-      </div>
-    );
-  }
+export default function LandingPage() {
+  const heroImage = PlaceHolderImages.find(img => img.id === 'login-bg');
+  const feature1 = PlaceHolderImages.find(img => img.id === 'pre-clean-1');
+  const feature2 = PlaceHolderImages.find(img => img.id === 'post-clean-1');
 
   return (
-    <div className="relative flex min-h-screen flex-col items-center justify-center bg-background">
-      {loginBg && (
-        <Image
-          src={loginBg.imageUrl}
-          alt={loginBg.description}
-          fill
-          className="object-cover opacity-20"
-          data-ai-hint={loginBg.imageHint}
-          priority
-        />
-      )}
-      <div className="relative z-10 w-full max-w-md space-y-6">
-        <Card className="shadow-2xl">
-          <CardHeader className="text-center">
-            <div className="mx-auto mb-4">
-              <Logo size="xlarge" />
+    <div className="flex min-h-screen flex-col bg-background">
+      <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-sm">
+        <div className="container mx-auto flex h-16 items-center justify-between px-4 md:px-6">
+          <Logo />
+          <nav className="hidden items-center gap-6 text-sm font-medium md:flex">
+            <Link href="#features" className="text-foreground/70 hover:text-foreground">
+              Features
+            </Link>
+            <Link href="#pricing" className="text-foreground/70 hover:text-foreground">
+              Pricing
+            </Link>
+            <Link href="#contact" className="text-foreground/70 hover:text-foreground">
+              Contact
+            </Link>
+          </nav>
+          <Button asChild>
+            <Link href="/login">Sign In</Link>
+          </Button>
+        </div>
+      </header>
+
+      <main className="flex-1">
+        <section className="relative py-20 md:py-32">
+          {heroImage && (
+            <Image
+              src={heroImage.imageUrl}
+              alt={heroImage.description}
+              fill
+              className="object-cover opacity-10"
+              data-ai-hint={heroImage.imageHint}
+              priority
+            />
+          )}
+          <div className="container relative mx-auto px-4 text-center md:px-6">
+            <h1 className="text-4xl font-bold tracking-tighter sm:text-5xl md:text-6xl font-headline">
+              The Future of Facility Management
+            </h1>
+            <p className="mx-auto mt-4 max-w-[700px] text-lg text-foreground/80 md:text-xl">
+              HighPoint HouseKeep provides an all-in-one solution to streamline housekeeping, maintenance, and compliance for modern facilities.
+            </p>
+            <div className="mt-8 flex justify-center gap-4">
+              <Button asChild size="lg">
+                <Link href="/login">Request a Demo</Link>
+              </Button>
+              <Button asChild variant="secondary" size="lg">
+                <Link href="#features">Learn More</Link>
+              </Button>
             </div>
-            <CardTitle className="text-4xl font-bold tracking-tight font-headline">
-              HighPoint HouseKeep
-            </CardTitle>
-            <CardDescription className="text-lg">
-              Sign in to manage facility operations.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                <FormField
-                  control={form.control}
-                  name="email"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Email</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="email"
-                          placeholder="supervisor@example.com"
-                          {...field}
-                          className="text-base"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="password"
-                  render={({ field }) => (
-                    <FormItem>
-                      <div className="flex items-center justify-between">
-                        <FormLabel>Password</FormLabel>
-                        <Link
-                          href="#"
-                          className="text-sm text-primary/80 hover:text-primary hover:underline"
-                        >
-                          Forgot password?
-                        </Link>
-                      </div>
-                      <FormControl>
-                        <Input type="password" placeholder="••••••••" {...field} className="text-base" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <Button type="submit" className="w-full h-12 text-base font-bold" disabled={form.formState.isSubmitting}>
-                  {form.formState.isSubmitting ? 'Signing In...' : 'Sign In'}
-                </Button>
-              </form>
-            </Form>
-          </CardContent>
-        </Card>
-        <p className="text-center text-sm text-muted-foreground">
-          &copy; {new Date().getFullYear()} High Point Residence. All rights reserved.
-        </p>
-      </div>
+          </div>
+        </section>
+
+        <section id="features" className="py-20 md:py-32 bg-secondary/50">
+          <div className="container mx-auto px-4 md:px-6">
+            <div className="mb-12 text-center">
+              <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl font-headline">
+                Why HighPoint HouseKeep?
+              </h2>
+              <p className="mx-auto mt-4 max-w-[700px] text-lg text-foreground/80">
+                A toolkit designed for efficiency, compliance, and quality control.
+              </p>
+            </div>
+            <div className="grid gap-8 md:grid-cols-3">
+              <Card>
+                <CardHeader className="flex flex-row items-center gap-4">
+                  <Zap className="h-8 w-8 text-primary" />
+                  <CardTitle>Streamline Operations</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-foreground/80">
+                    Assign and track daily tasks, manage maintenance work orders, and monitor inventory levels in real-time from a centralized dashboard.
+                  </p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader className="flex flex-row items-center gap-4">
+                  <ShieldCheck className="h-8 w-8 text-primary" />
+                  <CardTitle>Ensure Compliance</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-foreground/80">
+                    Use our AI-powered reporting tool to generate draft audit reports for state requirements, and conduct digital inspections to ensure quality standards.
+                  </p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader className="flex flex-row items-center gap-4">
+                  <CheckCircle className="h-8 w-8 text-primary" />
+                  <CardTitle>Empower Your Team</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-foreground/80">
+                    With an intuitive interface and a helpful AI assistant, your team has everything they need to perform their jobs effectively and efficiently.
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <footer className="border-t py-6">
+        <div className="container mx-auto flex flex-col items-center justify-between gap-4 px-4 md:flex-row md:px-6">
+          <p className="text-sm text-foreground/60">
+            &copy; {new Date().getFullYear()} HighPoint Solutions. All rights reserved.
+          </p>
+          <div className="flex gap-4">
+             <Link href="/login" className="text-sm text-foreground/60 hover:text-foreground">
+                Sign In
+            </Link>
+            <Link href="#" className="text-sm text-foreground/60 hover:text-foreground">
+                Privacy Policy
+            </Link>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }

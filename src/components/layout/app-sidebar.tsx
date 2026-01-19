@@ -14,6 +14,7 @@ import {
   ChevronUp,
   Bot,
   Wrench,
+  ClipboardCheck as InspectionIcon,
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
@@ -37,6 +38,7 @@ const menuItems = [
   { href: '/dashboard/ai-chat', label: 'AI Chat', icon: Bot },
   { href: '/dashboard/tasks', label: 'Daily Tasks', icon: ClipboardList },
   { href: '/dashboard/deep-cleaning', label: 'Deep Cleaning', icon: CalendarCheck },
+  { href: '/dashboard/inspections', label: 'Inspections', icon: InspectionIcon, roles: ['Supervisor', 'Admin', 'Director', 'Administrator'] },
   { href: '/dashboard/maintenance', label: 'Maintenance', icon: Wrench },
   { href: '/dashboard/inventory', label: 'Inventory', icon: Warehouse },
   { href: '/dashboard/performance', label: 'Performance', icon: BarChart3 },
@@ -51,7 +53,7 @@ export default function AppSidebar({ currentUser }: { currentUser: User }) {
 
   const handleLogout = async () => {
     await auth.signOut();
-    router.push('/');
+    router.push('/login');
   };
 
   return (
@@ -65,7 +67,7 @@ export default function AppSidebar({ currentUser }: { currentUser: User }) {
             if (item.roles && !item.roles.includes(currentUser.role)) {
               return null;
             }
-            const isActive = pathname === item.href;
+            const isActive = pathname.startsWith(item.href);
             return (
               <SidebarMenuItem key={item.href}>
                 <Link href={item.href} passHref>

@@ -79,6 +79,22 @@
         "updatedAt": { "type": "string", "format": "date-time" }
       },
       "required": ["location", "issueType", "description", "status", "priority", "createdBy", "createdAt", "updatedAt"]
+    },
+    "Inspection": {
+      "title": "Inspection",
+      "description": "A quality control inspection for a room or area.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "location": { "type": "string" },
+        "inspectorId": { "type": "string" },
+        "date": { "type": "string", "format": "date-time" },
+        "status": { "type": "string", "enum": ["Pass", "Fail", "Corrective Action Required"] },
+        "notes": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["location", "inspectorId", "date", "status", "createdAt", "updatedAt"]
     }
   },
   "auth": {
@@ -104,6 +120,10 @@
     "/maintenance_work_orders/{workOrderId}": {
       "schema": { "$ref": "#/entities/MaintenanceWorkOrder" },
       "description": "Collection of all maintenance work orders."
+    },
+    "/inspections/{inspectionId}": {
+      "schema": { "$ref": "#/entities/Inspection" },
+      "description": "Collection of all quality control inspections."
     }
   }
 }

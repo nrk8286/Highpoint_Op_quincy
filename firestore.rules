@@ -51,5 +51,12 @@ service cloud.firestore {
         allow update: if isManager() || isMaintenance();
         allow delete: if isManager();
     }
+
+    match /inspections/{inspectionId} {
+      allow read: if isSignedIn();
+      allow create: if isManager();
+      allow update: if isManager();
+      allow delete: if isManager();
+    }
   }
 }

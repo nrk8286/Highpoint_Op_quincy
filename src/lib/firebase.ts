@@ -14,7 +14,7 @@ import {
 } from 'firebase/firestore';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
-import type { DailyTask, DeepCleanTask, InventoryItem, User, MaintenanceWorkOrder, MaintenanceStatus } from '@/lib/types';
+import type { DailyTask, DeepCleanTask, InventoryItem, User, MaintenanceWorkOrder, Inspection } from '@/lib/types';
 import { PlaceHolderImages } from './placeholder-images';
 
 const dailyTasksToSeed: Omit<DailyTask, 'id' | 'createdAt' | 'updatedAt' | 'assignedTo'>[] = [
@@ -186,6 +186,25 @@ export function addItem(db: Firestore, item: Omit<InventoryItem, 'id' | 'created
           path: itemRef.path,
           operation: 'create',
           requestResourceData: item,
+        });
+        errorEmitter.emit('permission-error', permissionError);
+        throw permissionError;
+      });
+}
+
+export function addInspection(db: Firestore, inspection: Omit<Inspection, 'id' | 'createdAt' | 'updatedAt'>) {
+    const dataToAdd = {
+        ...inspection,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+    };
+    const inspectionRef = collection(db, 'inspections');
+    addDoc(inspectionRef, dataToAdd)
+      .catch(async (serverError) => {
+        const permissionError = new FirestorePermissionError({
+          path: inspectionRef.path,
+          operation: 'create',
+          requestResourceData: dataToAdd,
         });
         errorEmitter.emit('permission-error', permissionError);
         throw permissionError;
