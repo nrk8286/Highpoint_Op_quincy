@@ -8,10 +8,10 @@ type LogoProps = {
 
 export function Logo({ className, size = 'default' }: LogoProps) {
   const sizes = {
-    // Aspect ratio approx 3:2 from the image
-    default: { width: 42, height: 28 },
-    large: { width: 90, height: 60 },
-    xlarge: { width: 120, height: 80 },
+    // Aspect ratio 1:1
+    default: { width: 36, height: 36 },
+    large: { width: 72, height: 72 },
+    xlarge: { width: 96, height: 96 },
   };
   const { width, height } = sizes[size];
 

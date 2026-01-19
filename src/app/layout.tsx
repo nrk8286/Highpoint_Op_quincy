@@ -5,7 +5,7 @@ import { FirebaseClientProvider } from '@/firebase';
 import { FirebaseErrorListener } from '@/components/FirebaseErrorListener';
 
 export const metadata: Metadata = {
-  title: 'HighPoint HouseKeep | Facility Management Software',
+  title: 'HighPoint Solutions | Facility Management Software',
   description: 'All-in-one solution to streamline housekeeping, maintenance, and compliance for modern facilities.',
   keywords: ['facility management', 'housekeeping software', 'maintenance management', 'compliance reporting'],
 };

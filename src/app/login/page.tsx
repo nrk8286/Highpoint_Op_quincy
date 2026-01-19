@@ -138,9 +138,6 @@ export default function LoginPage() {
             <div className="mx-auto mb-4">
               <Logo size="xlarge" />
             </div>
-            <CardTitle className="text-4xl font-bold tracking-tight font-headline">
-              HighPoint HouseKeep
-            </CardTitle>
             <CardDescription className="text-lg">
               Sign in to manage facility operations.
             </CardDescription>

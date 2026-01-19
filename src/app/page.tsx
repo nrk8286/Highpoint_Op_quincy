@@ -50,7 +50,7 @@ export default function LandingPage() {
               The Future of Facility Management
             </h1>
             <p className="mx-auto mt-4 max-w-[700px] text-lg text-foreground/80 md:text-xl">
-              HighPoint HouseKeep provides an all-in-one solution to streamline housekeeping, maintenance, and compliance for modern facilities.
+              An all-in-one solution to streamline housekeeping, maintenance, and compliance for modern facilities.
             </p>
             <div className="mt-8 flex justify-center gap-4">
               <Button asChild size="lg">
@@ -67,7 +67,7 @@ export default function LandingPage() {
           <div className="container mx-auto px-4 md:px-6">
             <div className="mb-12 text-center">
               <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl font-headline">
-                Why HighPoint HouseKeep?
+                Why Choose Our Platform?
               </h2>
               <p className="mx-auto mt-4 max-w-[700px] text-lg text-foreground/80">
                 A toolkit designed for efficiency, compliance, and quality control.
