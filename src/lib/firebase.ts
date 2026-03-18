@@ -75,7 +75,7 @@ export const seedDatabase = async (db: Firestore, fallbackUserId: string) => {
 
   // Step 2: Seed tasks and assign them using the retrieved UIDs.
   dailyTasksToSeed.forEach((task) => {
-    const taskRef = doc(collection(db, 'daily_tasks'));
+    const taskRef = doc(collection(db, 'dailyTasks'));
     let assignedTo = audrey; // Default
     if (task.roomNumber.startsWith('B') || task.roomNumber.startsWith('C')) {
         assignedTo = hannah;
@@ -84,7 +84,7 @@ export const seedDatabase = async (db: Firestore, fallbackUserId: string) => {
   });
 
   deepCleanTasksToSeed.forEach((task, index) => {
-    const taskRef = doc(collection(db, 'deep_clean_tasks'));
+    const taskRef = doc(collection(db, 'deepCleanTasks'));
     const assignedTo = index % 2 === 0 ? audrey : hannah;
     batch.set(taskRef, { ...task, assignedTo, createdAt: serverTimestamp(), updatedAt: serverTimestamp() });
   });
@@ -100,11 +100,11 @@ export const seedDatabase = async (db: Firestore, fallbackUserId: string) => {
 
     // Add a sample shift report for the first resident
     if (resident.name === 'John Doe') {
-        const reportRef = doc(collection(db, 'shift_reports'));
-        const report: Omit<ShiftReport, 'id'> = {
+        const reportRef = doc(collection(db, 'shiftReports'));
+        const report = {
             residentId: residentRef.id,
             authorId: nurse,
-            shift: 'Day',
+            shift: 'Day' as const,
             date: new Date().toISOString(),
             reportText: 'Resident had a good day. No issues to report.',
             createdAt: serverTimestamp(),
@@ -134,7 +134,7 @@ export function addWorkOrder(db: Firestore, workOrder: Omit<MaintenanceWorkOrder
         dataToAdd.assignedTo = workOrder.assignedTo;
     }
 
-    const workOrderRef = collection(db, 'maintenance_work_orders');
+    const workOrderRef = collection(db, 'maintenance');
     addDoc(workOrderRef, dataToAdd)
         .catch(async (serverError) => {
             const permissionError = new FirestorePermissionError({
@@ -162,7 +162,7 @@ export function addTask(db: Firestore, task: Omit<DailyTask, 'id' | 'createdAt' 
         dataToAdd.notes = task.notes;
     }
 
-    const taskRef = collection(db, 'daily_tasks');
+    const taskRef = collection(db, 'dailyTasks');
     addDoc(taskRef, dataToAdd)
       .catch(async (serverError) => {
         const permissionError = new FirestorePermissionError({
@@ -176,7 +176,7 @@ export function addTask(db: Firestore, task: Omit<DailyTask, 'id' | 'createdAt' 
 }
 
 export function updateTask(db: Firestore, taskId: string, data: Partial<Omit<DailyTask, 'id'>>) {
-    const taskRef = doc(db, 'daily_tasks', taskId);
+    const taskRef = doc(db, 'dailyTasks', taskId);
     updateDoc(taskRef, { ...data, updatedAt: serverTimestamp() })
         .catch(async (serverError) => {
             const permissionError = new FirestorePermissionError({
@@ -190,7 +190,7 @@ export function updateTask(db: Firestore, taskId: string, data: Partial<Omit<Dai
 }
 
 export function updateWorkOrder(db: Firestore, workOrderId: string, data: Partial<Omit<MaintenanceWorkOrder, 'id'>>) {
-    const workOrderRef = doc(db, 'maintenance_work_orders', workOrderId);
+    const workOrderRef = doc(db, 'maintenance', workOrderId);
     updateDoc(workOrderRef, { ...data, updatedAt: serverTimestamp() })
         .catch(async (serverError) => {
             const permissionError = new FirestorePermissionError({
@@ -265,7 +265,7 @@ export function addResident(db: Firestore, resident: Omit<Resident, 'id' | 'crea
 }
 
 export function addShiftReport(db: Firestore, report: Omit<ShiftReport, 'id' | 'createdAt' | 'updatedAt'>) {
-    const reportRef = collection(db, 'shift_reports');
+    const reportRef = collection(db, 'shiftReports');
     addDoc(reportRef, { ...report, createdAt: serverTimestamp(), updatedAt: serverTimestamp() })
       .catch(async (serverError) => {
         const permissionError = new FirestorePermissionError({

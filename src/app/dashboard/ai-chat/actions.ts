@@ -19,16 +19,27 @@ export async function chatAction(
   prevState: ChatState,
   formData: FormData
 ): Promise<ChatState> {
-  const message = formData.get('message') as string;
-  const historyRaw = formData.get('history') as string;
+  const message = formData.get('message');
+  const historyRaw = formData.get('history');
 
-  if (!message) {
+  if (!message || typeof message !== 'string' || message.trim().length === 0) {
     return { ...prevState, error: 'Message cannot be empty.' };
   }
 
-  const parsedHistory = ChatHistorySchema.safeParse(JSON.parse(historyRaw));
+  if (!historyRaw || typeof historyRaw !== 'string') {
+    return { ...prevState, error: 'Chat history is missing.' };
+  }
+
+  let historyData;
+  try {
+    historyData = JSON.parse(historyRaw);
+  } catch (e) {
+    return { ...prevState, error: 'Invalid chat history format.' };
+  }
+
+  const parsedHistory = ChatHistorySchema.safeParse(historyData);
   if (!parsedHistory.success) {
-      return { ...prevState, error: 'Invalid chat history.' };
+      return { ...prevState, error: 'Invalid chat history data.' };
   }
 
   const currentMessages = [...parsedHistory.data, { role: 'user' as const, content: message }];
