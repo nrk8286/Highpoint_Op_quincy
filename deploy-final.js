@@ -137,10 +137,7 @@ async function deployRules() {
     // Release the ruleset - create a new release for cloud.firestore
     console.log('Creating release for cloud.firestore...');
     const releasePayload = JSON.stringify({
-      release: {
-        name: `projects/${projectId}/releases/cloud.firestore`,
-        rulesetId: rulesetId
-      }
+      ruleset: `projects/${projectId}/rulesets/${rulesetId}`
     });
 
     await new Promise((resolve, reject) => {
