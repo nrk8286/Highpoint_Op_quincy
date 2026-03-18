@@ -44,3 +44,7 @@ next-env.d.ts
 # firebase
 firebase-debug.log
 firestore-debug.log
+serviceAccountKey.json
+deploy-rules.js
+deploy-firestore-rules.js
+deploy-with-sdk.js
