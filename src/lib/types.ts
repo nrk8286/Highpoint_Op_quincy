@@ -100,3 +100,115 @@ export interface ShiftReport {
     createdAt?: Timestamp;
     updatedAt?: Timestamp;
 }
+
+// Asset Management Types
+export type AssetStatus = 'Active' | 'Inactive' | 'Under Maintenance' | 'Retired' | 'Disposed';
+export type AssetCondition = 'Excellent' | 'Good' | 'Fair' | 'Poor' | 'Critical';
+
+export interface Asset {
+    id: string;
+    name: string;
+    category: string; // e.g., HVAC, Plumbing, Electrical, Furniture
+    location: string;
+    serialNumber?: string;
+    manufacturer?: string;
+    model?: string;
+    purchaseDate?: string;
+    purchasePrice?: number;
+    warrantyExpiration?: string;
+    status: AssetStatus;
+    condition: AssetCondition;
+    lastMaintenanceDate?: string;
+    nextMaintenanceDate?: string;
+    maintenanceSchedule?: string; // e.g., 'monthly', 'quarterly', 'annually'
+    notes?: string;
+    createdAt?: Timestamp;
+    updatedAt?: Timestamp;
+}
+
+export interface AssetMaintenanceHistory {
+    id: string;
+    assetId: string;
+    workOrderId?: string;
+    date: string;
+    type: 'Preventive' | 'Corrective' | 'Inspection' | 'Upgrade';
+    description: string;
+    cost?: number;
+    performedBy: string; // User ID or vendor name
+    outcome?: 'Success' | 'Partial' | 'Failed';
+    notes?: string;
+    createdAt?: Timestamp;
+}
+
+// Training and Learning Types
+export type TrainingStatus = 'Not Started' | 'In Progress' | 'Completed' | 'Overdue';
+export type TrainingFormat = 'In-Person' | 'Live Online' | 'Video' | 'Interactive' | 'Assessment';
+
+export interface TrainingModule {
+    id: string;
+    title: string;
+    description: string;
+    targetRole: UserRole | 'All';
+    format: TrainingFormat;
+    durationMinutes: number;
+    requiredForCompliance: boolean;
+    topics: string[];
+    content?: string; // Training content/script
+    videoUrl?: string;
+    assessmentId?: string;
+    validityDays?: number; // How long certification is valid
+    createdAt?: Timestamp;
+    updatedAt?: Timestamp;
+}
+
+export interface TrainingCompletion {
+    id: string;
+    userId: string;
+    moduleId: string;
+    startDate?: string;
+    completionDate?: string;
+    status: TrainingStatus;
+    score?: number; // 0-100
+    passed: boolean;
+    certificateUrl?: string;
+    expirationDate?: string; // When certification expires
+    createdAt?: Timestamp;
+    updatedAt?: Timestamp;
+}
+
+// Scheduling Types
+export type EventType = 'Maintenance' | 'Inspection' | 'Training' | 'Reservation' | 'Meeting';
+
+export interface ScheduledEvent {
+    id: string;
+    type: EventType;
+    title: string;
+    description?: string;
+    startTime: string; // ISO String
+    endTime: string; // ISO String
+    location?: string;
+    assignedTo?: string[]; // User IDs
+    relatedAssetId?: string;
+    relatedWorkOrderId?: string;
+    relatedModuleId?: string;
+    recurrence?: 'None' | 'Daily' | 'Weekly' | 'Monthly' | 'Yearly';
+    status: 'Scheduled' | 'In Progress' | 'Completed' | 'Cancelled';
+    createdAt?: Timestamp;
+    updatedAt?: Timestamp;
+}
+
+// Analytics and Metrics Types
+export interface FacilityMetrics {
+    id: string;
+    facilityId: string;
+    date: string; // YYYY-MM-DD
+    tasksCompleted: number;
+    tasksOverdue: number;
+    maintenanceWorkOrders: number;
+    inventoryAlerts: number;
+    complianceScore: number; // 0-100
+    staffUtilization: number; // 0-100
+    assetDowntime: number; // hours
+    residentSatisfaction?: number; // 0-100
+    createdAt?: Timestamp;
+}
