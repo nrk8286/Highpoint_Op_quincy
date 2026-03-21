@@ -17,7 +17,11 @@ import {
   ClipboardCheck as InspectionIcon,
   HeartPulse,
   FilePieChart,
-  History
+  History,
+  Brain,
+  Package,
+  BookOpen,
+  Shield
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
@@ -39,12 +43,16 @@ import type { User } from '@/lib/types';
 const menuItems = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/dashboard/ai-chat', label: 'AI Chat', icon: Bot },
+  { href: '/dashboard/agents', label: 'Multi-Agent System', icon: Brain, roles: ['Supervisor', 'Admin', 'Director', 'Administrator'] },
   { href: '/dashboard/tasks', label: 'Daily Tasks', icon: ClipboardList },
   { href: '/dashboard/deep-cleaning', label: 'Deep Cleaning', icon: CalendarCheck },
   { href: '/dashboard/inspections', label: 'Inspections', icon: InspectionIcon, roles: ['Supervisor', 'Admin', 'Director', 'Administrator'] },
   { href: '/dashboard/maintenance', label: 'Maintenance', icon: Wrench },
   { href: '/dashboard/inventory', label: 'Inventory', icon: Warehouse },
+  { href: '/dashboard/assets', label: 'Asset Management', icon: Package, roles: ['Supervisor', 'Admin', 'Director', 'Administrator'] },
   { href: '/dashboard/nursing', label: 'Nursing', icon: HeartPulse, roles: ['Nurse', 'Director', 'Administrator'] },
+  { href: '/dashboard/training', label: 'Training', icon: BookOpen, roles: ['Supervisor', 'Admin', 'Director', 'Administrator'] },
+  { href: '/dashboard/compliance-requirements', label: 'Compliance', icon: Shield, roles: ['Supervisor', 'Admin', 'Director', 'Administrator'] },
   { href: '/dashboard/performance', label: 'Performance', icon: BarChart3, roles: ['Supervisor', 'Admin', 'Director', 'Administrator'] },
   { href: '/dashboard/reports', label: 'Reports', icon: FilePieChart, roles: ['Supervisor', 'Admin', 'Director', 'Administrator'] },
   { href: '/dashboard/data-tracing', label: 'Data Tracing', icon: History, roles: ['Supervisor', 'Admin', 'Director', 'Administrator'] },
