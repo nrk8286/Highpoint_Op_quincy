@@ -14,7 +14,7 @@ import {
 } from 'firebase/firestore';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
-import type { DailyTask, DeepCleanTask, InventoryItem, User, MaintenanceWorkOrder, Inspection, Resident, ShiftReport } from '@/lib/types';
+import type { DailyTask, DeepCleanTask, InventoryItem, User, MaintenanceWorkOrder, Inspection, Resident, ShiftReport, Asset, TrainingModule, ComplianceRequirement } from '@/lib/types';
 import { PlaceHolderImages } from './placeholder-images';
 
 const dailyTasksToSeed: Omit<DailyTask, 'id' | 'createdAt' | 'updatedAt' | 'assignedTo'>[] = [
@@ -279,3 +279,92 @@ export function addShiftReport(db: Firestore, report: Omit<ShiftReport, 'id' | '
 }
 
     
+// Asset Management
+
+export function addAsset(db: Firestore, asset: Omit<Asset, 'id' | 'createdAt' | 'updatedAt'>) {
+    const assetRef = collection(db, 'assets');
+    return addDoc(assetRef, { ...asset, createdAt: serverTimestamp(), updatedAt: serverTimestamp() })
+      .catch(async (serverError) => {
+        const permissionError = new FirestorePermissionError({
+          path: assetRef.path,
+          operation: 'create',
+          requestResourceData: asset,
+        });
+        errorEmitter.emit('permission-error', permissionError);
+        throw permissionError;
+      });
+}
+
+export function updateAsset(db: Firestore, assetId: string, updates: Partial<Asset>) {
+    const assetRef = doc(db, 'assets', assetId);
+    return updateDoc(assetRef, { ...updates, updatedAt: serverTimestamp() })
+      .catch(async (serverError) => {
+        const permissionError = new FirestorePermissionError({
+          path: assetRef.path,
+          operation: 'update',
+          requestResourceData: updates,
+        });
+        errorEmitter.emit('permission-error', permissionError);
+        throw permissionError;
+      });
+}
+
+// Training Module Management
+
+export function addTrainingModule(db: Firestore, module: Omit<TrainingModule, 'id' | 'createdAt' | 'updatedAt'>) {
+    const moduleRef = collection(db, 'training_modules');
+    return addDoc(moduleRef, { ...module, createdAt: serverTimestamp(), updatedAt: serverTimestamp() })
+      .catch(async (serverError) => {
+        const permissionError = new FirestorePermissionError({
+          path: moduleRef.path,
+          operation: 'create',
+          requestResourceData: module,
+        });
+        errorEmitter.emit('permission-error', permissionError);
+        throw permissionError;
+      });
+}
+
+export function updateTrainingModule(db: Firestore, moduleId: string, updates: Partial<TrainingModule>) {
+    const moduleRef = doc(db, 'training_modules', moduleId);
+    return updateDoc(moduleRef, { ...updates, updatedAt: serverTimestamp() })
+      .catch(async (serverError) => {
+        const permissionError = new FirestorePermissionError({
+          path: moduleRef.path,
+          operation: 'update',
+          requestResourceData: updates,
+        });
+        errorEmitter.emit('permission-error', permissionError);
+        throw permissionError;
+      });
+}
+
+// Compliance Management
+
+export function addComplianceRequirement(db: Firestore, requirement: Omit<ComplianceRequirement, 'id' | 'createdAt' | 'updatedAt'>) {
+    const requirementRef = collection(db, 'compliance_requirements');
+    return addDoc(requirementRef, { ...requirement, createdAt: serverTimestamp(), updatedAt: serverTimestamp() })
+      .catch(async (serverError) => {
+        const permissionError = new FirestorePermissionError({
+          path: requirementRef.path,
+          operation: 'create',
+          requestResourceData: requirement,
+        });
+        errorEmitter.emit('permission-error', permissionError);
+        throw permissionError;
+      });
+}
+
+export function updateComplianceRequirement(db: Firestore, requirementId: string, updates: Partial<ComplianceRequirement>) {
+    const requirementRef = doc(db, 'compliance_requirements', requirementId);
+    return updateDoc(requirementRef, { ...updates, updatedAt: serverTimestamp() })
+      .catch(async (serverError) => {
+        const permissionError = new FirestorePermissionError({
+          path: requirementRef.path,
+          operation: 'update',
+          requestResourceData: updates,
+        });
+        errorEmitter.emit('permission-error', permissionError);
+        throw permissionError;
+      });
+}
