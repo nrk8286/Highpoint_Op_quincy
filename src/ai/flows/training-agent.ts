@@ -276,7 +276,7 @@ const assessTrainingEffectivenessFlow = ai.defineFlow(
     const { output } = await assessTrainingEffectivenessPrompt(input);
     if (!output) {
       return {
-        overallEffectiveness: 'Poor',
+        overallEffectiveness: 'Poor' as const,
         metrics: {
           completionRate: 0,
         },

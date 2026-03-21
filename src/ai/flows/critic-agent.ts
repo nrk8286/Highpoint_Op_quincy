@@ -276,8 +276,8 @@ const validateTrainingContentFlow = ai.defineFlow(
         alignmentWithObjectives: 0,
         assessmentQuality: 0,
         issues: [{
-          severity: 'Critical',
-          category: 'Completeness',
+          severity: 'Critical' as const,
+          category: 'Completeness' as const,
           description: 'Failed to validate training content.',
           suggestion: 'Retry validation process.',
         }],
