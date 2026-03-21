@@ -11,11 +11,18 @@ import {
   getDocs,
   Firestore,
   updateDoc,
+  Timestamp,
+  getFirestore,
 } from 'firebase/firestore';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 import type { DailyTask, DeepCleanTask, InventoryItem, User, MaintenanceWorkOrder, Inspection, Resident, ShiftReport } from '@/lib/types';
 import { PlaceHolderImages } from './placeholder-images';
+import { initializeFirebase } from '@/firebase';
+
+// Initialize Firebase and export the db instance
+const { firestore } = initializeFirebase();
+export const db = firestore;
 
 const dailyTasksToSeed: Omit<DailyTask, 'id' | 'createdAt' | 'updatedAt' | 'assignedTo'>[] = [
     { roomNumber: 'A1', roomType: 'Daily Clean', status: 'Completed', date: new Date().toISOString().split('T')[0] },
@@ -107,8 +114,8 @@ export const seedDatabase = async (db: Firestore, fallbackUserId: string) => {
             shift: 'Day',
             date: new Date().toISOString(),
             reportText: 'Resident had a good day. No issues to report.',
-            createdAt: serverTimestamp(),
-            updatedAt: serverTimestamp(),
+            createdAt: serverTimestamp() as unknown as Timestamp,
+            updatedAt: serverTimestamp() as unknown as Timestamp,
         }
         batch.set(reportRef, report);
     }

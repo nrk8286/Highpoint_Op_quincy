@@ -7,7 +7,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
 import { signInWithEmailAndPassword } from 'firebase/auth';
-import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, getDoc, setDoc, serverTimestamp, Timestamp } from 'firebase/firestore';
 
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { useAuth, useFirestore, useUser } from '@/firebase';
@@ -81,7 +81,7 @@ export default function LoginPage() {
           email: userEmail,
           role: predefinedData.role || 'Housekeeper',
           avatarUrl: predefinedData.avatarUrl || `https://i.pravatar.cc/150?u=${user.uid}`,
-          createdAt: serverTimestamp(),
+          createdAt: serverTimestamp() as unknown as Timestamp,
         };
 
         await setDoc(userDocRef, { ...newProfile, id: user.uid });
