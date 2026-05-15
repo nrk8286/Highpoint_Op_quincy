@@ -1,0 +1,30 @@
+{
+  "name": "highpoints-mobile",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Native store packaging for High Point Ops.",
+  "scripts": {
+    "sync": "capacitor sync",
+    "sync:android": "capacitor sync android",
+    "sync:ios": "capacitor sync ios",
+    "open:android": "capacitor open android",
+    "open:ios": "capacitor open ios",
+    "build:android": "cd android && ./gradlew bundleRelease",
+    "build:android:apk": "cd android && ./gradlew assembleRelease",
+    "build:android:debug": "cd android && ./gradlew assembleDebug",
+    "doctor": "capacitor doctor"
+  },
+  "dependencies": {
+    "@capacitor/android": "^7.4.3",
+    "@capacitor/app": "^7.1.0",
+    "@capacitor/core": "^7.4.3",
+    "@capacitor/haptics": "^7.0.2",
+    "@capacitor/ios": "^7.4.3",
+    "@capacitor/splash-screen": "^7.0.3",
+    "@capacitor/status-bar": "^7.0.3"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^7.4.3",
+    "typescript": "^6.0.3"
+  }
+}

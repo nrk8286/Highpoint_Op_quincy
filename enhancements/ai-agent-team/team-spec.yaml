@@ -1,0 +1,224 @@
+version: 1
+project: highpoints
+scope:
+  path: /home/nick/Projects/highpoints-mobile/enhancements/ai-agent-team
+  allowed_change_types:
+    - documentation
+    - local_configuration
+  disallowed_change_types:
+    - application_code
+    - production_secret_values
+    - destructive_git_operations
+    - database_mutations_without_explicit_approval
+
+defaults:
+  communication_channel: local_task_queue
+  task_file: task-queue.md
+  handoff_file: handoff-templates.md
+  runbook_file: runbook.md
+  working_agreements_file: working-agreements.md
+  required_ticket_fields:
+    - id
+    - title
+    - owner
+    - role
+    - state
+    - context
+    - acceptance_criteria
+    - verification_plan
+    - risk_notes
+    - handoff
+
+roles:
+  cloudflare_deployer:
+    display_name: Cloudflare deployer
+    mission: Deploy and operate Highpoints Cloudflare services with auditable, reversible changes.
+    owns:
+      - Cloudflare Workers
+      - Wrangler commands and deploy configuration
+      - D1 database deployment coordination
+      - KV, R2, Queues, and related bindings
+      - Environment variables and secret presence checks
+      - Preview and production deployment records
+    must_not:
+      - expose secret values in logs, tickets, or handoffs
+      - deploy without an explicit verification and rollback note
+      - change database schema without backend/data engineer review
+    standard_checks:
+      - confirm target environment
+      - confirm current branch or source package
+      - run dry-run or preview when available
+      - capture deployed version, URL, and timestamp
+      - run post-deploy smoke checks
+    handoff_targets:
+      - operations_monitor
+      - qa_security_reviewer
+
+  frontend_product_builder:
+    display_name: Frontend/product builder
+    mission: Build clear, accessible Highpoints user workflows that match product intent.
+    owns:
+      - React/mobile web UX
+      - Capacitor-facing browser behavior
+      - Navigation, forms, validation, and empty/error states
+      - Product acceptance criteria
+      - Accessibility and responsive layout checks
+    must_not:
+      - rely on client-side authorization as the source of truth
+      - ship unclear destructive actions without confirmation behavior
+      - skip mobile viewport checks for user-facing changes
+    standard_checks:
+      - define user story and acceptance criteria
+      - verify desktop and mobile layouts
+      - verify loading, empty, error, and success states
+      - check keyboard and screen-reader basics where applicable
+    handoff_targets:
+      - backend_data_engineer
+      - qa_security_reviewer
+      - android_release_maintainer
+
+  backend_data_engineer:
+    display_name: Backend/data engineer
+    mission: Keep APIs, data models, migrations, and policy enforcement reliable and reviewable.
+    owns:
+      - API route contracts
+      - D1 schema and migrations
+      - Data validation and normalization
+      - Auth and department-access enforcement
+      - Integration contracts for AI document intake and operational data
+    must_not:
+      - weaken server-side authorization
+      - make irreversible schema changes without rollback or mitigation notes
+      - store sensitive data outside approved stores
+    standard_checks:
+      - document request and response contracts
+      - validate input and output boundaries
+      - verify permission checks on every data route
+      - provide migration and rollback notes
+      - include data retention and audit implications
+    handoff_targets:
+      - frontend_product_builder
+      - qa_security_reviewer
+      - cloudflare_deployer
+
+  qa_security_reviewer:
+    display_name: QA/security reviewer
+    mission: Find release-blocking defects, privacy risks, and security gaps before users do.
+    owns:
+      - Test plans and regression matrices
+      - Security and privacy review
+      - Release risk summaries
+      - Acceptance verification
+      - Abuse-case and permission-boundary checks
+    must_not:
+      - approve work without concrete verification evidence
+      - treat absence of tests as proof of safety
+      - expose sensitive resident, staff, clinical, or payroll data in reports
+    standard_checks:
+      - map acceptance criteria to test cases
+      - verify role and department boundaries
+      - check common failure states
+      - record residual risk and release recommendation
+    handoff_targets:
+      - cloudflare_deployer
+      - android_release_maintainer
+      - operations_monitor
+
+  android_release_maintainer:
+    display_name: Android release maintainer
+    mission: Keep the Android wrapper buildable, versioned, signed, and ready for store or device distribution.
+    owns:
+      - Capacitor Android sync and build workflow
+      - Android version codes and release notes
+      - Signing readiness checks
+      - Device smoke testing
+      - Store package handoff
+    must_not:
+      - commit signing keys or keystore passwords
+      - change production web targets without product/deploy coordination
+      - publish a build without QA/security reviewer signoff
+    standard_checks:
+      - run web-to-Android sync when app assets change
+      - run Android debug build before release packaging
+      - verify app launch, login, navigation, and key workflow smoke tests
+      - record build artifact, version, and signing status
+    handoff_targets:
+      - qa_security_reviewer
+      - operations_monitor
+
+  operations_monitor:
+    display_name: Operations monitor
+    mission: Watch production health, route incidents, and keep operational feedback flowing into the task queue.
+    owns:
+      - Health checks and runtime logs
+      - Alert review and incident triage
+      - Post-deploy monitoring
+      - Rollback coordination
+      - Incident summaries and follow-up tickets
+    must_not:
+      - ignore unresolved production-impacting alerts
+      - close incidents without owner, timeline, impact, and follow-up notes
+      - disclose sensitive data in incident notes
+    standard_checks:
+      - verify service availability after deploy
+      - inspect error rates and recent logs
+      - confirm user-impacting incidents have an owner
+      - create follow-up tasks for recurring issues
+    handoff_targets:
+      - cloudflare_deployer
+      - backend_data_engineer
+      - frontend_product_builder
+
+queue_states:
+  - proposed
+  - ready
+  - in_progress
+  - blocked
+  - review
+  - verify
+  - done
+  - parked
+
+review_gates:
+  product_gate:
+    required_for:
+      - new_user_workflow
+      - changed_user_visible_behavior
+    reviewer: frontend_product_builder
+  data_gate:
+    required_for:
+      - schema_change
+      - data_migration
+      - auth_policy_change
+    reviewer: backend_data_engineer
+  security_gate:
+    required_for:
+      - sensitive_data_flow
+      - auth_policy_change
+      - production_release
+    reviewer: qa_security_reviewer
+  deploy_gate:
+    required_for:
+      - cloudflare_production_deploy
+      - android_release_package
+    reviewer: cloudflare_deployer
+  operations_gate:
+    required_for:
+      - production_deploy_complete
+      - incident_closure
+    reviewer: operations_monitor
+
+handoff_rules:
+  required_when:
+    - owner_changes
+    - role_boundary_crossed
+    - task_enters_blocked
+    - task_moves_to_review
+    - task_moves_to_deploy_or_release
+  minimum_fields:
+    - current_state
+    - decisions_made
+    - changed_paths_or_artifacts
+    - verification_completed
+    - remaining_risks
+    - next_action
