@@ -1,0 +1,76 @@
+import { access, readFile } from "node:fs/promises";
+
+const html = await readFile(new URL("../www/index.html", import.meta.url), "utf8");
+const manifestText = await readFile(new URL("../www/manifest.json", import.meta.url), "utf8");
+const serviceWorker = await readFile(new URL("../www/sw.js", import.meta.url), "utf8");
+
+const scripts = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map((match) => match[1]);
+for (const script of scripts) {
+  new Function(script);
+}
+new Function(serviceWorker);
+
+const manifest = JSON.parse(manifestText);
+const requiredManifestFields = ["name", "short_name", "start_url", "display", "theme_color", "background_color", "icons"];
+const missingManifestFields = requiredManifestFields.filter((field) => !manifest[field]);
+const missingIconFiles = [];
+for (const icon of manifest.icons || []) {
+  try {
+    await access(new URL(`../www/${icon.src}`, import.meta.url));
+  } catch {
+    missingIconFiles.push(icon.src);
+  }
+  if (icon.src.endsWith(".webp") && icon.type !== "image/webp") {
+    missingIconFiles.push(`${icon.src} has type ${icon.type}`);
+  }
+}
+
+const requiredElementIds = [
+  "launch",
+  "refresh",
+  "incident",
+  "roleMode",
+  "privacyMode",
+  "quickGrid",
+  "contactGrid",
+  "queueList",
+  "shareReport",
+  "exportQueue",
+  "importQueue",
+  "clearQueue",
+  "purgeLocal",
+  "report",
+  "timeline",
+];
+const missingElementIds = requiredElementIds.filter((id) => !html.includes(`id="${id}"`));
+
+const requiredStorageKeys = [
+  "hp:offlineQueue:v1",
+  "hp:lastHealth:v1",
+  "hp:lastReport:v1",
+  "hp:roleMode:v1",
+  "hp:eventTimeline:v1",
+  "hp:privacyMode:v1",
+];
+const missingStorageKeys = requiredStorageKeys.filter((key) => !html.includes(key));
+const serviceWorkerChecks = [
+  ["CACHE_NAME", serviceWorker.includes("CACHE_NAME")],
+  ["install listener", serviceWorker.includes("addEventListener(\"install\"")],
+  ["fetch listener", serviceWorker.includes("addEventListener(\"fetch\"")],
+  ["service worker registration", html.includes("serviceWorker.register")],
+];
+
+const failures = [
+  ...missingManifestFields.map((field) => `manifest missing ${field}`),
+  ...missingIconFiles.map((icon) => `manifest icon problem: ${icon}`),
+  ...missingElementIds.map((id) => `shell missing #${id}`),
+  ...missingStorageKeys.map((key) => `shell missing storage key ${key}`),
+  ...serviceWorkerChecks.filter(([, ok]) => !ok).map(([name]) => `service worker missing ${name}`),
+];
+
+if (failures.length) {
+  console.error(failures.join("\n"));
+  process.exit(1);
+}
+
+console.log(`validated shell: ${scripts.length} inline script(s), ${manifest.icons.length} icon(s)`);

@@ -4,42 +4,1268 @@
     <meta charset="utf-8">
     <meta name="viewport" content="viewport-fit=cover,width=device-width,initial-scale=1">
     <meta name="theme-color" content="#c9a240">
+    <meta name="description" content="Native launch and recovery shell for High Point Ops.">
+    <link rel="manifest" href="./manifest.json">
     <title>High Point Ops</title>
     <style>
+      :root {
+        color-scheme: dark;
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        text-rendering: optimizeLegibility;
+        -webkit-font-smoothing: antialiased;
+        --bg: #07070d;
+        --panel: rgba(16, 17, 23, 0.82);
+        --panel-strong: rgba(27, 29, 38, 0.94);
+        --line: rgba(255, 255, 255, 0.14);
+        --gold: #e0c464;
+        --gold-strong: #c9a240;
+        --steel: #8fc6d8;
+        --copper: #d47e52;
+        --text: #eae8f0;
+        --muted: #a7a3b5;
+        --good: #78d99a;
+        --warn: #f4c763;
+        --bad: #ff7a8a;
+      }
+      * { box-sizing: border-box; }
       html,
       body {
         margin: 0;
         min-height: 100%;
-        background: #0b0a12;
-        color: #eae8f0;
-        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        background: var(--bg);
+        color: var(--text);
+      }
+      body {
+        overflow-x: hidden;
+      }
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        background:
+          radial-gradient(circle at 18% 14%, rgba(224, 196, 100, 0.2), transparent 22rem),
+          radial-gradient(circle at 84% 16%, rgba(143, 198, 216, 0.16), transparent 24rem),
+          radial-gradient(circle at 76% 88%, rgba(212, 126, 82, 0.13), transparent 24rem),
+          linear-gradient(145deg, #12131a 0%, #090910 48%, #050508 100%);
+        pointer-events: none;
+        z-index: -3;
+      }
+      body::after {
+        content: "";
+        position: fixed;
+        inset: -20%;
+        background:
+          linear-gradient(115deg, transparent 0 40%, rgba(255, 255, 255, 0.045) 40% 41%, transparent 41% 100%),
+          linear-gradient(24deg, transparent 0 56%, rgba(224, 196, 100, 0.05) 56% 57%, transparent 57% 100%);
+        opacity: 0.75;
+        pointer-events: none;
+        transform: perspective(900px) rotateX(62deg) translateY(10%);
+        transform-origin: center bottom;
+        z-index: -2;
       }
       main {
         min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: max(30px, env(safe-area-inset-top)) max(18px, env(safe-area-inset-right)) max(30px, env(safe-area-inset-bottom)) max(18px, env(safe-area-inset-left));
+        perspective: 1200px;
+        position: relative;
+      }
+      main::before,
+      main::after {
+        content: "";
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 22px;
+        pointer-events: none;
+        position: fixed;
+        z-index: -1;
+      }
+      main::before {
+        width: min(54vw, 340px);
+        height: min(54vw, 340px);
+        right: -84px;
+        top: 8vh;
+        background: linear-gradient(145deg, rgba(143, 198, 216, 0.2), rgba(224, 196, 100, 0.08));
+        box-shadow: 0 35px 90px rgba(0, 0, 0, 0.36), inset 0 1px 0 rgba(255, 255, 255, 0.16);
+        transform: rotateX(58deg) rotateZ(38deg);
+      }
+      main::after {
+        width: min(48vw, 280px);
+        height: min(48vw, 280px);
+        bottom: 7vh;
+        left: -96px;
+        background: linear-gradient(145deg, rgba(212, 126, 82, 0.14), rgba(224, 196, 100, 0.09));
+        box-shadow: 0 30px 80px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.14);
+        transform: rotateX(58deg) rotateZ(-28deg);
+      }
+      section {
+        width: min(100%, 460px);
+        border: 1px solid var(--line);
+        border-radius: 24px;
+        background:
+          linear-gradient(145deg, rgba(255, 255, 255, 0.08), transparent 34%),
+          var(--panel);
+        box-shadow:
+          0 38px 85px rgba(0, 0, 0, 0.54),
+          0 10px 26px rgba(0, 0, 0, 0.42),
+          inset 0 1px 0 rgba(255, 255, 255, 0.14),
+          inset 0 -1px 0 rgba(0, 0, 0, 0.42);
+        padding: 24px;
+        backdrop-filter: blur(22px) saturate(128%);
+        transform: rotateX(2deg) rotateY(-4deg) translateZ(0);
+        transform-style: preserve-3d;
+      }
+      .top {
+        display: grid;
+        grid-template-columns: 56px 1fr auto;
+        align-items: center;
+        gap: 14px;
+      }
+      .mark,
+      .icon-button {
+        width: 56px;
+        height: 56px;
+        border-radius: 14px;
         display: grid;
         place-items: center;
-        padding: 24px;
-        text-align: center;
       }
-      a {
+      .mark {
+        background:
+          linear-gradient(145deg, rgba(255, 255, 255, 0.25), transparent 28%),
+          linear-gradient(135deg, #f4dda0, #c9a240 45%, #805f1d);
+        border: 1px solid rgba(255, 224, 142, 0.48);
+        color: #111018;
+        font-size: 24px;
+        font-weight: 900;
+        letter-spacing: 0;
+        box-shadow:
+          0 14px 28px rgba(201, 162, 64, 0.22),
+          0 5px 0 #7b5b1a,
+          inset 0 1px 0 rgba(255, 255, 255, 0.55);
+        text-shadow: 0 1px 0 rgba(255, 255, 255, 0.28);
+        transform: translateZ(34px);
+      }
+      h1 {
+        margin: 0;
+        font-size: 1.58rem;
+        line-height: 1.1;
+        text-shadow: 0 2px 0 rgba(0, 0, 0, 0.48), 0 16px 30px rgba(0, 0, 0, 0.42);
+      }
+      p {
+        color: var(--muted);
+        line-height: 1.55;
+        margin: 8px 0 0;
+      }
+      .icon-button {
+        width: 44px;
+        height: 44px;
+        border: 1px solid var(--line);
+        color: var(--text);
+        background: linear-gradient(145deg, rgba(255, 255, 255, 0.11), rgba(255, 255, 255, 0.035));
+        cursor: pointer;
+        font-size: 1.1rem;
+        box-shadow: 0 8px 0 rgba(0, 0, 0, 0.28), 0 18px 30px rgba(0, 0, 0, 0.2);
+        transform: translateZ(18px);
+      }
+      .status-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        margin: 20px 0;
+      }
+      .metric {
+        min-height: 78px;
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        background:
+          linear-gradient(145deg, rgba(255, 255, 255, 0.095), rgba(255, 255, 255, 0.025)),
+          rgba(255, 255, 255, 0.04);
+        box-shadow: 0 11px 0 rgba(0, 0, 0, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        padding: 12px;
+        transform: translateZ(16px);
+      }
+      .metric span {
+        color: var(--muted);
+        display: block;
+        font-size: 0.76rem;
+        font-weight: 750;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+      }
+      .metric strong {
+        display: block;
+        font-size: 1.02rem;
+        line-height: 1.2;
+        margin-top: 9px;
+        overflow-wrap: anywhere;
+      }
+      .metric[data-state="good"] strong { color: var(--good); }
+      .metric[data-state="warn"] strong { color: var(--warn); }
+      .metric[data-state="bad"] strong { color: var(--bad); }
+      .actions {
+        display: grid;
+        gap: 10px;
+      }
+      a,
+      button.action {
         color: #0b0a12;
-        background: #c9a240;
-        border-radius: 12px;
-        display: inline-block;
-        font-weight: 700;
-        margin-top: 18px;
-        padding: 12px 16px;
+        background: linear-gradient(135deg, #e0c464, #c9a240);
+        border-radius: 14px;
+        border: 0;
+        display: block;
+        font: inherit;
+        font-weight: 800;
+        padding: 13px 18px;
+        text-align: center;
         text-decoration: none;
+        box-shadow: 0 8px 0 #765719, 0 20px 34px rgba(201, 162, 64, 0.2);
+        touch-action: manipulation;
+        transform: translateZ(22px);
+      }
+      button.action {
+        cursor: pointer;
+        width: 100%;
+      }
+      .secondary {
+        color: var(--text);
+        background: linear-gradient(145deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.035)), var(--panel-strong);
+        border: 1px solid var(--line);
+        box-shadow: 0 6px 0 rgba(0, 0, 0, 0.3), 0 16px 24px rgba(0, 0, 0, 0.18);
+      }
+      .queue {
+        border-top: 1px solid var(--line);
+        margin-top: 18px;
+        padding-top: 16px;
+      }
+      .panel {
+        border-top: 1px solid var(--line);
+        margin-top: 18px;
+        padding-top: 16px;
+      }
+      .panel h2,
+      .queue h2 {
+        font-size: 0.9rem;
+        letter-spacing: 0.04em;
+        margin: 0 0 10px;
+        text-transform: uppercase;
+      }
+      .quick-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+      }
+      .chip {
+        align-items: center;
+        background:
+          linear-gradient(145deg, rgba(255, 255, 255, 0.095), rgba(255, 255, 255, 0.025)),
+          rgba(255, 255, 255, 0.045);
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        color: var(--text);
+        cursor: pointer;
+        display: grid;
+        font: inherit;
+        font-size: 0.9rem;
+        font-weight: 800;
+        min-height: 44px;
+        padding: 10px 12px;
+        text-align: left;
+        box-shadow: 0 6px 0 rgba(0, 0, 0, 0.22), 0 14px 22px rgba(0, 0, 0, 0.14);
+      }
+      .chip:active,
+      .icon-button:active,
+      .action:active {
+        transform: translateY(2px) translateZ(8px);
+        box-shadow: 0 3px 0 rgba(0, 0, 0, 0.3), 0 10px 18px rgba(0, 0, 0, 0.16);
+      }
+      .tool-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        margin-top: 10px;
+      }
+      .field {
+        display: grid;
+        gap: 6px;
+        margin-bottom: 10px;
+      }
+      .switch-field {
+        align-items: center;
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 12px;
+      }
+      .field span {
+        color: var(--muted);
+        font-size: 0.76rem;
+        font-weight: 800;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+      }
+      select,
+      input {
+        appearance: none;
+        background:
+          linear-gradient(145deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.025)),
+          rgba(255, 255, 255, 0.055);
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        color: var(--text);
+        font: inherit;
+        min-height: 44px;
+        padding: 10px 12px;
+        width: 100%;
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 7px 18px rgba(0, 0, 0, 0.16);
+      }
+      select option {
+        background: #14131f;
+        color: var(--text);
+      }
+      input[type="checkbox"] {
+        appearance: none;
+        border-radius: 999px;
+        cursor: pointer;
+        height: 28px;
+        min-height: 28px;
+        padding: 0;
+        position: relative;
+        width: 50px;
+      }
+      input[type="checkbox"]::after {
+        background: var(--muted);
+        border-radius: 999px;
+        content: "";
+        height: 20px;
+        left: 4px;
+        position: absolute;
+        top: 3px;
+        transition: transform 160ms ease, background 160ms ease;
+        width: 20px;
+      }
+      input[type="checkbox"]:checked::after {
+        background: var(--gold);
+        transform: translateX(20px);
+      }
+      .queue-list {
+        display: grid;
+        gap: 8px;
+        margin: 0;
+        padding: 0;
+      }
+      .queue-list li {
+        align-items: center;
+        background:
+          linear-gradient(145deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.025)),
+          rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 12px;
+        color: var(--muted);
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 8px;
+        list-style: none;
+        padding: 10px 12px;
+        box-shadow: 0 7px 18px rgba(0, 0, 0, 0.14);
+      }
+      .queue-list b {
+        color: var(--text);
+        display: block;
+        font-size: 0.92rem;
+      }
+      .queue-list small {
+        color: var(--muted);
+      }
+      .timeline {
+        display: grid;
+        gap: 8px;
+        margin: 0;
+        max-height: 150px;
+        overflow: auto;
+        padding: 0;
+      }
+      .timeline li {
+        border-left: 2px solid rgba(224, 196, 100, 0.5);
+        color: var(--muted);
+        font-size: 0.82rem;
+        line-height: 1.4;
+        list-style: none;
+        padding: 0 0 0 10px;
+      }
+      .timeline b {
+        color: var(--text);
+        display: block;
+      }
+      .contact-grid {
+        display: grid;
+        gap: 8px;
+      }
+      .contact-card {
+        align-items: center;
+        background:
+          linear-gradient(145deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.025)),
+          rgba(255, 255, 255, 0.04);
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        color: var(--text);
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 10px;
+        padding: 10px 12px;
+        text-decoration: none;
+        box-shadow: 0 7px 18px rgba(0, 0, 0, 0.14);
+      }
+      .contact-card b,
+      .contact-card small {
+        display: block;
+      }
+      .contact-card small {
+        color: var(--muted);
+      }
+      .pill {
+        border-radius: 999px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        color: var(--gold);
+        font-size: 0.72rem;
+        font-weight: 800;
+        padding: 5px 8px;
+      }
+      .log {
+        color: var(--muted);
+        font-size: 0.82rem;
+        line-height: 1.45;
+        margin-top: 14px;
+        min-height: 19px;
+      }
+      .report {
+        background:
+          linear-gradient(145deg, rgba(255, 255, 255, 0.065), rgba(255, 255, 255, 0.02)),
+          rgba(255, 255, 255, 0.04);
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        color: var(--muted);
+        font-size: 0.78rem;
+        line-height: 1.45;
+        margin: 10px 0 0;
+        max-height: 110px;
+        overflow: auto;
+        padding: 10px;
+        white-space: pre-wrap;
+        word-break: break-word;
+      }
+      @media (max-width: 380px) {
+        section { padding: 18px; }
+        .top { grid-template-columns: 48px 1fr auto; }
+        .mark { height: 48px; width: 48px; }
+        h1 { font-size: 1.28rem; }
+        .status-grid { grid-template-columns: 1fr; }
+        .quick-grid,
+        .tool-row { grid-template-columns: 1fr; }
+      }
+      @media (max-width: 560px) {
+        main {
+          align-items: flex-start;
+        }
+        main::before {
+          right: -150px;
+          top: 3vh;
+        }
+        main::after {
+          left: -150px;
+          bottom: 2vh;
+        }
+        section {
+          transform: none;
+        }
+      }
+      @media (prefers-reduced-motion: no-preference) {
+        .mark { animation: float 4s ease-in-out infinite; }
+        main::before { animation: drift 11s ease-in-out infinite; }
+        main::after { animation: drift 13s ease-in-out infinite reverse; }
+        @keyframes float {
+          0%, 100% { transform: translateY(0) translateZ(34px); }
+          50% { transform: translateY(-5px) translateZ(34px); }
+        }
+        @keyframes drift {
+          0%, 100% { translate: 0 0; }
+          50% { translate: 0 -16px; }
+        }
       }
     </style>
   </head>
   <body>
     <main>
       <section>
-        <h1>High Point Ops</h1>
-        <p>Opening the operations hub.</p>
-        <a href="https://highpoints.work/app">Launch App</a>
+        <div class="top">
+          <div class="mark" aria-hidden="true">HP</div>
+          <div>
+            <h1>High Point Ops</h1>
+            <p id="headline">Preparing secure operations workspace.</p>
+          </div>
+          <button class="icon-button" id="refresh" type="button" title="Run diagnostics" aria-label="Run diagnostics">↻</button>
+        </div>
+
+        <div class="status-grid" aria-label="App health">
+          <div class="metric" id="networkMetric" data-state="warn">
+            <span>Network</span>
+            <strong>Checking</strong>
+          </div>
+          <div class="metric" id="appMetric" data-state="warn">
+            <span>App</span>
+            <strong>Testing</strong>
+          </div>
+          <div class="metric" id="deviceMetric" data-state="good">
+            <span>Device</span>
+            <strong>Ready</strong>
+          </div>
+          <div class="metric" id="syncMetric" data-state="good">
+            <span>Recovery</span>
+            <strong>Armed</strong>
+          </div>
+        </div>
+
+        <div class="actions">
+          <a id="launch" href="https://highpoints.work/app">Launch App</a>
+          <button class="action secondary" id="incident" type="button">Log Offline Incident</button>
+        </div>
+
+        <div class="panel">
+          <h2>Workspace Mode</h2>
+          <label class="field">
+            <span>Role</span>
+            <select id="roleMode">
+              <option value="staff">Staff</option>
+              <option value="supervisor">Supervisor</option>
+              <option value="director">Director</option>
+              <option value="admin">Admin</option>
+            </select>
+          </label>
+          <label class="field switch-field">
+            <span>Privacy Mode</span>
+            <input id="privacyMode" type="checkbox" aria-label="Privacy mode">
+          </label>
+        </div>
+
+        <div class="panel">
+          <h2>Outlook Self Auth</h2>
+          <label class="field">
+            <span>Microsoft App Client ID</span>
+            <input id="outlookClientId" type="text" inputmode="text" autocomplete="off" placeholder="Optional if server auth is configured">
+          </label>
+          <div class="tool-row">
+            <button class="action secondary" id="outlookAuth" type="button">Authorize Outlook</button>
+            <button class="action secondary" id="clearOutlook" type="button">Clear Outlook</button>
+          </div>
+          <div class="log" id="outlookStatus">Each user signs in with their own Microsoft account.</div>
+        </div>
+
+        <div class="panel">
+          <h2>Department Launch</h2>
+          <div class="quick-grid" id="quickGrid"></div>
+        </div>
+
+        <div class="panel">
+          <h2>Emergency Contacts</h2>
+          <div class="contact-grid" id="contactGrid"></div>
+        </div>
+
+        <div class="queue" aria-live="polite">
+          <h2>Offline Queue</h2>
+          <ul class="queue-list" id="queueList"></ul>
+          <div class="tool-row">
+            <button class="action secondary" id="shareReport" type="button">Share Diagnostics</button>
+            <button class="action secondary" id="clearQueue" type="button">Clear Queue</button>
+          </div>
+          <div class="tool-row">
+            <button class="action secondary" id="exportQueue" type="button">Export Queue</button>
+            <button class="action secondary" id="importQueue" type="button">Import Queue</button>
+          </div>
+          <button class="action secondary" id="purgeLocal" type="button">Purge Local Data</button>
+          <pre class="report" id="report" aria-label="Diagnostics report"></pre>
+        </div>
+
+        <div class="panel">
+          <h2>Activity Timeline</h2>
+          <ul class="timeline" id="timeline"></ul>
+        </div>
+
+        <div class="log" id="log">Diagnostics start automatically.</div>
       </section>
     </main>
+    <script>
+      (() => {
+        const APP_URL = "https://highpoints.work/app";
+        const API_PROBE = "https://highpoints.work/app";
+        const QUEUE_KEY = "hp:offlineQueue:v1";
+        const LAST_HEALTH_KEY = "hp:lastHealth:v1";
+        const LAST_REPORT_KEY = "hp:lastReport:v1";
+        const ROLE_MODE_KEY = "hp:roleMode:v1";
+        const EVENT_KEY = "hp:eventTimeline:v1";
+        const PRIVACY_MODE_KEY = "hp:privacyMode:v1";
+        const OUTLOOK_CLIENT_ID_KEY = "hp:outlookClientId:v1";
+        const OUTLOOK_CONNECTION_KEY = "hp:outlookConnection:v1";
+        const OUTLOOK_PENDING_AUTH_KEY = "hp:outlookPendingAuth:v1";
+        const OUTLOOK_STATE_KEY = "hp:outlookState:v1";
+        const OUTLOOK_SCOPES = "openid profile offline_access User.Read Mail.Read Mail.Send Calendars.ReadWrite";
+        const SECURITY_CAMERA_URL = "http://192.168.168.138";
+        const autoLaunchDelayMs = 1200;
+        const departmentMap = {
+          staff: [
+            ["dashboard", "Dashboard"],
+            ["training", "Training"],
+            ["messages", "Messages"],
+            ["maintenance", "Maintenance"],
+          ],
+          supervisor: [
+            ["dashboard", "Dashboard"],
+            ["maintenance", "Maintenance"],
+            ["nursing", "Nursing"],
+            ["housekeeping", "Housekeeping"],
+            ["culinary", "Culinary"],
+            ["documents", "Documents"],
+          ],
+          director: [
+            ["dashboard", "Dashboard"],
+            ["reports", "Reports"],
+            ["scheduling", "Scheduling"],
+            ["inventory", "Inventory"],
+            ["compliance", "Compliance"],
+            ["documents", "Documents"],
+          ],
+          admin: [
+            ["dashboard", "Dashboard"],
+            ["maintenance", "Maintenance"],
+            ["nursing", "Nursing"],
+            ["housekeeping", "Housekeeping"],
+            ["culinary", "Culinary"],
+            ["compliance", "Compliance"],
+            ["reports", "Reports"],
+            ["security_cameras", "Security Cameras"],
+            ["settings", "Settings"],
+          ],
+        };
+        const contacts = [
+          ["Nursing Desk", "nursing", "Clinical response"],
+          ["Maintenance", "maintenance", "Facility issue"],
+          ["Administrator", "admin", "Escalation"],
+        ];
+        const defaultDepartments = [
+          ["dashboard", "Dashboard"],
+          ["maintenance", "Maintenance"],
+          ["nursing", "Nursing"],
+          ["housekeeping", "Housekeeping"],
+          ["culinary", "Culinary"],
+          ["compliance", "Compliance"],
+        ];
+
+        const $ = (id) => document.getElementById(id);
+        const refs = {
+          headline: $("headline"),
+          network: $("networkMetric"),
+          app: $("appMetric"),
+          device: $("deviceMetric"),
+          sync: $("syncMetric"),
+          queue: $("queueList"),
+          log: $("log"),
+          launch: $("launch"),
+          refresh: $("refresh"),
+          incident: $("incident"),
+          quickGrid: $("quickGrid"),
+          contactGrid: $("contactGrid"),
+          roleMode: $("roleMode"),
+          privacyMode: $("privacyMode"),
+          outlookClientId: $("outlookClientId"),
+          outlookAuth: $("outlookAuth"),
+          clearOutlook: $("clearOutlook"),
+          outlookStatus: $("outlookStatus"),
+          shareReport: $("shareReport"),
+          clearQueue: $("clearQueue"),
+          exportQueue: $("exportQueue"),
+          importQueue: $("importQueue"),
+          purgeLocal: $("purgeLocal"),
+          report: $("report"),
+          timeline: $("timeline"),
+        };
+
+        function setMetric(node, state, value) {
+          node.dataset.state = state;
+          node.querySelector("strong").textContent = value;
+        }
+
+        function log(message) {
+          refs.log.textContent = message;
+        }
+
+        function privacyEnabled() {
+          return Boolean(refs.privacyMode?.checked);
+        }
+
+        function events() {
+          return readJson(EVENT_KEY, []);
+        }
+
+        function rememberEvent(type, detail = "") {
+          const items = events();
+          items.unshift({
+            type,
+            detail,
+            at: new Date().toISOString(),
+          });
+          localStorage.setItem(EVENT_KEY, JSON.stringify(items.slice(0, 40)));
+          renderTimeline();
+          writeReport();
+        }
+
+        function renderTimeline() {
+          const items = events();
+          refs.timeline.innerHTML = "";
+          if (!items.length) {
+            const item = document.createElement("li");
+            const title = document.createElement("b");
+            const detail = document.createTextNode("Launches and diagnostics will appear here.");
+            title.textContent = "No local activity yet";
+            item.append(title, detail);
+            refs.timeline.appendChild(item);
+            return;
+          }
+          for (const event of items.slice(0, 8)) {
+            const item = document.createElement("li");
+            const title = document.createElement("b");
+            title.textContent = event.type;
+            const detail = document.createTextNode(`${new Date(event.at).toLocaleString([], { dateStyle: "short", timeStyle: "short" })}${event.detail ? " - " + event.detail : ""}`);
+            item.append(title, detail);
+            refs.timeline.appendChild(item);
+          }
+        }
+
+        function queueItems() {
+          try {
+            return JSON.parse(localStorage.getItem(QUEUE_KEY) || "[]");
+          } catch {
+            return [];
+          }
+        }
+
+        function saveQueue(items) {
+          localStorage.setItem(QUEUE_KEY, JSON.stringify(items.slice(0, 25)));
+          renderQueue();
+          writeReport();
+        }
+
+        function renderQueue() {
+          const items = queueItems();
+          refs.queue.innerHTML = "";
+          if (!items.length) {
+            const empty = document.createElement("li");
+            const content = document.createElement("span");
+            const title = document.createElement("b");
+            const detail = document.createElement("small");
+            const state = document.createElement("span");
+            state.className = "pill";
+            title.textContent = "No pending local records";
+            detail.textContent = "Offline capture is standing by.";
+            state.textContent = "Clear";
+            content.append(title, detail);
+            empty.append(content, state);
+            refs.queue.appendChild(empty);
+            setMetric(refs.sync, "good", "Clear");
+            return;
+          }
+
+          setMetric(refs.sync, "warn", `${items.length} queued`);
+          for (const item of items.slice(0, 3)) {
+            const row = document.createElement("li");
+            const stamp = new Date(item.createdAt).toLocaleString([], { dateStyle: "short", timeStyle: "short" });
+            const content = document.createElement("span");
+            const title = document.createElement("b");
+            const detail = document.createElement("small");
+            const state = document.createElement("span");
+            state.className = "pill";
+            title.textContent = item.type || "Offline record";
+            detail.textContent = stamp;
+            state.textContent = "Local";
+            content.append(title, detail);
+            row.append(content, state);
+            refs.queue.appendChild(row);
+          }
+        }
+
+        function renderQuickLaunch() {
+          const role = refs.roleMode.value || "staff";
+          const departments = departmentMap[role] || defaultDepartments;
+          refs.quickGrid.innerHTML = "";
+          for (const [id, label] of departments) {
+            const button = document.createElement("button");
+            button.className = "chip";
+            button.type = "button";
+            button.textContent = label;
+            button.addEventListener("click", () => launchDepartment(id));
+            refs.quickGrid.appendChild(button);
+          }
+        }
+
+        function launchDepartment(id) {
+          haptic("Medium");
+          if (id === "security_cameras") {
+            rememberEvent("Security cameras opened", "192.168.168.138");
+            log("Opening security cameras. This works only while connected to the work network.");
+            window.location.href = SECURITY_CAMERA_URL;
+            return;
+          }
+          rememberEvent("Department launch", id);
+          const url = new URL(APP_URL);
+          url.searchParams.set("mobile", "1");
+          url.searchParams.set("roleMode", refs.roleMode.value || "staff");
+          url.searchParams.set("department", id);
+          url.hash = id === "dashboard" ? "" : id;
+          window.location.href = url.toString();
+        }
+
+        function renderContacts() {
+          refs.contactGrid.innerHTML = "";
+          for (const [name, department, note] of contacts) {
+            const link = document.createElement("a");
+            const content = document.createElement("span");
+            const title = document.createElement("b");
+            const detail = document.createElement("small");
+            const state = document.createElement("span");
+            const url = new URL(APP_URL);
+            url.searchParams.set("mobile", "1");
+            url.searchParams.set("department", department);
+            url.hash = "messages";
+            link.className = "contact-card";
+            link.href = url.toString();
+            title.textContent = name;
+            detail.textContent = note;
+            state.className = "pill";
+            state.textContent = "Open";
+            content.append(title, detail);
+            link.append(content, state);
+            link.addEventListener("click", () => rememberEvent("Contact opened", name));
+            refs.contactGrid.appendChild(link);
+          }
+        }
+
+        async function haptic(style = "Light") {
+          try {
+            const haptics = window.Capacitor?.Plugins?.Haptics;
+            if (haptics?.impact) await haptics.impact({ style });
+          } catch {
+            // Optional native affordance only.
+          }
+        }
+
+        async function registerServiceWorker() {
+          if (!("serviceWorker" in navigator)) return;
+          try {
+            const registration = await navigator.serviceWorker.register("./sw.js");
+            rememberEvent("Shell cache ready", registration.scope);
+          } catch {
+            rememberEvent("Shell cache skipped", "registration failed");
+          }
+        }
+
+        async function probeApp() {
+          if (!navigator.onLine) {
+            setMetric(refs.network, "bad", "Offline");
+            setMetric(refs.app, "warn", "Waiting");
+            refs.headline.textContent = "Offline mode is active.";
+            log("Reconnect to launch the live operations hub.");
+            return false;
+          }
+
+          setMetric(refs.network, "good", connectionLabel());
+          setMetric(refs.app, "warn", "Testing");
+          log("Checking High Point Ops availability.");
+
+          const started = performance.now();
+          const controller = new AbortController();
+          const timeout = setTimeout(() => controller.abort(), 5000);
+
+          try {
+            const response = await fetch(API_PROBE, {
+              cache: "no-store",
+              mode: "no-cors",
+              signal: controller.signal,
+            });
+            const latency = Math.max(1, Math.round(performance.now() - started));
+            localStorage.setItem(LAST_HEALTH_KEY, JSON.stringify({ ok: true, latency, at: new Date().toISOString() }));
+            setMetric(refs.app, "good", `${latency} ms`);
+            refs.headline.textContent = "Operations hub is ready.";
+            log(response.type === "opaque" ? "Remote app responded through the secure webview." : "Remote app responded.");
+            rememberEvent("Health check", `${latency} ms`);
+            writeReport({ appLatencyMs: latency, appReachable: true });
+            return true;
+          } catch {
+            const previous = lastHealthText();
+            setMetric(refs.app, "bad", previous || "Unavailable");
+            refs.headline.textContent = "Recovery shell is active.";
+            log("The live app did not respond. Local queue and retry controls are available.");
+            rememberEvent("Health check failed", previous || "unavailable");
+            writeReport({ appReachable: false });
+            return false;
+          } finally {
+            clearTimeout(timeout);
+          }
+        }
+
+        function connectionLabel() {
+          const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+          if (!connection) return "Online";
+          const type = connection.effectiveType ? connection.effectiveType.toUpperCase() : "Online";
+          return connection.saveData ? `${type} saver` : type;
+        }
+
+        function deviceReport(extra = {}) {
+          const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection || {};
+          return {
+            generatedAt: new Date().toISOString(),
+            appUrl: APP_URL,
+            online: navigator.onLine,
+            connection: {
+              effectiveType: connection.effectiveType || "unknown",
+              saveData: Boolean(connection.saveData),
+              downlink: connection.downlink || null,
+              rtt: connection.rtt || null,
+            },
+            device: {
+              shell: window.Capacitor ? "capacitor" : "web",
+              platform: window.Capacitor?.getPlatform ? window.Capacitor.getPlatform() : "browser",
+              language: navigator.language,
+              userAgent: privacyEnabled() ? "redacted" : navigator.userAgent,
+            },
+            queueCount: queueItems().length,
+            roleMode: refs.roleMode?.value || "staff",
+            privacyMode: privacyEnabled(),
+            outlookConnected: Boolean(readJson(OUTLOOK_CONNECTION_KEY, null)),
+            recentEvents: privacyEnabled() ? [] : events().slice(0, 8),
+            lastHealth: readJson(LAST_HEALTH_KEY, null),
+            ...extra,
+          };
+        }
+
+        function readJson(key, fallback) {
+          try {
+            return JSON.parse(localStorage.getItem(key) || "null") ?? fallback;
+          } catch {
+            return fallback;
+          }
+        }
+
+        function writeReport(extra = {}) {
+          const report = deviceReport(extra);
+          const text = JSON.stringify(report, null, 2);
+          localStorage.setItem(LAST_REPORT_KEY, text);
+          refs.report.textContent = text;
+          return text;
+        }
+
+        function lastHealthText() {
+          try {
+            const health = JSON.parse(localStorage.getItem(LAST_HEALTH_KEY) || "null");
+            if (!health?.at) return "";
+            return `Last ok ${new Date(health.at).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}`;
+          } catch {
+            return "";
+          }
+        }
+
+        async function completeOutlookAuthFromRedirect() {
+          const params = new URLSearchParams(window.location.search);
+          const code = params.get("code");
+          const state = params.get("state");
+          const error = params.get("error");
+          if (!code && !error) return;
+          const expectedState = localStorage.getItem(OUTLOOK_STATE_KEY);
+          if (!state || !state.startsWith("hp-outlook-") || (expectedState && state !== expectedState)) return;
+
+          const cleanUrl = new URL(window.location.href);
+          ["code", "state", "session_state", "error", "error_description"].forEach((key) => cleanUrl.searchParams.delete(key));
+          history.replaceState({}, document.title, cleanUrl.toString());
+
+          if (error) {
+            setOutlookStatus(`Outlook sign-in failed: ${params.get("error_description") || error}`);
+            rememberEvent("Outlook auth failed", error);
+            return;
+          }
+
+          try {
+            const response = await fetch("/api/outlook/auth/complete", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ code, state, redirectUri: cleanUrl.toString() }),
+            });
+            const payload = await response.json().catch(() => ({}));
+            if (!response.ok) throw new Error(payload.error || "Server auth completion unavailable");
+            localStorage.setItem(OUTLOOK_CONNECTION_KEY, JSON.stringify({
+              connectedAt: new Date().toISOString(),
+              account: payload.account || payload.mail || "Microsoft account",
+              source: "server",
+            }));
+            localStorage.removeItem(OUTLOOK_PENDING_AUTH_KEY);
+            localStorage.removeItem(OUTLOOK_STATE_KEY);
+            setOutlookStatus("Outlook connected for this user.");
+            rememberEvent("Outlook connected", "server");
+          } catch (err) {
+            localStorage.setItem(OUTLOOK_PENDING_AUTH_KEY, JSON.stringify({
+              code,
+              state,
+              redirectUri: cleanUrl.toString(),
+              capturedAt: new Date().toISOString(),
+              note: "Send this code to /api/outlook/auth/complete when backend auth is configured.",
+            }));
+            setOutlookStatus("Outlook sign-in received. Server token exchange is still needed.");
+            rememberEvent("Outlook auth pending", err.message || "token exchange needed");
+          } finally {
+            renderOutlookStatus();
+            writeReport();
+          }
+        }
+
+        function renderOutlookStatus() {
+          const connection = readJson(OUTLOOK_CONNECTION_KEY, null);
+          const pending = readJson(OUTLOOK_PENDING_AUTH_KEY, null);
+          const clientId = localStorage.getItem(OUTLOOK_CLIENT_ID_KEY) || "";
+          refs.outlookClientId.value = clientId;
+          if (connection) {
+            setOutlookStatus(`Connected: ${connection.account || "Microsoft account"}`);
+          } else if (pending) {
+            setOutlookStatus("Authorization received. Waiting for server token exchange.");
+          } else if (clientId) {
+            setOutlookStatus("Ready for each user to sign in with Microsoft.");
+          } else {
+            setOutlookStatus("Server auth will be used first. Add a client ID only for direct Microsoft sign-in.");
+          }
+        }
+
+        function setOutlookStatus(message) {
+          refs.outlookStatus.textContent = message;
+        }
+
+        async function startOutlookAuth() {
+          await haptic("Medium");
+          const clientId = refs.outlookClientId.value.trim();
+          if (clientId) localStorage.setItem(OUTLOOK_CLIENT_ID_KEY, clientId);
+          else localStorage.removeItem(OUTLOOK_CLIENT_ID_KEY);
+
+          const redirectUri = new URL(window.location.href);
+          ["code", "state", "session_state", "error", "error_description"].forEach((key) => redirectUri.searchParams.delete(key));
+          const state = `hp-outlook-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+          localStorage.setItem(OUTLOOK_STATE_KEY, state);
+
+          try {
+            const response = await fetch("/api/outlook/auth/start", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ redirectUri: redirectUri.toString(), scopes: OUTLOOK_SCOPES, state }),
+            });
+            const payload = await response.json().catch(() => ({}));
+            if (!response.ok || !payload.authUrl) throw new Error(payload.error || "No server auth URL");
+            rememberEvent("Outlook auth started", "server");
+            window.location.href = payload.authUrl;
+            return;
+          } catch {
+            if (!clientId) {
+              setOutlookStatus("Add a Microsoft client ID or configure /api/outlook/auth/start.");
+              rememberEvent("Outlook auth blocked", "missing client id");
+              return;
+            }
+          }
+
+          const authUrl = new URL("https://login.microsoftonline.com/common/oauth2/v2.0/authorize");
+          authUrl.searchParams.set("client_id", clientId);
+          authUrl.searchParams.set("response_type", "code");
+          authUrl.searchParams.set("redirect_uri", redirectUri.toString());
+          authUrl.searchParams.set("response_mode", "query");
+          authUrl.searchParams.set("scope", OUTLOOK_SCOPES);
+          authUrl.searchParams.set("state", state);
+          authUrl.searchParams.set("prompt", "select_account");
+          rememberEvent("Outlook auth started", "direct Microsoft");
+          window.location.href = authUrl.toString();
+        }
+
+        function clearOutlookAuth() {
+          localStorage.removeItem(OUTLOOK_CONNECTION_KEY);
+          localStorage.removeItem(OUTLOOK_PENDING_AUTH_KEY);
+          localStorage.removeItem(OUTLOOK_STATE_KEY);
+          renderOutlookStatus();
+          writeReport();
+          haptic("Medium");
+          rememberEvent("Outlook auth cleared", "local device");
+          log("Outlook connection data cleared on this device.");
+        }
+
+        async function runDiagnostics({ launchWhenReady = false } = {}) {
+          await haptic();
+          setMetric(refs.device, "good", window.Capacitor ? "Native" : "Web");
+          writeReport();
+          const ready = await probeApp();
+          renderQueue();
+          if (ready && launchWhenReady && new URLSearchParams(window.location.search).get("autoLaunch") === "1") {
+            setTimeout(() => {
+              window.location.href = APP_URL;
+            }, autoLaunchDelayMs);
+          }
+        }
+
+        function logIncident() {
+          const items = queueItems();
+          const random = globalThis.crypto?.randomUUID ? globalThis.crypto.randomUUID() : String(Date.now());
+          items.unshift({
+            id: random,
+            type: "Offline incident",
+            createdAt: new Date().toISOString(),
+            userAgent: navigator.userAgent,
+            network: navigator.onLine ? "online" : "offline",
+          });
+          saveQueue(items);
+          haptic("Medium");
+          rememberEvent("Offline incident", "saved locally");
+          log("Incident saved locally for follow-up when the app is reachable.");
+        }
+
+        async function shareDiagnostics() {
+          const text = writeReport();
+          await haptic("Medium");
+          if (navigator.share) {
+            try {
+              await navigator.share({ title: "High Point Ops diagnostics", text });
+              rememberEvent("Diagnostics shared", "native share");
+              log("Diagnostics shared.");
+              return;
+            } catch {
+              // Fall through to clipboard.
+            }
+          }
+          try {
+            await navigator.clipboard.writeText(text);
+            rememberEvent("Diagnostics copied", "clipboard");
+            log("Diagnostics copied to clipboard.");
+          } catch {
+            log("Diagnostics report is visible above for manual review.");
+          }
+        }
+
+        function clearQueue() {
+          localStorage.removeItem(QUEUE_KEY);
+          renderQueue();
+          writeReport();
+          haptic("Medium");
+          rememberEvent("Queue cleared", "local device");
+          log("Offline queue cleared on this device.");
+        }
+
+        async function exportQueue() {
+          const payload = JSON.stringify({
+            exportedAt: new Date().toISOString(),
+            app: "High Point Ops",
+            queue: queueItems(),
+            events: privacyEnabled() ? [] : events(),
+          }, null, 2);
+          await haptic("Medium");
+          if (navigator.share) {
+            try {
+              const file = new File([payload], "highpoints-offline-queue.json", { type: "application/json" });
+              await navigator.share({ title: "High Point Ops queue", files: [file] });
+              rememberEvent("Queue exported", "native share");
+              log("Queue exported.");
+              return;
+            } catch {
+              // Clipboard fallback below.
+            }
+          }
+          try {
+            await navigator.clipboard.writeText(payload);
+            rememberEvent("Queue copied", "clipboard");
+            log("Queue copied to clipboard.");
+          } catch {
+            refs.report.textContent = payload;
+            log("Queue export is visible in the report panel.");
+          }
+        }
+
+        function importQueue() {
+          const text = prompt("Paste High Point Ops queue JSON");
+          if (!text) return;
+          try {
+            const payload = JSON.parse(text);
+            const queue = Array.isArray(payload) ? payload : payload.queue;
+            if (!Array.isArray(queue)) throw new Error("Missing queue array");
+            const normalized = queue.slice(0, 25).map((item) => ({
+              id: String(item.id || Date.now()),
+              type: String(item.type || "Imported record"),
+              createdAt: item.createdAt || new Date().toISOString(),
+              userAgent: privacyEnabled() ? "redacted" : String(item.userAgent || ""),
+              network: String(item.network || "unknown"),
+            }));
+            saveQueue(normalized.concat(queueItems()).slice(0, 25));
+            haptic("Medium");
+            rememberEvent("Queue imported", `${normalized.length} records`);
+            log(`${normalized.length} queue records imported.`);
+          } catch (error) {
+            log(error.message || "Queue import failed.");
+          }
+        }
+
+        function purgeLocalData() {
+          localStorage.removeItem(QUEUE_KEY);
+          localStorage.removeItem(EVENT_KEY);
+          localStorage.removeItem(LAST_HEALTH_KEY);
+          localStorage.removeItem(LAST_REPORT_KEY);
+          renderQueue();
+          renderTimeline();
+          writeReport();
+          haptic("Medium");
+          log("Local app data purged.");
+        }
+
+        function setRoleMode(value) {
+          localStorage.setItem(ROLE_MODE_KEY, value);
+          renderQuickLaunch();
+          rememberEvent("Role mode changed", value);
+          log(`Workspace mode set to ${value}.`);
+        }
+
+        function setPrivacyMode(enabled) {
+          localStorage.setItem(PRIVACY_MODE_KEY, enabled ? "1" : "0");
+          writeReport();
+          rememberEvent("Privacy mode changed", enabled ? "on" : "off");
+          log(enabled ? "Privacy mode on." : "Privacy mode off.");
+        }
+
+        refs.refresh.addEventListener("click", () => runDiagnostics());
+        refs.incident.addEventListener("click", logIncident);
+        refs.launch.addEventListener("click", () => haptic("Medium"));
+        refs.shareReport.addEventListener("click", shareDiagnostics);
+        refs.clearQueue.addEventListener("click", clearQueue);
+        refs.exportQueue.addEventListener("click", exportQueue);
+        refs.importQueue.addEventListener("click", importQueue);
+        refs.purgeLocal.addEventListener("click", purgeLocalData);
+        refs.outlookAuth.addEventListener("click", startOutlookAuth);
+        refs.clearOutlook.addEventListener("click", clearOutlookAuth);
+        refs.outlookClientId.addEventListener("change", () => {
+          const value = refs.outlookClientId.value.trim();
+          if (value) localStorage.setItem(OUTLOOK_CLIENT_ID_KEY, value);
+          else localStorage.removeItem(OUTLOOK_CLIENT_ID_KEY);
+          renderOutlookStatus();
+        });
+        refs.roleMode.addEventListener("change", (event) => setRoleMode(event.target.value));
+        refs.privacyMode.addEventListener("change", (event) => setPrivacyMode(event.target.checked));
+        window.addEventListener("online", () => runDiagnostics());
+        window.addEventListener("offline", () => runDiagnostics());
+
+        refs.roleMode.value = localStorage.getItem(ROLE_MODE_KEY) || "staff";
+        refs.privacyMode.checked = localStorage.getItem(PRIVACY_MODE_KEY) === "1";
+        completeOutlookAuthFromRedirect();
+        renderOutlookStatus();
+        renderQuickLaunch();
+        renderContacts();
+        renderQueue();
+        renderTimeline();
+        writeReport();
+        registerServiceWorker();
+        runDiagnostics({ launchWhenReady: true });
+      })();
+    </script>
   </body>
 </html>

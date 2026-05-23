@@ -12,7 +12,8 @@
     "build:android": "cd android && ./gradlew bundleRelease",
     "build:android:apk": "cd android && ./gradlew assembleRelease",
     "build:android:debug": "cd android && ./gradlew assembleDebug",
-    "doctor": "capacitor doctor"
+    "doctor": "capacitor doctor",
+    "validate:shell": "node scripts/validate-shell.mjs"
   },
   "dependencies": {
     "@capacitor/android": "^7.4.3",
