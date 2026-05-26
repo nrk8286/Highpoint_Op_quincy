@@ -3,6 +3,8 @@ const SHELL_ASSETS = [
   "./",
   "./index.html",
   "./manifest.json",
+  "./robots.txt",
+  "./sitemap.xml",
   "./icons/icon-192.webp",
   "./icons/icon-512.webp",
 ];

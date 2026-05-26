@@ -4,8 +4,24 @@
     <meta charset="utf-8">
     <meta name="viewport" content="viewport-fit=cover,width=device-width,initial-scale=1">
     <meta name="theme-color" content="#c9a240">
-    <meta name="description" content="Native launch and recovery shell for High Point Ops.">
+    <meta name="description" content="HighPoints is a facility operations and compliance workspace for senior living teams, with maintenance, housekeeping, scheduling, inspections, and recovery tools.">
+    <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1">
+    <meta name="application-name" content="HighPoints">
+    <meta name="apple-mobile-web-app-title" content="HighPoints">
+    <meta property="og:title" content="HighPoints - Facility Operations and Compliance Platform">
+    <meta property="og:description" content="Run senior living maintenance, housekeeping, scheduling, compliance inspections, and recovery workflows from one secure operations workspace.">
+    <meta property="og:url" content="https://highpoints.work/">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="HighPoints">
+    <meta property="og:image" content="https://highpoints.work/icons/icon-512.png">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="HighPoints - Facility Operations and Compliance Platform">
+    <meta name="twitter:description" content="Facility operations software for senior living maintenance, housekeeping, scheduling, inspections, and compliance readiness.">
+    <meta name="twitter:image" content="https://highpoints.work/icons/icon-512.png">
+    <link rel="canonical" href="https://highpoints.work/">
     <link rel="manifest" href="./manifest.json">
+    <link rel="apple-touch-icon" href="./icons/icon-192.webp">
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"SoftwareApplication","name":"HighPoints","applicationCategory":"BusinessApplication","operatingSystem":"Web, iOS, Android","url":"https://highpoints.work/","description":"Facility operations and compliance software for senior living teams.","offers":{"@type":"Offer","price":"0","priceCurrency":"USD","availability":"https://schema.org/InStock"},"audience":{"@type":"Audience","audienceType":"Senior living facility operators and department teams"},"publisher":{"@type":"Organization","name":"HighPoints","url":"https://highpoints.work/"}}</script>
     <title>High Point Ops</title>
     <style>
       :root {
@@ -168,41 +184,73 @@
         box-shadow: 0 8px 0 rgba(0, 0, 0, 0.28), 0 18px 30px rgba(0, 0, 0, 0.2);
         transform: translateZ(18px);
       }
-      .status-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 10px;
-        margin: 20px 0;
-      }
-      .metric {
-        min-height: 78px;
+      .flow-panel {
         border: 1px solid var(--line);
-        border-radius: 14px;
+        border-radius: 16px;
         background:
-          linear-gradient(145deg, rgba(255, 255, 255, 0.095), rgba(255, 255, 255, 0.025)),
+          linear-gradient(145deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.025)),
           rgba(255, 255, 255, 0.04);
         box-shadow: 0 11px 0 rgba(0, 0, 0, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.1);
-        padding: 12px;
-        transform: translateZ(16px);
+        margin: 18px 0;
+        padding: 14px;
       }
-      .metric span {
+      .flow-head {
+        align-items: end;
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 10px;
+        margin-bottom: 12px;
+      }
+      .flow-head span,
+      .flow-card span {
         color: var(--muted);
         display: block;
-        font-size: 0.76rem;
-        font-weight: 750;
+        font-size: 0.72rem;
+        font-weight: 800;
         letter-spacing: 0.04em;
         text-transform: uppercase;
       }
-      .metric strong {
+      .flow-head strong {
         display: block;
-        font-size: 1.02rem;
-        line-height: 1.2;
-        margin-top: 9px;
+        font-size: 1rem;
+        margin-top: 4px;
+      }
+      .flow-state {
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 999px;
+        color: var(--gold);
+        font-size: 0.72rem;
+        font-weight: 850;
+        padding: 7px 10px;
+        white-space: nowrap;
+      }
+      .flow-lane {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 9px;
+      }
+      .flow-card {
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 13px;
+        min-height: 74px;
+        padding: 11px;
+        position: relative;
+      }
+      .flow-card::after {
+        background: linear-gradient(90deg, var(--gold), var(--steel));
+        border-radius: 999px;
+        content: "";
+        height: 3px;
+        inset: auto 11px 9px 11px;
+        opacity: 0.75;
+        position: absolute;
+      }
+      .flow-card strong {
+        display: block;
+        font-size: 0.95rem;
+        margin-top: 7px;
         overflow-wrap: anywhere;
       }
-      .metric[data-state="good"] strong { color: var(--good); }
-      .metric[data-state="warn"] strong { color: var(--warn); }
-      .metric[data-state="bad"] strong { color: var(--bad); }
       .actions {
         display: grid;
         gap: 10px;
@@ -242,6 +290,9 @@
         border-top: 1px solid var(--line);
         margin-top: 18px;
         padding-top: 16px;
+      }
+      .panel[hidden] {
+        display: none;
       }
       .panel h2,
       .queue h2 {
@@ -458,7 +509,8 @@
         .top { grid-template-columns: 48px 1fr auto; }
         .mark { height: 48px; width: 48px; }
         h1 { font-size: 1.28rem; }
-        .status-grid { grid-template-columns: 1fr; }
+        .flow-head,
+        .flow-lane { grid-template-columns: 1fr; }
         .quick-grid,
         .tool-row { grid-template-columns: 1fr; }
       }
@@ -505,22 +557,27 @@
           <button class="icon-button" id="refresh" type="button" title="Run diagnostics" aria-label="Run diagnostics">↻</button>
         </div>
 
-        <div class="status-grid" aria-label="App health">
-          <div class="metric" id="networkMetric" data-state="warn">
-            <span>Network</span>
-            <strong>Checking</strong>
+        <div class="flow-panel" aria-label="Operations flow">
+          <div class="flow-head">
+            <div>
+              <span>Operations Flow</span>
+              <strong id="flowSummary">Checking live app and local recovery.</strong>
+            </div>
+            <div class="flow-state" id="flowState">Starting</div>
           </div>
-          <div class="metric" id="appMetric" data-state="warn">
-            <span>App</span>
-            <strong>Testing</strong>
-          </div>
-          <div class="metric" id="deviceMetric" data-state="good">
-            <span>Device</span>
-            <strong>Ready</strong>
-          </div>
-          <div class="metric" id="syncMetric" data-state="good">
-            <span>Recovery</span>
-            <strong>Armed</strong>
+          <div class="flow-lane">
+            <div class="flow-card">
+              <span>Network</span>
+              <strong id="networkValue">Checking</strong>
+            </div>
+            <div class="flow-card">
+              <span>Workspace</span>
+              <strong id="appValue">Testing</strong>
+            </div>
+            <div class="flow-card">
+              <span>Recovery</span>
+              <strong id="syncValue">Armed</strong>
+            </div>
           </div>
         </div>
 
@@ -546,11 +603,15 @@
           </label>
         </div>
 
-        <div class="panel">
-          <h2>Outlook Self Auth</h2>
+        <div class="panel" id="adminTools" hidden>
+          <h2>Admin Tools</h2>
+          <div class="tool-row">
+            <button class="action secondary" id="securityCameras" type="button">Security Cameras</button>
+            <button class="action secondary" id="adminLaunch" type="button">Admin Dashboard</button>
+          </div>
           <label class="field">
-            <span>Microsoft App Client ID</span>
-            <input id="outlookClientId" type="text" inputmode="text" autocomplete="off" placeholder="Optional if server auth is configured">
+            <span>Outlook Self Auth</span>
+            <input id="outlookClientId" type="text" inputmode="text" autocomplete="off" placeholder="Microsoft client ID, if direct auth is needed">
           </label>
           <div class="tool-row">
             <button class="action secondary" id="outlookAuth" type="button">Authorize Outlook</button>
@@ -661,10 +722,12 @@
         const $ = (id) => document.getElementById(id);
         const refs = {
           headline: $("headline"),
-          network: $("networkMetric"),
-          app: $("appMetric"),
-          device: $("deviceMetric"),
-          sync: $("syncMetric"),
+          network: $("networkValue"),
+          app: $("appValue"),
+          device: $("flowState"),
+          sync: $("syncValue"),
+          flowSummary: $("flowSummary"),
+          adminTools: $("adminTools"),
           queue: $("queueList"),
           log: $("log"),
           launch: $("launch"),
@@ -678,6 +741,8 @@
           outlookAuth: $("outlookAuth"),
           clearOutlook: $("clearOutlook"),
           outlookStatus: $("outlookStatus"),
+          securityCameras: $("securityCameras"),
+          adminLaunch: $("adminLaunch"),
           shareReport: $("shareReport"),
           clearQueue: $("clearQueue"),
           exportQueue: $("exportQueue"),
@@ -688,8 +753,15 @@
         };
 
         function setMetric(node, state, value) {
+          if (!node) return;
           node.dataset.state = state;
-          node.querySelector("strong").textContent = value;
+          const target = node.querySelector?.("strong") || node;
+          target.textContent = value;
+        }
+
+        function setFlow(state, summary) {
+          setMetric(refs.device, state, summary.split(".")[0] || summary);
+          refs.flowSummary.textContent = summary;
         }
 
         function log(message) {
@@ -802,14 +874,13 @@
             button.addEventListener("click", () => launchDepartment(id));
             refs.quickGrid.appendChild(button);
           }
+          updateAdminTools();
         }
 
         function launchDepartment(id) {
           haptic("Medium");
           if (id === "security_cameras") {
-            rememberEvent("Security cameras opened", "192.168.168.138");
-            log("Opening security cameras. This works only while connected to the work network.");
-            window.location.href = SECURITY_CAMERA_URL;
+            openSecurityCameras();
             return;
           }
           rememberEvent("Department launch", id);
@@ -846,6 +917,28 @@
           }
         }
 
+        function updateAdminTools() {
+          refs.adminTools.hidden = refs.roleMode.value !== "admin";
+        }
+
+        function openSecurityCameras() {
+          haptic("Medium");
+          rememberEvent("Security cameras opened", "192.168.168.138");
+          log("Opening security cameras. This works only while connected to the work network.");
+          window.location.href = SECURITY_CAMERA_URL;
+        }
+
+        function launchAdminDashboard() {
+          haptic("Medium");
+          rememberEvent("Admin dashboard", "opened");
+          const url = new URL(APP_URL);
+          url.searchParams.set("mobile", "1");
+          url.searchParams.set("roleMode", "admin");
+          url.searchParams.set("department", "admin");
+          url.hash = "settings";
+          window.location.href = url.toString();
+        }
+
         async function haptic(style = "Light") {
           try {
             const haptics = window.Capacitor?.Plugins?.Haptics;
@@ -869,6 +962,7 @@
           if (!navigator.onLine) {
             setMetric(refs.network, "bad", "Offline");
             setMetric(refs.app, "warn", "Waiting");
+            setFlow("bad", "Offline. Local capture stays available until the app reconnects.");
             refs.headline.textContent = "Offline mode is active.";
             log("Reconnect to launch the live operations hub.");
             return false;
@@ -876,6 +970,7 @@
 
           setMetric(refs.network, "good", connectionLabel());
           setMetric(refs.app, "warn", "Testing");
+          setFlow("warn", "Checking the live app before moving staff into work.");
           log("Checking High Point Ops availability.");
 
           const started = performance.now();
@@ -891,6 +986,7 @@
             const latency = Math.max(1, Math.round(performance.now() - started));
             localStorage.setItem(LAST_HEALTH_KEY, JSON.stringify({ ok: true, latency, at: new Date().toISOString() }));
             setMetric(refs.app, "good", `${latency} ms`);
+            setFlow("good", "Data path is open. Staff can launch into the live workspace.");
             refs.headline.textContent = "Operations hub is ready.";
             log(response.type === "opaque" ? "Remote app responded through the secure webview." : "Remote app responded.");
             rememberEvent("Health check", `${latency} ms`);
@@ -899,6 +995,7 @@
           } catch {
             const previous = lastHealthText();
             setMetric(refs.app, "bad", previous || "Unavailable");
+            setFlow("warn", "Recovery is active. Queue local notes and retry the live workspace.");
             refs.headline.textContent = "Recovery shell is active.";
             log("The live app did not respond. Local queue and retry controls are available.");
             rememberEvent("Health check failed", previous || "unavailable");
@@ -1097,7 +1194,7 @@
 
         async function runDiagnostics({ launchWhenReady = false } = {}) {
           await haptic();
-          setMetric(refs.device, "good", window.Capacitor ? "Native" : "Web");
+          setFlow("warn", window.Capacitor ? "Native shell checking live services." : "Web shell checking live services.");
           writeReport();
           const ready = await probeApp();
           renderQueue();
@@ -1222,6 +1319,7 @@
         function setRoleMode(value) {
           localStorage.setItem(ROLE_MODE_KEY, value);
           renderQuickLaunch();
+          updateAdminTools();
           rememberEvent("Role mode changed", value);
           log(`Workspace mode set to ${value}.`);
         }
@@ -1241,6 +1339,8 @@
         refs.exportQueue.addEventListener("click", exportQueue);
         refs.importQueue.addEventListener("click", importQueue);
         refs.purgeLocal.addEventListener("click", purgeLocalData);
+        refs.securityCameras.addEventListener("click", openSecurityCameras);
+        refs.adminLaunch.addEventListener("click", launchAdminDashboard);
         refs.outlookAuth.addEventListener("click", startOutlookAuth);
         refs.clearOutlook.addEventListener("click", clearOutlookAuth);
         refs.outlookClientId.addEventListener("change", () => {
@@ -1258,6 +1358,7 @@
         refs.privacyMode.checked = localStorage.getItem(PRIVACY_MODE_KEY) === "1";
         completeOutlookAuthFromRedirect();
         renderOutlookStatus();
+        updateAdminTools();
         renderQuickLaunch();
         renderContacts();
         renderQueue();

@@ -3,6 +3,8 @@ import { access, readFile } from "node:fs/promises";
 const html = await readFile(new URL("../www/index.html", import.meta.url), "utf8");
 const manifestText = await readFile(new URL("../www/manifest.json", import.meta.url), "utf8");
 const serviceWorker = await readFile(new URL("../www/sw.js", import.meta.url), "utf8");
+const robots = await readFile(new URL("../www/robots.txt", import.meta.url), "utf8");
+const sitemap = await readFile(new URL("../www/sitemap.xml", import.meta.url), "utf8");
 
 const scripts = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map((match) => match[1]);
 for (const script of scripts) {
@@ -59,6 +61,19 @@ const serviceWorkerChecks = [
   ["fetch listener", serviceWorker.includes("addEventListener(\"fetch\"")],
   ["service worker registration", html.includes("serviceWorker.register")],
 ];
+const seoChecks = [
+  ["canonical URL", html.includes("rel=\"canonical\" href=\"https://highpoints.work/\"")],
+  ["Open Graph title", html.includes("property=\"og:title\"")],
+  ["Twitter card", html.includes("name=\"twitter:card\"")],
+  ["JSON-LD schema", html.includes("application/ld+json")],
+  ["robots sitemap", robots.includes("Sitemap: https://highpoints.work/sitemap.xml")],
+  ["sitemap root", sitemap.includes("<loc>https://highpoints.work/</loc>")],
+  ["sitemap features", sitemap.includes("<loc>https://highpoints.work/features</loc>")],
+  ["sitemap survey readiness", sitemap.includes("<loc>https://highpoints.work/survey-readiness</loc>")],
+  ["sitemap command center", sitemap.includes("<loc>https://highpoints.work/executive-command-center</loc>")],
+  ["sitemap AI operations", sitemap.includes("<loc>https://highpoints.work/ai-operations</loc>")],
+  ["sitemap readiness assessment", sitemap.includes("<loc>https://highpoints.work/readiness-assessment</loc>")],
+];
 
 const failures = [
   ...missingManifestFields.map((field) => `manifest missing ${field}`),
@@ -66,6 +81,7 @@ const failures = [
   ...missingElementIds.map((id) => `shell missing #${id}`),
   ...missingStorageKeys.map((key) => `shell missing storage key ${key}`),
   ...serviceWorkerChecks.filter(([, ok]) => !ok).map(([name]) => `service worker missing ${name}`),
+  ...seoChecks.filter(([, ok]) => !ok).map(([name]) => "seo missing " + name),
 ];
 
 if (failures.length) {

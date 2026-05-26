@@ -1,0 +1,33 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "highpoints-backend-v2",
+  "main": "src/index.js",
+  "compatibility_date": "2026-05-23",
+  "compatibility_flags": ["nodejs_compat"],
+  "observability": {
+    "enabled": true,
+    "head_sampling_rate": 0.1
+  },
+  "vars": {
+    "APP_ORIGIN": "https://highpoints.work",
+    "SECURITY_CAMERA_URL": "http://192.168.168.138",
+    "OUTLOOK_CLIENT_ID": "",
+    "OUTLOOK_REDIRECT_URI": "https://highpoints.work/app",
+    "DOCUMENT_AI_ENDPOINT": "",
+    "DOCUMENT_AI_MODEL": ""
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "highpoints",
+      "database_id": "replace-with-d1-database-id",
+      "migrations_dir": "migrations"
+    }
+  ],
+  "r2_buckets": [
+    {
+      "binding": "DOCUMENTS",
+      "bucket_name": "highpoints-documents"
+    }
+  ]
+}

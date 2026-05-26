@@ -13,19 +13,23 @@
     "build:android:apk": "cd android && ./gradlew assembleRelease",
     "build:android:debug": "cd android && ./gradlew assembleDebug",
     "doctor": "capacitor doctor",
-    "validate:shell": "node scripts/validate-shell.mjs"
+    "validate:shell": "node scripts/validate-shell.mjs",
+    "validate:backend": "node scripts/validate-backend.mjs",
+    "site:go": "go run ./site-go",
+    "site:go:export": "go run ./site-go -export www/go-site",
+    "validate:go-site": "go test ./site-go"
   },
   "dependencies": {
-    "@capacitor/android": "^7.4.3",
-    "@capacitor/app": "^7.1.0",
-    "@capacitor/core": "^7.4.3",
-    "@capacitor/haptics": "^7.0.2",
-    "@capacitor/ios": "^7.4.3",
-    "@capacitor/splash-screen": "^7.0.3",
-    "@capacitor/status-bar": "^7.0.3"
+    "@capacitor/android": "^8.3.4",
+    "@capacitor/app": "^8.1.0",
+    "@capacitor/core": "^8.3.4",
+    "@capacitor/haptics": "^8.0.2",
+    "@capacitor/ios": "^8.3.4",
+    "@capacitor/splash-screen": "^8.0.1",
+    "@capacitor/status-bar": "^8.0.2"
   },
   "devDependencies": {
-    "@capacitor/cli": "^7.4.3",
+    "@capacitor/cli": "^8.3.4",
     "typescript": "^6.0.3"
   }
 }

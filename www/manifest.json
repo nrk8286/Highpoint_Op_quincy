@@ -1,7 +1,7 @@
 {
   "name": "High Point Ops",
   "short_name": "HighPoints",
-  "description": "Facility operations workspace for High Point teams.",
+  "description": "Facility operations and compliance workspace for senior living maintenance, housekeeping, scheduling, inspections, and reporting.",
   "id": "/app",
   "start_url": "/app",
   "scope": "/",
@@ -9,7 +9,8 @@
   "orientation": "portrait",
   "theme_color": "#c9a240",
   "background_color": "#0b0a12",
-  "categories": ["business", "productivity"],
+  "categories": ["business", "productivity", "medical"],
+  "shortcuts": [{"name":"Launch Operations Hub","short_name":"Hub","url":"/app","icons":[{"src":"icons/icon-192.webp","type":"image/webp","sizes":"192x192"}]},{"name":"Maintenance","short_name":"Maintenance","url":"/app#maintenance","icons":[{"src":"icons/icon-192.webp","type":"image/webp","sizes":"192x192"}]}],
   "icons": [
     {
       "src": "icons/icon-48.webp",
