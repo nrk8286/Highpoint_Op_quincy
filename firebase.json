@@ -1,15 +1,10 @@
 {
   "hosting": {
     "site": "highpoints-work",
-    "public": ".next/standalone/public",
+    "source": ".",
     "cleanUrls": true,
     "trailingSlashBehavior": "remove",
-    "rewrites": [
-      {
-        "source": "**",
-        "destination": "/api/nextjs"
-      }
-    ],
+    "frameworksBackend": {},
     "headers": [
       {
         "source": "**",
