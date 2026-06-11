@@ -61,6 +61,11 @@ function Calendar({
           <ChevronRight className={cn("h-4 w-4", className)} {...props} />
         ),
       } as any}
+        Chevron: ({ orientation = 'left', className, ...props }: { orientation?: 'left' | 'right' | 'up' | 'down', className?: string }) => {
+          const Icon = orientation === 'left' || orientation === 'up' ? ChevronLeft : ChevronRight;
+          return <Icon className={cn("h-4 w-4", className)} {...props} />;
+        },
+      }}
       {...props}
     />
   )

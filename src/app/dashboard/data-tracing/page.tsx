@@ -1,18 +1,20 @@
 'use client';
 
-import { PageHeader } from '@/components/layout/page-header';
+import PageHeader from '@/components/layout/page-header';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useCollection } from '@/firebase/firestore/use-collection';
 import { DailyTask, DeepCleanTask, MaintenanceWorkOrder, Inspection } from '@/lib/types';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
+import { db } from '@/lib/firebase';
+import { collection, query } from 'firebase/firestore';
 
 export default function DataTracingPage() {
-    const { data: dailyTasks } = useCollection<DailyTask>('dailyTasks');
-    const { data: deepCleanTasks } = useCollection<DeepCleanTask>('deepCleanTasks');
-    const { data: maintenanceTasks } = useCollection<MaintenanceWorkOrder>('maintenance');
-    const { data: inspections } = useCollection<Inspection>('inspections');
+    const { data: dailyTasks } = useCollection<DailyTask>(query(collection(db, 'dailyTasks')));
+    const { data: deepCleanTasks } = useCollection<DeepCleanTask>(query(collection(db, 'deepCleanTasks')));
+    const { data: maintenanceTasks } = useCollection<MaintenanceWorkOrder>(query(collection(db, 'maintenance')));
+    const { data: inspections } = useCollection<Inspection>(query(collection(db, 'inspections')));
 
     return (
         <div className="space-y-6">
