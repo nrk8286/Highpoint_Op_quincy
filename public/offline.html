@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HighPoint HouseKeep - Offline</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+    }
+
+    .container {
+      max-width: 500px;
+      padding: 40px;
+      text-align: center;
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 16px;
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(201, 168, 76, 0.2);
+    }
+
+    .icon {
+      font-size: 64px;
+      margin-bottom: 20px;
+      animation: bounce 2s infinite;
+    }
+
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-20px); }
+    }
+
+    h1 {
+      font-size: 32px;
+      margin-bottom: 12px;
+      color: #C9A84C;
+    }
+
+    p {
+      font-size: 16px;
+      color: #ccc;
+      margin-bottom: 12px;
+      line-height: 1.6;
+    }
+
+    .status {
+      margin-top: 30px;
+      padding: 20px;
+      background: rgba(201, 168, 76, 0.1);
+      border-radius: 8px;
+      border-left: 4px solid #C9A84C;
+    }
+
+    .feature {
+      margin-top: 24px;
+      padding: 16px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 8px;
+      text-align: left;
+    }
+
+    .feature-title {
+      font-weight: 600;
+      color: #C9A84C;
+      margin-bottom: 8px;
+    }
+
+    .feature-desc {
+      font-size: 14px;
+      color: #aaa;
+    }
+
+    button {
+      margin-top: 30px;
+      padding: 12px 32px;
+      background: #C9A84C;
+      color: #1a1a2e;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    button:hover {
+      background: #d4b564;
+      transform: translateY(-2px);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="icon">📡</div>
+    <h1>You're Offline</h1>
+    <p>Don't worry! HighPoint HouseKeep works offline. Your inspections are being saved locally.</p>
+
+    <div class="status">
+      <strong>✓ Offline Mode Active</strong>
+      <p style="margin-top: 8px; font-size: 14px;">
+        You can continue creating inspections, recording deficiencies, and capturing photos.
+        Everything will sync when you reconnect.
+      </p>
+    </div>
+
+    <div class="feature">
+      <div class="feature-title">🔍 Continue Inspections</div>
+      <div class="feature-desc">Complete your current inspections without interruption</div>
+    </div>
+
+    <div class="feature">
+      <div class="feature-title">📸 Capture Photos</div>
+      <div class="feature-desc">Take and attach photos for compliance evidence</div>
+    </div>
+
+    <div class="feature">
+      <div class="feature-title">✓ Auto-Sync</div>
+      <div class="feature-desc">Data syncs automatically when you're back online</div>
+    </div>
+
+    <button onclick="location.reload()">Try Reconnecting</button>
+  </div>
+</body>
+</html>

@@ -42,7 +42,7 @@ export default function DataTracingPage() {
                                         <TableCell>{task.roomNumber}</TableCell>
                                         <TableCell>Daily</TableCell>
                                         <TableCell><Badge variant="outline">{task.status}</Badge></TableCell>
-                                        <TableCell>{task.updatedAt ? format(task.updatedAt.toDate(), 'HH:mm') : 'N/A'}</TableCell>
+                                        <TableCell>{task.updatedAt && 'toDate' in task.updatedAt ? format(task.updatedAt.toDate(), 'HH:mm') : 'N/A'}</TableCell>
                                     </TableRow>
                                 ))}
                                 {deepCleanTasks?.slice(0, 5).map(task => (
@@ -50,7 +50,7 @@ export default function DataTracingPage() {
                                         <TableCell>{task.zone}</TableCell>
                                         <TableCell>Deep</TableCell>
                                         <TableCell><Badge variant="outline">{task.status}</Badge></TableCell>
-                                        <TableCell>{task.updatedAt ? format(task.updatedAt.toDate(), 'HH:mm') : 'N/A'}</TableCell>
+                                        <TableCell>{task.updatedAt && 'toDate' in task.updatedAt ? format(task.updatedAt.toDate(), 'HH:mm') : 'N/A'}</TableCell>
                                     </TableRow>
                                 ))}
                             </TableBody>
@@ -79,7 +79,7 @@ export default function DataTracingPage() {
                                         <TableCell>{task.location}</TableCell>
                                         <TableCell>Maint.</TableCell>
                                         <TableCell><Badge variant="outline">{task.status}</Badge></TableCell>
-                                        <TableCell>{task.createdAt ? format(task.createdAt.toDate(), 'MM/dd') : 'N/A'}</TableCell>
+                                        <TableCell>{task.createdAt && 'toDate' in task.createdAt ? format(task.createdAt.toDate(), 'MM/dd') : 'N/A'}</TableCell>
                                     </TableRow>
                                 ))}
                                 {inspections?.slice(0, 5).map(insp => (
@@ -87,7 +87,7 @@ export default function DataTracingPage() {
                                         <TableCell>{insp.location}</TableCell>
                                         <TableCell>Insp.</TableCell>
                                         <TableCell><Badge variant="outline">{insp.status}</Badge></TableCell>
-                                        <TableCell>{insp.createdAt ? format(insp.createdAt.toDate(), 'MM/dd') : 'N/A'}</TableCell>
+                                        <TableCell>{insp.createdAt && 'toDate' in insp.createdAt ? format(insp.createdAt.toDate(), 'MM/dd') : 'N/A'}</TableCell>
                                     </TableRow>
                                 ))}
                             </TableBody>

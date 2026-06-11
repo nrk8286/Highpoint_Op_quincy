@@ -39,7 +39,12 @@ next-env.d.ts
 
 .genkit/*
 .env*
+!.env.example
 
 # firebase
 firebase-debug.log
 firestore-debug.log
+serviceAccountKey.json
+deploy-rules.js
+deploy-firestore-rules.js
+deploy-with-sdk.js

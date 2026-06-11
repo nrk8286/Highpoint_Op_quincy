@@ -33,13 +33,13 @@ service cloud.firestore {
       allow write: if isOwner(userId) || isManager();
     }
 
-    match /daily_tasks/{taskId} {
+    match /dailyTasks/{taskId} {
       allow read: if isSignedIn();
       allow write: if isManager();
       allow update: if isSignedIn() && (isManager() || resource.data.assignedTo == request.auth.uid);
     }
 
-    match /deep_clean_tasks/{taskId} {
+    match /deepCleanTasks/{taskId} {
         allow read: if isSignedIn();
         allow write: if isManager();
         allow update: if isSignedIn() && (isManager() || resource.data.assignedTo == request.auth.uid);
@@ -51,7 +51,7 @@ service cloud.firestore {
       allow update: if isSignedIn();
     }
 
-    match /maintenance_work_orders/{workOrderId} {
+    match /maintenance/{workOrderId} {
         allow read: if isSignedIn();
         allow create: if isSignedIn();
         allow update: if isManager() || isMaintenance();
@@ -69,8 +69,26 @@ service cloud.firestore {
       allow read, write: if isClinicalStaff();
     }
 
-    match /shift_reports/{reportId} {
+    match /shiftReports/{reportId} {
       allow read, write: if isClinicalStaff();
+    }
+
+    match /notifications/{notificationId} {
+      allow read: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if isSignedIn() && resource.data.userId == request.auth.uid;
+    }
+
+    match /auditLogs/{logId} {
+      allow read, write: if isManager();
+    }
+
+    match /inspectionSchedules/{scheduleId} {
+      allow read, write: if isManager();
+    }
+
+    match /facilities/{facilityId} {
+      allow read, write: if isManager();
     }
   }
 }

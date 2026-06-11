@@ -56,7 +56,7 @@ const aiChatFlow = ai.defineFlow(
       inputSchema: AiChatInputSchema,
       outputSchema: AiChatOutputSchema,
     },
-    async (input) => {
+    async (input: AiChatInput): Promise<AiChatOutput> => {
         const { output } = await chatPrompt(input);
         if (!output || !output.response) {
             return { response: "I'm sorry, I couldn't generate a response. Please try again." };

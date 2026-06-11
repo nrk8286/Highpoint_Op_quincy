@@ -61,8 +61,11 @@ const generateAuditReportFlow = ai.defineFlow(
     inputSchema: GenerateAuditReportInputSchema,
     outputSchema: GenerateAuditReportOutputSchema,
   },
-  async input => {
+  async (input: GenerateAuditReportInput): Promise<GenerateAuditReportOutput> => {
     const {output} = await generateAuditReportPrompt(input);
-    return output!;
+    if (!output || !output.report) {
+      return { report: 'Failed to generate audit report. Please try again.' };
+    }
+    return output;
   }
 );
