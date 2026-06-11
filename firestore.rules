@@ -72,6 +72,24 @@ service cloud.firestore {
     match /shiftReports/{reportId} {
       allow read, write: if isClinicalStaff();
     }
+
+    match /notifications/{notificationId} {
+      allow read: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if isSignedIn() && resource.data.userId == request.auth.uid;
+    }
+
+    match /auditLogs/{logId} {
+      allow read, write: if isManager();
+    }
+
+    match /inspectionSchedules/{scheduleId} {
+      allow read, write: if isManager();
+    }
+
+    match /facilities/{facilityId} {
+      allow read, write: if isManager();
+    }
   }
 }
 
