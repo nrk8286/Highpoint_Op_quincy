@@ -1,14 +1,14 @@
 import { HttpError, normalizeId } from "./runtime.js";
 
 const DEPARTMENT_RESOURCES = {
-  maintenance: ["dashboard", "maintenance", "inventory", "pm_checks", "work_orders", "documents", "training", "messages"],
-  nursing: ["dashboard", "nursing", "incidents", "documents", "training", "messages"],
-  housekeeping: ["dashboard", "housekeeping", "cleaning", "documents", "training", "messages"],
-  culinary: ["dashboard", "culinary", "meal_notes", "inventory", "documents", "training", "messages"],
-  activities: ["dashboard", "activities", "activity_events", "documents", "training", "messages"],
-  compliance: ["dashboard", "compliance", "pm_checks", "incidents", "documents", "reports", "training", "messages"],
-  inventory: ["dashboard", "inventory", "documents", "training", "messages"],
-  scheduling: ["dashboard", "scheduling", "attendance", "documents", "training", "messages"],
+  maintenance: ["dashboard", "maintenance", "inventory", "pm_checks", "work_orders", "documents", "training", "messages", "outlook"],
+  nursing: ["dashboard", "nursing", "incidents", "documents", "training", "messages", "outlook"],
+  housekeeping: ["dashboard", "housekeeping", "cleaning", "documents", "training", "messages", "outlook"],
+  culinary: ["dashboard", "culinary", "meal_notes", "inventory", "documents", "training", "messages", "outlook"],
+  activities: ["dashboard", "activities", "activity_events", "documents", "training", "messages", "outlook"],
+  compliance: ["dashboard", "compliance", "pm_checks", "incidents", "documents", "reports", "training", "messages", "outlook"],
+  inventory: ["dashboard", "inventory", "documents", "training", "messages", "outlook"],
+  scheduling: ["dashboard", "scheduling", "attendance", "documents", "training", "messages", "outlook"],
   admin: ["*"],
   executive: ["*"],
 };

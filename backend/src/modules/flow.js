@@ -1,6 +1,8 @@
 import { jsonResponse } from "../runtime.js";
 import { resourcesFor } from "../policy.js";
 import { repositories } from "../repositories.js";
+import { flowSnapshotOperation } from "../graph/operations.js";
+import { scheduleGraphWrite } from "../graph/sync.js";
 
 export async function getFlow(context) {
   const resources = resourcesFor(context.user);
@@ -24,7 +26,7 @@ export async function getFlow(context) {
 export async function postEvent(context) {
   const body = context.body || {};
   const repo = repositories(context);
-  await repo.flow.save({
+  const snapshot = {
     staffId: context.user.id,
     role: context.user.role,
     department: context.user.department,
@@ -33,6 +35,8 @@ export async function postEvent(context) {
     recoveryState: body.recoveryState,
     queueCount: body.queueCount,
     metadata: body.metadata || {},
-  });
+  };
+  const id = await repo.flow.save(snapshot);
+  scheduleGraphWrite(context, flowSnapshotOperation({ id, snapshot, user: context.user }));
   return jsonResponse({ ok: true, requestId: context.requestId }, 202);
 }

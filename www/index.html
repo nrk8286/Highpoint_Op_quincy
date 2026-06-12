@@ -330,11 +330,62 @@
         transform: translateY(2px) translateZ(8px);
         box-shadow: 0 3px 0 rgba(0, 0, 0, 0.3), 0 10px 18px rgba(0, 0, 0, 0.16);
       }
-      .tool-row {
+	      .tool-row {
+	        display: grid;
+	        grid-template-columns: 1fr 1fr;
+	        gap: 8px;
+	        margin-top: 10px;
+	      }
+	      .capture-grid {
+	        display: grid;
+	        gap: 8px;
+	      }
+	      textarea {
+	        appearance: none;
+	        background:
+	          linear-gradient(145deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.025)),
+	          rgba(255, 255, 255, 0.055);
+	        border: 1px solid var(--line);
+	        border-radius: 12px;
+	        color: var(--text);
+	        font: inherit;
+	        min-height: 78px;
+	        padding: 10px 12px;
+	        resize: vertical;
+	        width: 100%;
+	        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 7px 18px rgba(0, 0, 0, 0.16);
+	      }
+	      input[type="file"] {
+	        padding: 9px;
+	      }
+      .graph-grid {
         display: grid;
-        grid-template-columns: 1fr 1fr;
         gap: 8px;
-        margin-top: 10px;
+        margin-top: 12px;
+      }
+      .graph-result {
+        display: grid;
+        gap: 8px;
+        max-height: 190px;
+        overflow: auto;
+      }
+      .graph-item {
+        background:
+          linear-gradient(145deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.025)),
+          rgba(255, 255, 255, 0.04);
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        color: var(--muted);
+        display: grid;
+        gap: 4px;
+        padding: 10px 12px;
+      }
+      .graph-item b {
+        color: var(--text);
+      }
+      .graph-item button {
+        justify-self: start;
+        margin-top: 4px;
       }
       .field {
         display: grid;
@@ -581,10 +632,60 @@
           </div>
         </div>
 
-        <div class="actions">
-          <a id="launch" href="https://highpoints.work/app">Launch App</a>
-          <button class="action secondary" id="incident" type="button">Log Offline Incident</button>
-        </div>
+	        <div class="actions">
+	          <a id="launch" href="https://highpoints.work/app">Launch App</a>
+	          <button class="action secondary" id="incident" type="button">Log Offline Incident</button>
+	        </div>
+
+	        <div class="panel">
+	          <h2>Capture</h2>
+	          <div class="capture-grid">
+	            <label class="field">
+	              <span>Type</span>
+	              <select id="captureType">
+	                <option value="incident">Incident</option>
+	                <option value="work_order">Work Order</option>
+	                <option value="document_note">Document Note</option>
+	                <option value="supply_request">Supply Request</option>
+	              </select>
+	            </label>
+	            <label class="field">
+	              <span>Department</span>
+	              <select id="captureDepartment">
+	                <option value="maintenance">Maintenance</option>
+	                <option value="nursing">Nursing</option>
+	                <option value="housekeeping">Housekeeping</option>
+	                <option value="culinary">Culinary</option>
+	                <option value="activities">Activities</option>
+	                <option value="compliance">Compliance</option>
+	              </select>
+	            </label>
+	            <label class="field">
+	              <span>Priority</span>
+	              <select id="capturePriority">
+	                <option value="routine">Routine</option>
+	                <option value="urgent">Urgent</option>
+	                <option value="critical">Critical</option>
+	              </select>
+	            </label>
+	            <label class="field">
+	              <span>Location</span>
+	              <input id="captureLocation" type="text" autocomplete="off" placeholder="Room, wing, kitchen, office">
+	            </label>
+	            <label class="field">
+	              <span>Note</span>
+	              <textarea id="captureNote" maxlength="800" placeholder="What happened or what needs follow-up"></textarea>
+	            </label>
+	            <label class="field">
+	              <span>Attachment</span>
+	              <input id="captureFile" type="file" accept="image/*,.pdf">
+	            </label>
+	          </div>
+	          <div class="tool-row">
+	            <button class="action secondary" id="saveCapture" type="button">Save Capture</button>
+	            <button class="action secondary" id="syncQueue" type="button">Sync Queue</button>
+	          </div>
+	        </div>
 
         <div class="panel">
           <h2>Workspace Mode</h2>
@@ -605,12 +706,18 @@
 
         <div class="panel" id="adminTools" hidden>
           <h2>Admin Tools</h2>
-          <div class="tool-row">
-            <button class="action secondary" id="securityCameras" type="button">Security Cameras</button>
-            <button class="action secondary" id="adminLaunch" type="button">Admin Dashboard</button>
-          </div>
-          <label class="field">
-            <span>Outlook Self Auth</span>
+	          <div class="tool-row">
+	            <button class="action secondary" id="securityCameras" type="button">Security Cameras</button>
+	            <button class="action secondary" id="adminLaunch" type="button">Admin Dashboard</button>
+	          </div>
+		          <div class="tool-row">
+		            <button class="action secondary" id="backendHealth" type="button">Backend Health</button>
+		            <button class="action secondary" id="reviewQueue" type="button">Review Queue</button>
+		            <button class="action secondary" id="captureQueue" type="button">Recent Captures</button>
+		          </div>
+	          <div class="log" id="systemStatus">System checks are ready.</div>
+	          <label class="field">
+	            <span>Outlook Self Auth</span>
             <input id="outlookClientId" type="text" inputmode="text" autocomplete="off" placeholder="Microsoft client ID, if direct auth is needed">
           </label>
           <div class="tool-row">
@@ -618,6 +725,34 @@
             <button class="action secondary" id="clearOutlook" type="button">Clear Outlook</button>
           </div>
           <div class="log" id="outlookStatus">Each user signs in with their own Microsoft account.</div>
+          <div class="graph-grid" id="graphAdmin">
+            <h2>Graph</h2>
+            <label class="field">
+              <span>Query</span>
+              <select id="graphTemplate">
+                <option value="overview">Graph Overview</option>
+                <option value="recent_reviews">Recent Review Decisions</option>
+                <option value="department_risk">Department Activity</option>
+                <option value="audit_trail">Audit Trail</option>
+                <option value="role_permissions">Role Permissions</option>
+                <option value="relationship_catalog">Relationship Catalog</option>
+                <option value="staff_access">Staff Access</option>
+                <option value="department_permissions">Department Permissions</option>
+                <option value="recent_captures">Recent Shell Captures</option>
+              </select>
+            </label>
+            <div class="tool-row">
+              <button class="action secondary" id="graphRun" type="button">Run Graph Query</button>
+              <button class="action secondary" id="graphRetry" type="button">Retry Sync</button>
+            </div>
+            <label class="field">
+              <span>Search</span>
+              <input id="graphSearch" type="search" autocomplete="off" placeholder="Staff, document, policy, resident">
+            </label>
+            <button class="action secondary" id="graphSearchRun" type="button">Search Graph</button>
+            <div class="graph-result" id="graphResult" aria-live="polite"></div>
+            <div class="log" id="graphStatus">Graph tools are available to Admin and Executive users.</div>
+          </div>
         </div>
 
         <div class="panel">
@@ -668,7 +803,7 @@
         const OUTLOOK_PENDING_AUTH_KEY = "hp:outlookPendingAuth:v1";
         const OUTLOOK_STATE_KEY = "hp:outlookState:v1";
         const OUTLOOK_SCOPES = "openid profile offline_access User.Read Mail.Read Mail.Send Calendars.ReadWrite";
-        const SECURITY_CAMERA_URL = "http://192.168.168.138";
+        const SECURITY_CAMERA_URL = "https://cameras.highpoints.work";
         const autoLaunchDelayMs = 1200;
         const departmentMap = {
           staff: [
@@ -732,15 +867,34 @@
           log: $("log"),
           launch: $("launch"),
           refresh: $("refresh"),
-          incident: $("incident"),
-          quickGrid: $("quickGrid"),
+	          incident: $("incident"),
+	          captureType: $("captureType"),
+	          captureDepartment: $("captureDepartment"),
+	          capturePriority: $("capturePriority"),
+	          captureLocation: $("captureLocation"),
+	          captureNote: $("captureNote"),
+	          captureFile: $("captureFile"),
+	          saveCapture: $("saveCapture"),
+	          syncQueue: $("syncQueue"),
+	          quickGrid: $("quickGrid"),
           contactGrid: $("contactGrid"),
           roleMode: $("roleMode"),
           privacyMode: $("privacyMode"),
           outlookClientId: $("outlookClientId"),
           outlookAuth: $("outlookAuth"),
           clearOutlook: $("clearOutlook"),
-          outlookStatus: $("outlookStatus"),
+		          outlookStatus: $("outlookStatus"),
+		          backendHealth: $("backendHealth"),
+		          reviewQueue: $("reviewQueue"),
+		          captureQueue: $("captureQueue"),
+		          systemStatus: $("systemStatus"),
+          graphTemplate: $("graphTemplate"),
+          graphRun: $("graphRun"),
+          graphRetry: $("graphRetry"),
+          graphSearch: $("graphSearch"),
+          graphSearchRun: $("graphSearchRun"),
+          graphResult: $("graphResult"),
+          graphStatus: $("graphStatus"),
           securityCameras: $("securityCameras"),
           adminLaunch: $("adminLaunch"),
           shareReport: $("shareReport"),
@@ -917,13 +1071,17 @@
           }
         }
 
-        function updateAdminTools() {
-          refs.adminTools.hidden = refs.roleMode.value !== "admin";
-        }
+	        function updateAdminTools() {
+	          refs.adminTools.hidden = refs.roleMode.value !== "admin";
+	        }
+
+	        function setSystemStatus(message) {
+	          refs.systemStatus.textContent = message;
+	        }
 
         function openSecurityCameras() {
           haptic("Medium");
-          rememberEvent("Security cameras opened", "192.168.168.138");
+          rememberEvent("Security cameras opened", "cameras.highpoints.work");
           log("Opening security cameras. This works only while connected to the work network.");
           window.location.href = SECURITY_CAMERA_URL;
         }
@@ -938,6 +1096,175 @@
           url.hash = "settings";
           window.location.href = url.toString();
         }
+
+        function setGraphStatus(message) {
+          refs.graphStatus.textContent = message;
+        }
+
+        function renderGraphItems(items) {
+          refs.graphResult.innerHTML = "";
+          const normalized = Array.isArray(items) ? items : [];
+          if (!normalized.length) {
+            const empty = document.createElement("div");
+            empty.className = "graph-item";
+            empty.textContent = "No graph records returned.";
+            refs.graphResult.appendChild(empty);
+            return;
+          }
+          for (const item of normalized.slice(0, 12)) {
+            const row = document.createElement("div");
+            const title = document.createElement("b");
+            const detail = document.createElement("small");
+            row.className = "graph-item";
+            title.textContent = item.name || item.label || item.reviewId || item.id || item.department || "Graph record";
+            detail.textContent = Object.entries(item)
+              .filter(([, value]) => value !== null && typeof value !== "object")
+              .slice(0, 5)
+              .map(([key, value]) => `${key}: ${value}`)
+              .join(" · ");
+            row.append(title, detail);
+            if (item.label && item.id) {
+              const open = document.createElement("button");
+              open.className = "chip";
+              open.type = "button";
+              open.textContent = "Open";
+              open.addEventListener("click", () => loadGraphEntity(item.label, item.id));
+              row.appendChild(open);
+            }
+            refs.graphResult.appendChild(row);
+          }
+        }
+
+        function graphRows(payload) {
+          if (Array.isArray(payload?.rows)) return payload.rows;
+          const data = payload?.result?.data || payload?.result?.results || payload?.data || [];
+          if (data?.fields && Array.isArray(data.values)) {
+            return data.values.map((values) => Object.fromEntries(data.fields.map((field, index) => [field, values[index]])));
+          }
+          if (!Array.isArray(data)) return [];
+          return data.map((row) => {
+            if (Array.isArray(row?.row)) return Object.fromEntries(row.row.map((value, index) => [`value${index + 1}`, value]));
+            if (Array.isArray(row?.values) && Array.isArray(row?.keys)) return Object.fromEntries(row.keys.map((key, index) => [key, row.values[index]]));
+            if (Array.isArray(row)) return Object.fromEntries(row.map((value, index) => [`value${index + 1}`, value]));
+            return row;
+          });
+        }
+
+        async function runGraphQuery() {
+          await haptic("Medium");
+          setGraphStatus("Running graph query.");
+          try {
+            const response = await fetch("/api/v2/graph/query", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ template: refs.graphTemplate.value, limit: 25 }),
+            });
+            const payload = await response.json().catch(() => ({}));
+            if (!response.ok) throw new Error(payload.error || "Graph query failed");
+            renderGraphItems(graphRows(payload));
+            rememberEvent("Graph query", refs.graphTemplate.value);
+            setGraphStatus("Graph query complete.");
+          } catch (error) {
+            setGraphStatus(error.message || "Graph query failed.");
+          }
+        }
+
+        async function searchGraph() {
+          const q = refs.graphSearch.value.trim();
+          if (!q) return;
+          await haptic("Medium");
+          setGraphStatus("Searching graph.");
+          try {
+            const response = await fetch(`/api/v2/graph/search?q=${encodeURIComponent(q)}`);
+            const payload = await response.json().catch(() => ({}));
+            if (!response.ok) throw new Error(payload.error || "Graph search failed");
+            renderGraphItems(graphRows(payload));
+            rememberEvent("Graph search", q);
+            setGraphStatus("Graph search complete.");
+          } catch (error) {
+            setGraphStatus(error.message || "Graph search failed.");
+          }
+        }
+
+        async function loadGraphEntity(type, id) {
+          setGraphStatus("Loading graph entity.");
+          try {
+            const response = await fetch(`/api/v2/graph/entity/${encodeURIComponent(type)}/${encodeURIComponent(id)}`);
+            const payload = await response.json().catch(() => ({}));
+            if (!response.ok) throw new Error(payload.error || "Graph entity failed");
+            renderGraphItems(graphRows(payload));
+            setGraphStatus("Graph entity loaded.");
+          } catch (error) {
+            setGraphStatus(error.message || "Graph entity failed.");
+          }
+        }
+
+	        async function retryGraphSync() {
+          await haptic("Medium");
+          setGraphStatus("Retrying graph sync.");
+          try {
+            const response = await fetch("/api/v2/graph/sync/retry", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ limit: 25 }),
+            });
+            const payload = await response.json().catch(() => ({}));
+            if (!response.ok) throw new Error(payload.error || "Graph retry failed");
+            renderGraphItems(payload.results || []);
+            rememberEvent("Graph sync retry", `${payload.results?.length || 0} records`);
+            setGraphStatus("Graph sync retry complete.");
+          } catch (error) {
+            setGraphStatus(error.message || "Graph retry failed.");
+	        }
+        }
+
+	        async function checkBackendHealth() {
+	          await haptic("Medium");
+	          setSystemStatus("Checking backend.");
+	          try {
+	            const response = await fetch("/api/v2/health", { cache: "no-store" });
+	            const payload = await response.json().catch(() => ({}));
+	            if (!response.ok) throw new Error(payload.error || "Backend health failed");
+	            const bindings = payload.bindings || {};
+	            setSystemStatus(`Backend ok. D1 ${bindings.db ? "ready" : "missing"} · documents ${bindings.documents ? "ready" : "missing"}`);
+	            rememberEvent("Backend health", bindings.db ? "ready" : "partial");
+	            writeReport({ backendHealth: payload });
+	          } catch (error) {
+	            setSystemStatus(error.message || "Backend health failed.");
+	          }
+	        }
+
+	        async function loadReviewQueue() {
+	          await haptic("Medium");
+	          setSystemStatus("Loading review queue.");
+	          try {
+	            const response = await fetch("/api/v2/documents/review", { cache: "no-store" });
+	            const payload = await response.json().catch(() => ({}));
+	            if (!response.ok) throw new Error(payload.error || "Review queue unavailable");
+	            const count = Array.isArray(payload.items) ? payload.items.length : 0;
+	            setSystemStatus(`${count} document review item${count === 1 ? "" : "s"}.`);
+	            rememberEvent("Review queue", `${count} items`);
+	            writeReport({ reviewQueueCount: count });
+		          } catch (error) {
+		            setSystemStatus(error.message || "Review queue unavailable.");
+		          }
+		        }
+
+		        async function loadCaptureQueue() {
+		          await haptic("Medium");
+		          setSystemStatus("Loading recent captures.");
+		          try {
+		            const response = await fetch("/api/v2/shell/events?limit=10", { cache: "no-store" });
+		            const payload = await response.json().catch(() => ({}));
+		            if (!response.ok) throw new Error(payload.error || "Recent captures unavailable");
+		            const count = Array.isArray(payload.items) ? payload.items.length : 0;
+		            setSystemStatus(`${count} recent capture${count === 1 ? "" : "s"} available.`);
+		            rememberEvent("Recent captures", `${count} items`);
+		            writeReport({ recentCaptureCount: count });
+		          } catch (error) {
+		            setSystemStatus(error.message || "Recent captures unavailable.");
+		          }
+		        }
 
         async function haptic(style = "Light") {
           try {
@@ -1013,7 +1340,7 @@
           return connection.saveData ? `${type} saver` : type;
         }
 
-        function deviceReport(extra = {}) {
+	        function deviceReport(extra = {}) {
           const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection || {};
           return {
             generatedAt: new Date().toISOString(),
@@ -1034,8 +1361,9 @@
             queueCount: queueItems().length,
             roleMode: refs.roleMode?.value || "staff",
             privacyMode: privacyEnabled(),
-            outlookConnected: Boolean(readJson(OUTLOOK_CONNECTION_KEY, null)),
-            recentEvents: privacyEnabled() ? [] : events().slice(0, 8),
+	            outlookConnected: Boolean(readJson(OUTLOOK_CONNECTION_KEY, null)),
+	            captureDraft: captureDraft(),
+	            recentEvents: privacyEnabled() ? [] : events().slice(0, 8),
             lastHealth: readJson(LAST_HEALTH_KEY, null),
             ...extra,
           };
@@ -1049,13 +1377,25 @@
           }
         }
 
-        function writeReport(extra = {}) {
+	        function writeReport(extra = {}) {
           const report = deviceReport(extra);
           const text = JSON.stringify(report, null, 2);
           localStorage.setItem(LAST_REPORT_KEY, text);
           refs.report.textContent = text;
           return text;
-        }
+	        }
+
+	        function captureDraft() {
+	          const file = refs.captureFile?.files?.[0];
+	          return {
+	            type: refs.captureType?.value || "incident",
+	            department: refs.captureDepartment?.value || refs.roleMode?.value || "maintenance",
+	            priority: refs.capturePriority?.value || "routine",
+	            location: refs.captureLocation?.value.trim() || "",
+	            noteLength: refs.captureNote?.value.trim().length || 0,
+	            attachment: file ? { name: file.name, type: file.type, size: file.size } : null,
+	          };
+	        }
 
         function lastHealthText() {
           try {
@@ -1205,7 +1545,7 @@
           }
         }
 
-        function logIncident() {
+	        function logIncident() {
           const items = queueItems();
           const random = globalThis.crypto?.randomUUID ? globalThis.crypto.randomUUID() : String(Date.now());
           items.unshift({
@@ -1219,7 +1559,73 @@
           haptic("Medium");
           rememberEvent("Offline incident", "saved locally");
           log("Incident saved locally for follow-up when the app is reachable.");
-        }
+	        }
+
+	        function saveCapture() {
+	          const note = refs.captureNote.value.trim();
+	          const location = refs.captureLocation.value.trim();
+	          if (!note && !location && !refs.captureFile.files.length) {
+	            log("Add a note, location, or attachment before saving.");
+	            return;
+	          }
+	          const file = refs.captureFile.files[0];
+	          const items = queueItems();
+	          const random = globalThis.crypto?.randomUUID ? globalThis.crypto.randomUUID() : String(Date.now());
+	          items.unshift({
+	            id: random,
+	            type: refs.captureType.value,
+	            department: refs.captureDepartment.value,
+	            priority: refs.capturePriority.value,
+	            location,
+	            note,
+	            attachment: file ? { name: file.name, type: file.type, size: file.size } : null,
+	            createdAt: new Date().toISOString(),
+	            userAgent: privacyEnabled() ? "redacted" : navigator.userAgent,
+	            network: navigator.onLine ? "online" : "offline",
+	            status: "queued",
+	          });
+	          saveQueue(items);
+	          refs.captureNote.value = "";
+	          refs.captureLocation.value = "";
+	          refs.captureFile.value = "";
+	          haptic("Medium");
+	          rememberEvent("Capture saved", refs.captureType.value);
+	          log("Capture saved to the offline queue.");
+	        }
+
+	        async function syncOfflineQueue() {
+	          const items = queueItems();
+	          if (!items.length) {
+	            log("Offline queue is clear.");
+	            return;
+	          }
+	          await haptic("Medium");
+	          log("Syncing queued records.");
+	          const remaining = [];
+	          let synced = 0;
+	          for (const item of items) {
+	            try {
+	              const response = await fetch("/api/v2/shell/events", {
+	                method: "POST",
+	                headers: { "Content-Type": "application/json" },
+	                body: JSON.stringify({
+	                  networkState: navigator.onLine ? "online" : "offline",
+	                  appState: "mobile_shell",
+	                  recoveryState: "queue_sync",
+	                  queueCount: items.length,
+	                  offlineRecord: item,
+	                }),
+	              });
+	              if (!response.ok) throw new Error("sync rejected");
+	              synced += 1;
+	            } catch {
+	              remaining.push(item);
+	            }
+	          }
+	          saveQueue(remaining);
+	          rememberEvent("Queue sync", `${synced} synced, ${remaining.length} pending`);
+	          log(`${synced} record${synced === 1 ? "" : "s"} synced. ${remaining.length} pending.`);
+	        }
 
         async function shareDiagnostics() {
           const text = writeReport();
@@ -1281,7 +1687,7 @@
           }
         }
 
-        function importQueue() {
+	        function importQueue() {
           const text = prompt("Paste High Point Ops queue JSON");
           if (!text) return;
           try {
@@ -1293,8 +1699,13 @@
               type: String(item.type || "Imported record"),
               createdAt: item.createdAt || new Date().toISOString(),
               userAgent: privacyEnabled() ? "redacted" : String(item.userAgent || ""),
-              network: String(item.network || "unknown"),
-            }));
+	              network: String(item.network || "unknown"),
+	              department: String(item.department || ""),
+	              priority: String(item.priority || "routine"),
+	              location: String(item.location || ""),
+	              note: privacyEnabled() ? "" : String(item.note || ""),
+	              attachment: item.attachment || null,
+	            }));
             saveQueue(normalized.concat(queueItems()).slice(0, 25));
             haptic("Medium");
             rememberEvent("Queue imported", `${normalized.length} records`);
@@ -1332,17 +1743,28 @@
         }
 
         refs.refresh.addEventListener("click", () => runDiagnostics());
-        refs.incident.addEventListener("click", logIncident);
+	        refs.incident.addEventListener("click", logIncident);
+	        refs.saveCapture.addEventListener("click", saveCapture);
+	        refs.syncQueue.addEventListener("click", syncOfflineQueue);
         refs.launch.addEventListener("click", () => haptic("Medium"));
         refs.shareReport.addEventListener("click", shareDiagnostics);
         refs.clearQueue.addEventListener("click", clearQueue);
         refs.exportQueue.addEventListener("click", exportQueue);
         refs.importQueue.addEventListener("click", importQueue);
         refs.purgeLocal.addEventListener("click", purgeLocalData);
-        refs.securityCameras.addEventListener("click", openSecurityCameras);
-        refs.adminLaunch.addEventListener("click", launchAdminDashboard);
+	        refs.securityCameras.addEventListener("click", openSecurityCameras);
+	        refs.adminLaunch.addEventListener("click", launchAdminDashboard);
+		        refs.backendHealth.addEventListener("click", checkBackendHealth);
+		        refs.reviewQueue.addEventListener("click", loadReviewQueue);
+		        refs.captureQueue.addEventListener("click", loadCaptureQueue);
         refs.outlookAuth.addEventListener("click", startOutlookAuth);
         refs.clearOutlook.addEventListener("click", clearOutlookAuth);
+        refs.graphRun.addEventListener("click", runGraphQuery);
+        refs.graphRetry.addEventListener("click", retryGraphSync);
+        refs.graphSearchRun.addEventListener("click", searchGraph);
+        refs.graphSearch.addEventListener("keydown", (event) => {
+          if (event.key === "Enter") searchGraph();
+        });
         refs.outlookClientId.addEventListener("change", () => {
           const value = refs.outlookClientId.value.trim();
           if (value) localStorage.setItem(OUTLOOK_CLIENT_ID_KEY, value);

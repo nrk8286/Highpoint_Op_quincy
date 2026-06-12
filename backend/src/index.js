@@ -3,6 +3,8 @@ import { createRouter } from "./router.js";
 import { authenticate } from "./auth.js";
 import { auditEvent } from "./events.js";
 import { registerRoutes } from "./routes.js";
+import { staffContextOperation } from "./graph/operations.js";
+import { scheduleGraphWrite } from "./graph/sync.js";
 
 const router = createRouter();
 registerRoutes(router);
@@ -21,6 +23,7 @@ export default {
 
       if (match.route.auth !== false) {
         requestContext.user = await authenticate(requestContext);
+        scheduleGraphWrite(requestContext, staffContextOperation(requestContext.user));
       }
 
       const response = await match.route.handler(requestContext);

@@ -9,7 +9,7 @@ export async function getSecurityCameras(context) {
       {
         id: "work-network-main",
         label: "Security Cameras",
-        url: context.env.SECURITY_CAMERA_URL || "http://192.168.168.138",
+        url: context.env.SECURITY_CAMERA_URL || "https://cameras.highpoints.work",
         network: "work",
         note: "Reachable only from the facility work network.",
       },

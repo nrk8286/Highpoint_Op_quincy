@@ -2,6 +2,7 @@
   "name": "highpoints-mobile",
   "version": "1.0.0",
   "private": true,
+  "type": "module",
   "description": "Native store packaging for High Point Ops.",
   "scripts": {
     "sync": "capacitor sync",
@@ -15,6 +16,8 @@
     "doctor": "capacitor doctor",
     "validate:shell": "node scripts/validate-shell.mjs",
     "validate:backend": "node scripts/validate-backend.mjs",
+    "graph:migrate": "node backend/scripts/apply-graph-migrations.mjs",
+    "graph:check": "node backend/scripts/check-graph.mjs",
     "site:go": "go run ./site-go",
     "site:go:export": "go run ./site-go -export www/go-site",
     "validate:go-site": "go test ./site-go"
