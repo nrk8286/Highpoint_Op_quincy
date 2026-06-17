@@ -13,17 +13,22 @@ export async function createSessionToken(user, secret) {
 }
 
 export async function verifySessionToken(token, secret) {
-  if (!token || !token.includes(".")) return null;
-  const [encoded, signature] = token.split(".");
-  const data = atob(encoded);
-  const expectedSignature = await signHmac(data, secret);
+  try {
+    if (!token || !token.includes(".")) return null;
+    const [encoded, signature] = token.split(".");
+    const data = atob(encoded);
+    const expectedSignature = await signHmac(data, secret);
 
-  if (signature !== expectedSignature) return null;
+    if (signature !== expectedSignature) return null;
 
-  const payload = JSON.parse(data);
-  if (payload.exp < Date.now()) throw new HttpError(401, "Session expired");
+    const payload = JSON.parse(data);
+    if (payload.exp < Date.now()) throw new HttpError(401, "Session expired");
 
-  return payload;
+    return payload;
+  } catch (error) {
+    if (error instanceof HttpError) throw error;
+    throw new HttpError(401, "Invalid session token");
+  }
 }
 
 async function signHmac(data, secret) {

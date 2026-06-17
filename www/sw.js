@@ -1,4 +1,4 @@
-const CACHE_NAME = "highpoints-shell-v1";
+const CACHE_NAME = "highpoints-shell-v2";
 const SHELL_ASSETS = [
   "./",
   "./index.html",
@@ -32,6 +32,26 @@ self.addEventListener("fetch", (event) => {
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return;
 
+  if (url.pathname.startsWith("/api/") || url.pathname === "/azure/status" || url.pathname === "/healthz") {
+    event.respondWith(fetch(request));
+    return;
+  }
+
+  if (request.mode === "navigate" || request.destination === "document") {
+    event.respondWith(
+      fetch(request)
+        .then((response) => {
+          if (response.ok) {
+            const copy = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put("./index.html", copy));
+          }
+          return response;
+        })
+        .catch(() => caches.match("./index.html"))
+    );
+    return;
+  }
+
   event.respondWith(
     caches.match(request).then((cached) => {
       if (cached) return cached;
@@ -40,7 +60,7 @@ self.addEventListener("fetch", (event) => {
         const copy = response.clone();
         caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
         return response;
-      }).catch(() => caches.match("./index.html"));
-    }).catch(() => caches.match("./index.html"))
+      }).catch(() => caches.match(request));
+    }).catch(() => caches.match(request))
   );
 });

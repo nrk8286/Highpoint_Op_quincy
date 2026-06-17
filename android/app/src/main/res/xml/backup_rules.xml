@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <full-backup-content>
-    <include domain="root" path="app_webview/" />
-    <include domain="database" path="." />
-    <include domain="file" path="." />
-    <include domain="sharedpref" path="." />
+    <exclude domain="root" path="app_webview/" />
+    <exclude domain="database" path="." />
+    <exclude domain="file" path="." />
+    <exclude domain="sharedpref" path="." />
 </full-backup-content>

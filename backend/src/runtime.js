@@ -31,10 +31,39 @@ export async function readJson(request) {
   }
 }
 
+export const apiHeaders = {
+  "access-control-allow-origin": "*",
+  "access-control-allow-methods": "GET, HEAD, POST, PUT, DELETE, OPTIONS",
+  "access-control-allow-headers": "Content-Type, Authorization, X-Highpoints-User-Id, X-Highpoints-Session",
+  "referrer-policy": "same-origin",
+  "x-content-type-options": "nosniff",
+  "x-frame-options": "SAMEORIGIN",
+  "x-xss-protection": "1; mode=block",
+};
+
+export function optionsResponse() {
+  return new Response(null, {
+    status: 204,
+    headers: {
+      ...apiHeaders,
+      "cache-control": "no-store",
+    },
+  });
+}
+
+export function headResponse(response) {
+  return new Response(null, {
+    status: response.status,
+    statusText: response.statusText,
+    headers: response.headers,
+  });
+}
+
 export function jsonResponse(payload, status = 200, headers = {}) {
   return new Response(JSON.stringify(payload), {
     status,
     headers: {
+      ...apiHeaders,
       "content-type": "application/json;charset=UTF-8",
       "cache-control": "no-store",
       ...headers,

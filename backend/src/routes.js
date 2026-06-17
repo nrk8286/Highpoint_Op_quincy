@@ -2,7 +2,7 @@ import { jsonResponse, readJson } from "./runtime.js";
 import { visibleProfile } from "./policy.js";
 import { health } from "./modules/health.js";
 import { getFlow, postEvent } from "./modules/flow.js";
-import { getSecurityCameras } from "./modules/security-cameras.js";
+import { getSecurityCameras, openSecurityCameras } from "./modules/security-cameras.js";
 import { completeOutlookAuth, disconnectOutlook, getOutlookStatus, startOutlookAuth, syncOutlookInbox, sendOutlookEmail } from "./modules/outlook.js";
 import { approveReview, batchApproveReview, listReviewQueue } from "./modules/documents.js";
 import { graphEntity, graphFailures, graphHealth, graphQuery, graphRetry, graphSearch } from "./modules/graph.js";
@@ -24,10 +24,16 @@ export function registerRoutes(router) {
     return postEvent(context);
   });
   router.add("GET", "/api/v2/shell/events", { resource: "shell", audit: "shell_events_read" }, listShellEvents);
-  router.add("POST", "/api/v2/shell/events", { auth: false, resource: "shell", audit: "shell_event" }, postShellEvent);
+  router.add("POST", "/api/v2/shell/events", { resource: "shell", audit: "shell_event" }, postShellEvent);
 
   router.add("GET", "/api/v2/security/cameras", { resource: "security_cameras", audit: "security_camera_read" }, getSecurityCameras);
+  router.add("GET", "/api/v2/security/camera", { resource: "security_cameras", audit: "security_camera_read_singular" }, getSecurityCameras);
   router.add("GET", "/api/security/cameras", { resource: "security_cameras", audit: "security_camera_read_legacy" }, getSecurityCameras);
+  router.add("GET", "/api/security/camera", { resource: "security_cameras", audit: "security_camera_read_legacy_singular" }, getSecurityCameras);
+  router.add("GET", "/api/v2/security/cameras/open", { auth: false, resource: "security_cameras", audit: "security_camera_open" }, openSecurityCameras);
+  router.add("GET", "/api/v2/security/cameras/feed", { auth: false, resource: "security_cameras", audit: "security_camera_feed" }, openSecurityCameras);
+  router.add("GET", "/api/security/cameras/open", { auth: false, resource: "security_cameras", audit: "security_camera_open_legacy" }, openSecurityCameras);
+  router.add("GET", "/api/security/cameras/feed", { auth: false, resource: "security_cameras", audit: "security_camera_feed_legacy" }, openSecurityCameras);
 
   const outlookStart = async (context) => {
     context.body = await readJson(context.request);

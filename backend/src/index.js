@@ -1,4 +1,4 @@
-import { createRequestContext, errorResponse, jsonResponse } from "./runtime.js";
+import { createRequestContext, errorResponse, headResponse, jsonResponse, optionsResponse } from "./runtime.js";
 import { createRouter } from "./router.js";
 import { authenticate } from "./auth.js";
 import { auditEvent } from "./events.js";
@@ -13,7 +13,12 @@ export default {
   async fetch(request, env, ctx) {
     const requestContext = createRequestContext(request, env, ctx);
     try {
-      const match = router.match(requestContext.method, requestContext.url.pathname);
+      if (requestContext.method === "OPTIONS") {
+        return optionsResponse();
+      }
+
+      const routeMethod = requestContext.method === "HEAD" ? "GET" : requestContext.method;
+      const match = router.match(routeMethod, requestContext.url.pathname);
       if (!match) {
         return jsonResponse({ error: "Not found", requestId: requestContext.requestId }, 404);
       }
@@ -33,6 +38,9 @@ export default {
         resourceId: requestContext.params.id || "",
         metadata: { status: response.status },
       }));
+      if (requestContext.method === "HEAD") {
+        return headResponse(response);
+      }
       return response;
     } catch (error) {
       ctx.waitUntil(auditEvent(requestContext, {

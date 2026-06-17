@@ -12,6 +12,7 @@ const required = [
   "migrations/0001_backend_v2.sql",
   "migrations/0002_graph_outbox.sql",
   "migrations/0003_shell_events.sql",
+  "migrations/0004_legacy_staff_auth.sql",
   "src/index.js",
   "src/router.js",
   "src/runtime.js",

@@ -53,6 +53,7 @@ The backend is additive. It does not replace the live `highpoint-ops` or `highpo
 ```bash
 wrangler secret put OUTLOOK_CLIENT_SECRET
 wrangler secret put OUTLOOK_STATE_SECRET
+wrangler secret put SESSION_SECRET
 wrangler secret put DOCUMENT_AI_API_KEY
 wrangler secret put NEO4J_USERNAME
 wrangler secret put NEO4J_PASSWORD
@@ -61,7 +62,7 @@ wrangler secret put NEO4J_PASSWORD
 5. Apply migrations:
 
 ```bash
-wrangler d1 migrations apply HIGHPOINTS_DB
+wrangler d1 migrations apply highpoints --remote
 ```
 
 6. Bootstrap Neo4j constraints, roles, permissions, and relationship catalog data with `npm run graph:migrate`. For the local Neo4j instance on Bolt `localhost:7687`, use the matching local HTTP endpoint `http://127.0.0.1:7474/db/neo4j/tx/commit`. For Aura production, replace it with `https://<aura-host>/db/<database>/query/v2`. If running Cypher manually in Neo4j Browser, switch to `:use neo4j` first; the `system` database rejects `MATCH` and most schema/data clauses.

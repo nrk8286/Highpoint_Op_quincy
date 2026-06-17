@@ -16,3 +16,7 @@ export async function getSecurityCameras(context) {
     ],
   });
 }
+
+export async function openSecurityCameras(context) {
+  return Response.redirect(context.env.SECURITY_CAMERA_URL || "https://cameras.highpoints.work", 302);
+}

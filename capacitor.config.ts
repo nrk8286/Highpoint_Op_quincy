@@ -5,8 +5,18 @@ const config: CapacitorConfig = {
   appName: 'High Point Ops',
   webDir: 'www',
   server: {
-    url: 'https://highpoints.work/app',
-    cleartext: false
+    url: 'https://highpoints.work/next/login',
+    cleartext: false,
+    allowNavigation: [
+      'highpoints.work',
+      '*.highpoints.work',
+      'identitytoolkit.googleapis.com',
+      'firestore.googleapis.com',
+      'securetoken.googleapis.com',
+      'studio-4409581980-2dc9f.firebaseapp.com',
+      '*.firebaseapp.com',
+      '*.googleapis.com'
+    ]
   },
   plugins: {
     SplashScreen: {

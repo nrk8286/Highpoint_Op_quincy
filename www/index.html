@@ -604,6 +604,7 @@
           <div>
             <h1>High Point Ops</h1>
             <p id="headline">Preparing secure operations workspace.</p>
+            <p id="buildBanner" style="font-size:0.72rem;color:var(--steel);margin-top:4px">Build 1.1 (2)</p>
           </div>
           <button class="icon-button" id="refresh" type="button" title="Run diagnostics" aria-label="Run diagnostics">↻</button>
         </div>
@@ -630,10 +631,36 @@
               <strong id="syncValue">Armed</strong>
             </div>
           </div>
+          <div class="log" id="authStatus">Auth status is unknown until the backend is checked.</div>
+        </div>
+
+        <div class="panel">
+          <h2>Sign In</h2>
+          <div class="log" id="signInState">Not signed in.</div>
+          <div class="capture-grid">
+            <label class="field">
+              <span>Staff ID</span>
+              <input id="staffId" type="text" autocomplete="username" placeholder="staff username or id">
+            </label>
+            <label class="field">
+              <span>Session Token</span>
+              <input id="staffSession" type="password" autocomplete="current-password" placeholder="Bearer token or legacy session">
+            </label>
+            <label class="field">
+              <span>Access Email Reference</span>
+              <input id="staffEmail" type="email" autocomplete="email" placeholder="name@facility.org">
+            </label>
+          </div>
+          <div class="tool-row">
+            <button class="action secondary" id="saveSignIn" type="button">Save Sign In</button>
+            <button class="action secondary" id="clearSignIn" type="button">Clear Sign In</button>
+            <button class="action secondary" id="resetCache" type="button">Reset App Cache</button>
+          </div>
+          <div class="log" id="signInHelp">Use a valid staff ID and session token. Access email is stored only as a local reference unless Cloudflare Access is enforced upstream.</div>
         </div>
 
 	        <div class="actions">
-	          <a id="launch" href="https://highpoints.work/app">Launch App</a>
+	          <button id="launch" type="button">Open Workspace</button>
 	          <button class="action secondary" id="incident" type="button">Log Offline Incident</button>
 	        </div>
 
@@ -702,6 +729,15 @@
             <span>Privacy Mode</span>
             <input id="privacyMode" type="checkbox" aria-label="Privacy mode">
           </label>
+        </div>
+
+        <div class="panel" id="workspacePanel">
+          <h2>Workspace</h2>
+          <div class="log" id="workspaceStatus">Sign in to open the live operations workspace.</div>
+          <div class="tool-row">
+            <button class="action secondary" id="focusWorkspace" type="button">Focus Workspace</button>
+            <button class="action secondary" id="copyStatus" type="button">Copy Status</button>
+          </div>
         </div>
 
         <div class="panel" id="adminTools" hidden>
@@ -791,7 +827,7 @@
     <script>
       (() => {
         const APP_URL = "https://highpoints.work/app";
-        const API_PROBE = "https://highpoints.work/app";
+        const API_PROBE = "https://highpoints.work/api/v2/health";
         const QUEUE_KEY = "hp:offlineQueue:v1";
         const LAST_HEALTH_KEY = "hp:lastHealth:v1";
         const LAST_REPORT_KEY = "hp:lastReport:v1";
@@ -802,9 +838,10 @@
         const OUTLOOK_CONNECTION_KEY = "hp:outlookConnection:v1";
         const OUTLOOK_PENDING_AUTH_KEY = "hp:outlookPendingAuth:v1";
         const OUTLOOK_STATE_KEY = "hp:outlookState:v1";
+        const WORKSPACE_READY_KEY = "hp:workspaceReady:v1";
         const OUTLOOK_SCOPES = "openid profile offline_access User.Read Mail.Read Mail.Send Calendars.ReadWrite";
         const SECURITY_CAMERA_URL = "https://cameras.highpoints.work";
-        const autoLaunchDelayMs = 1200;
+        const SECURITY_CAMERA_APP_URL = "dmss://com.mm.android.dmss";
         const departmentMap = {
           staff: [
             ["dashboard", "Dashboard"],
@@ -857,10 +894,24 @@
         const $ = (id) => document.getElementById(id);
         const refs = {
           headline: $("headline"),
+          buildBanner: $("buildBanner"),
           network: $("networkValue"),
           app: $("appValue"),
           device: $("flowState"),
           sync: $("syncValue"),
+          authStatus: $("authStatus"),
+          staffId: $("staffId"),
+          staffSession: $("staffSession"),
+          staffEmail: $("staffEmail"),
+          saveSignIn: $("saveSignIn"),
+          clearSignIn: $("clearSignIn"),
+          resetCache: $("resetCache"),
+          signInHelp: $("signInHelp"),
+          signInState: $("signInState"),
+          workspacePanel: $("workspacePanel"),
+          workspaceStatus: $("workspaceStatus"),
+          focusWorkspace: $("focusWorkspace"),
+          copyStatus: $("copyStatus"),
           flowSummary: $("flowSummary"),
           adminTools: $("adminTools"),
           queue: $("queueList"),
@@ -905,6 +956,7 @@
           report: $("report"),
           timeline: $("timeline"),
         };
+        let authReady = false;
 
         function setMetric(node, state, value) {
           if (!node) return;
@@ -1038,12 +1090,10 @@
             return;
           }
           rememberEvent("Department launch", id);
-          const url = new URL(APP_URL);
-          url.searchParams.set("mobile", "1");
-          url.searchParams.set("roleMode", refs.roleMode.value || "staff");
-          url.searchParams.set("department", id);
-          url.hash = id === "dashboard" ? "" : id;
-          window.location.href = url.toString();
+          window.location.hash = id === "dashboard" ? "" : id;
+          setWorkspaceStatus(`Workspace focused on ${id}.`);
+          refreshWorkspaceState();
+          refs.workspacePanel?.scrollIntoView({ behavior: "smooth", block: "start" });
         }
 
         function renderContacts() {
@@ -1054,19 +1104,22 @@
             const title = document.createElement("b");
             const detail = document.createElement("small");
             const state = document.createElement("span");
-            const url = new URL(APP_URL);
-            url.searchParams.set("mobile", "1");
-            url.searchParams.set("department", department);
-            url.hash = "messages";
             link.className = "contact-card";
-            link.href = url.toString();
+            link.href = "#messages";
             title.textContent = name;
             detail.textContent = note;
             state.className = "pill";
             state.textContent = "Open";
             content.append(title, detail);
             link.append(content, state);
-            link.addEventListener("click", () => rememberEvent("Contact opened", name));
+            link.addEventListener("click", (event) => {
+              event.preventDefault();
+              rememberEvent("Contact opened", name);
+              window.location.hash = "messages";
+              setWorkspaceStatus(`Contact opened: ${name}.`);
+              refreshWorkspaceState();
+              refs.workspacePanel?.scrollIntoView({ behavior: "smooth", block: "start" });
+            });
             refs.contactGrid.appendChild(link);
           }
         }
@@ -1079,22 +1132,39 @@
 	          refs.systemStatus.textContent = message;
 	        }
 
-        function openSecurityCameras() {
+        async function fetchSecurityCameraUrl() {
+          try {
+            const response = await fetch("https://highpoints.work/api/v2/security/cameras", {
+              headers: authHeaders(),
+            });
+            const payload = await response.json().catch(() => ({}));
+            const camera = Array.isArray(payload.cameras) ? payload.cameras[0] : null;
+            return camera?.url || SECURITY_CAMERA_URL;
+          } catch {
+            return SECURITY_CAMERA_URL;
+          }
+        }
+
+        async function openSecurityCameras() {
           haptic("Medium");
           rememberEvent("Security cameras opened", "cameras.highpoints.work");
-          log("Opening security cameras. This works only while connected to the work network.");
-          window.location.href = SECURITY_CAMERA_URL;
+          log("Opening security cameras. The mobile app opens Amcrest when installed.");
+          if (window.Capacitor?.getPlatform?.() === "android") {
+            window.location.href = SECURITY_CAMERA_APP_URL;
+            return;
+          }
+          const cameraUrl = await fetchSecurityCameraUrl();
+          window.location.href = cameraUrl;
         }
 
         function launchAdminDashboard() {
           haptic("Medium");
           rememberEvent("Admin dashboard", "opened");
-          const url = new URL(APP_URL);
-          url.searchParams.set("mobile", "1");
-          url.searchParams.set("roleMode", "admin");
-          url.searchParams.set("department", "admin");
-          url.hash = "settings";
-          window.location.href = url.toString();
+          refs.roleMode.value = "admin";
+          setWorkspaceStatus("Admin workspace opened.");
+          window.location.hash = "settings";
+          refreshWorkspaceState();
+          refs.workspacePanel?.scrollIntoView({ behavior: "smooth", block: "start" });
         }
 
         function setGraphStatus(message) {
@@ -1156,7 +1226,7 @@
           try {
             const response = await fetch("/api/v2/graph/query", {
               method: "POST",
-              headers: { "Content-Type": "application/json" },
+              headers: { "Content-Type": "application/json", ...authHeaders() },
               body: JSON.stringify({ template: refs.graphTemplate.value, limit: 25 }),
             });
             const payload = await response.json().catch(() => ({}));
@@ -1175,7 +1245,7 @@
           await haptic("Medium");
           setGraphStatus("Searching graph.");
           try {
-            const response = await fetch(`/api/v2/graph/search?q=${encodeURIComponent(q)}`);
+            const response = await fetch(`/api/v2/graph/search?q=${encodeURIComponent(q)}`, { headers: authHeaders() });
             const payload = await response.json().catch(() => ({}));
             if (!response.ok) throw new Error(payload.error || "Graph search failed");
             renderGraphItems(graphRows(payload));
@@ -1189,7 +1259,7 @@
         async function loadGraphEntity(type, id) {
           setGraphStatus("Loading graph entity.");
           try {
-            const response = await fetch(`/api/v2/graph/entity/${encodeURIComponent(type)}/${encodeURIComponent(id)}`);
+            const response = await fetch(`/api/v2/graph/entity/${encodeURIComponent(type)}/${encodeURIComponent(id)}`, { headers: authHeaders() });
             const payload = await response.json().catch(() => ({}));
             if (!response.ok) throw new Error(payload.error || "Graph entity failed");
             renderGraphItems(graphRows(payload));
@@ -1205,7 +1275,7 @@
           try {
             const response = await fetch("/api/v2/graph/sync/retry", {
               method: "POST",
-              headers: { "Content-Type": "application/json" },
+              headers: { "Content-Type": "application/json", ...authHeaders() },
               body: JSON.stringify({ limit: 25 }),
             });
             const payload = await response.json().catch(() => ({}));
@@ -1238,7 +1308,7 @@
 	          await haptic("Medium");
 	          setSystemStatus("Loading review queue.");
 	          try {
-	            const response = await fetch("/api/v2/documents/review", { cache: "no-store" });
+		            const response = await fetch("/api/v2/documents/review", { cache: "no-store", headers: authHeaders() });
 	            const payload = await response.json().catch(() => ({}));
 	            if (!response.ok) throw new Error(payload.error || "Review queue unavailable");
 	            const count = Array.isArray(payload.items) ? payload.items.length : 0;
@@ -1254,7 +1324,7 @@
 		          await haptic("Medium");
 		          setSystemStatus("Loading recent captures.");
 		          try {
-		            const response = await fetch("/api/v2/shell/events?limit=10", { cache: "no-store" });
+	            const response = await fetch("/api/v2/shell/events?limit=10", { cache: "no-store", headers: authHeaders() });
 		            const payload = await response.json().catch(() => ({}));
 		            if (!response.ok) throw new Error(payload.error || "Recent captures unavailable");
 		            const count = Array.isArray(payload.items) ? payload.items.length : 0;
@@ -1333,6 +1403,46 @@
           }
         }
 
+        async function checkAuthStatus() {
+          setAuthStatus("Checking staff session.");
+          try {
+            const response = await fetch("/api/v2/me", {
+              cache: "no-store",
+              headers: authHeaders(),
+            });
+            const payload = await response.json().catch(() => ({}));
+            if (!response.ok) {
+              const detail = payload.error || "Sign in required";
+              throw new Error(detail);
+            }
+            const user = payload.user || {};
+            const label = [user.name, user.role, user.department].filter(Boolean).join(" · ");
+            authReady = true;
+            localStorage.setItem(WORKSPACE_READY_KEY, "1");
+            setAuthStatus(label ? `Signed in as ${label}` : "Signed in.");
+            rememberEvent("Auth check", "signed in");
+            writeReport({ authStatus: payload });
+            return true;
+          } catch (error) {
+            authReady = false;
+            localStorage.removeItem(WORKSPACE_READY_KEY);
+            const message = error.message || "Sign in required";
+            if (message.includes("Staff session missing")) {
+              setAuthStatus("No staff session found. Sign in with a valid HighPoints staff ID and session token.");
+            } else if (message.includes("Staff account not found")) {
+              setAuthStatus("Identity found, but no active staff profile matched it. Check the D1 staff tables.");
+            } else {
+              setAuthStatus(message);
+            }
+            rememberEvent("Auth check failed", message);
+            return false;
+          }
+        }
+
+        function setAuthStatus(message) {
+          if (refs.authStatus) refs.authStatus.textContent = message;
+        }
+
         function connectionLabel() {
           const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
           if (!connection) return "Online";
@@ -1340,10 +1450,11 @@
           return connection.saveData ? `${type} saver` : type;
         }
 
-	        function deviceReport(extra = {}) {
+        function deviceReport(extra = {}) {
           const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection || {};
           return {
             generatedAt: new Date().toISOString(),
+            build: "1.1 (2)",
             appUrl: APP_URL,
             online: navigator.onLine,
             connection: {
@@ -1375,6 +1486,134 @@
           } catch {
             return fallback;
           }
+        }
+
+        function authHeaders() {
+          const headers = {};
+          const token = localStorage.getItem("hp:authToken") || localStorage.getItem("highpoints:authToken") || "";
+          const userId = localStorage.getItem("hp:userId") || localStorage.getItem("highpoints:userId") || "";
+          const session = localStorage.getItem("hp:session") || localStorage.getItem("highpoints:session") || "";
+          if (token) headers.Authorization = `Bearer ${token}`;
+          if (userId) headers["X-Highpoints-User-Id"] = userId;
+          if (session) headers["X-Highpoints-Session"] = session;
+          return headers;
+        }
+
+        function loadSignInFields() {
+          refs.staffId.value = localStorage.getItem("hp:userId") || localStorage.getItem("highpoints:userId") || "";
+          refs.staffSession.value = localStorage.getItem("hp:session") || localStorage.getItem("highpoints:session") || localStorage.getItem("hp:authToken") || localStorage.getItem("highpoints:authToken") || "";
+          refs.staffEmail.value = localStorage.getItem("hp:accessEmail") || localStorage.getItem("highpoints:accessEmail") || "";
+        }
+
+        function saveSignInFields() {
+          const staffId = refs.staffId.value.trim();
+          const session = refs.staffSession.value.trim();
+          const email = refs.staffEmail.value.trim();
+          if (staffId) {
+            localStorage.setItem("hp:userId", staffId);
+            localStorage.setItem("highpoints:userId", staffId);
+          } else {
+            localStorage.removeItem("hp:userId");
+            localStorage.removeItem("highpoints:userId");
+          }
+          if (session) {
+            localStorage.setItem("hp:session", session);
+            localStorage.setItem("highpoints:session", session);
+            localStorage.setItem("hp:authToken", session);
+            localStorage.setItem("highpoints:authToken", session);
+          } else {
+            localStorage.removeItem("hp:session");
+            localStorage.removeItem("highpoints:session");
+            localStorage.removeItem("hp:authToken");
+            localStorage.removeItem("highpoints:authToken");
+          }
+          if (email) {
+            localStorage.setItem("hp:accessEmail", email);
+            localStorage.setItem("highpoints:accessEmail", email);
+          } else {
+            localStorage.removeItem("hp:accessEmail");
+            localStorage.removeItem("highpoints:accessEmail");
+          }
+          setSignInHelp("Sign-in data saved locally. Refresh or run diagnostics to verify access.");
+          rememberEvent("Sign in saved", staffId || email || "session");
+          writeReport();
+        }
+
+        function clearSignInFields() {
+          ["hp:userId","highpoints:userId","hp:session","highpoints:session","hp:authToken","highpoints:authToken","hp:accessEmail","highpoints:accessEmail"].forEach((key) => localStorage.removeItem(key));
+          localStorage.removeItem(WORKSPACE_READY_KEY);
+          loadSignInFields();
+          setSignInHelp("Sign-in data cleared from this device.");
+          rememberEvent("Sign in cleared", "local device");
+          writeReport();
+        }
+
+        async function resetAppCache() {
+          setSignInHelp("Clearing app cache and service worker.");
+          try {
+            if ("serviceWorker" in navigator) {
+              const registrations = await navigator.serviceWorker.getRegistrations();
+              await Promise.all(registrations.map((registration) => registration.unregister()));
+            }
+            if ("caches" in window) {
+              const keys = await caches.keys();
+              await Promise.all(keys.map((key) => caches.delete(key)));
+            }
+            clearSignInFields();
+            purgeLocalData();
+            setSignInHelp("App cache cleared. Reloading now.");
+            setTimeout(() => window.location.reload(true), 300);
+          } catch (error) {
+            setSignInHelp(error.message || "Failed to clear app cache.");
+          }
+        }
+
+        function openWorkspace() {
+          if (!authReady) {
+            setAuthStatus("Sign in first. The workspace opens only after a staff session is validated.");
+            refs.staffId?.focus();
+            return;
+          }
+          window.location.hash = "workspace";
+          refreshWorkspaceState();
+          refs.workspacePanel?.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+
+        async function copyWorkspaceStatus() {
+          const text = refs.report.textContent || refs.workspaceStatus.textContent || "";
+          try {
+            await navigator.clipboard.writeText(text);
+            setWorkspaceStatus("Workspace status copied to clipboard.");
+          } catch {
+            setWorkspaceStatus("Unable to copy status from this device.");
+          }
+        }
+
+        function setSignInHelp(message) {
+          if (refs.signInHelp) refs.signInHelp.textContent = message;
+        }
+
+        function setSignInState(message) {
+          if (refs.signInState) refs.signInState.textContent = message;
+        }
+
+        function setWorkspaceStatus(message) {
+          if (refs.workspaceStatus) refs.workspaceStatus.textContent = message;
+        }
+
+        function refreshWorkspaceState() {
+          authReady = localStorage.getItem(WORKSPACE_READY_KEY) === "1" || authReady;
+          if (refs.workspacePanel) refs.workspacePanel.hidden = false;
+          if (refs.staffId?.closest(".panel")) {
+            refs.staffId.closest(".panel").hidden = authReady;
+          }
+          setWorkspaceStatus(
+            authReady
+              ? "You are signed in. Use the launch chips below to move into the live workspace."
+              : "Not signed in yet. Enter staff credentials above, then save and verify auth."
+          );
+          setSignInState(authReady ? "Signed in. Login panel hidden." : "Not signed in.");
+          if (refs.buildBanner) refs.buildBanner.textContent = `Build 1.1 (2)`;
         }
 
 	        function writeReport(extra = {}) {
@@ -1429,7 +1668,7 @@
           try {
             const response = await fetch("/api/outlook/auth/complete", {
               method: "POST",
-              headers: { "Content-Type": "application/json" },
+              headers: { "Content-Type": "application/json", ...authHeaders() },
               body: JSON.stringify({ code, state, redirectUri: cleanUrl.toString() }),
             });
             const payload = await response.json().catch(() => ({}));
@@ -1493,7 +1732,7 @@
           try {
             const response = await fetch("/api/outlook/auth/start", {
               method: "POST",
-              headers: { "Content-Type": "application/json" },
+              headers: { "Content-Type": "application/json", ...authHeaders() },
               body: JSON.stringify({ redirectUri: redirectUri.toString(), scopes: OUTLOOK_SCOPES, state }),
             });
             const payload = await response.json().catch(() => ({}));
@@ -1537,12 +1776,8 @@
           setFlow("warn", window.Capacitor ? "Native shell checking live services." : "Web shell checking live services.");
           writeReport();
           const ready = await probeApp();
+          await checkAuthStatus();
           renderQueue();
-          if (ready && launchWhenReady && new URLSearchParams(window.location.search).get("autoLaunch") === "1") {
-            setTimeout(() => {
-              window.location.href = APP_URL;
-            }, autoLaunchDelayMs);
-          }
         }
 
 	        function logIncident() {
@@ -1605,10 +1840,10 @@
 	          let synced = 0;
 	          for (const item of items) {
 	            try {
-	              const response = await fetch("/api/v2/shell/events", {
-	                method: "POST",
-	                headers: { "Content-Type": "application/json" },
-	                body: JSON.stringify({
+		              const response = await fetch("/api/v2/shell/events", {
+		                method: "POST",
+		                headers: { "Content-Type": "application/json", ...authHeaders() },
+		                body: JSON.stringify({
 	                  networkState: navigator.onLine ? "online" : "offline",
 	                  appState: "mobile_shell",
 	                  recoveryState: "queue_sync",
@@ -1746,7 +1981,6 @@
 	        refs.incident.addEventListener("click", logIncident);
 	        refs.saveCapture.addEventListener("click", saveCapture);
 	        refs.syncQueue.addEventListener("click", syncOfflineQueue);
-        refs.launch.addEventListener("click", () => haptic("Medium"));
         refs.shareReport.addEventListener("click", shareDiagnostics);
         refs.clearQueue.addEventListener("click", clearQueue);
         refs.exportQueue.addEventListener("click", exportQueue);
@@ -1759,6 +1993,15 @@
 		        refs.captureQueue.addEventListener("click", loadCaptureQueue);
         refs.outlookAuth.addEventListener("click", startOutlookAuth);
         refs.clearOutlook.addEventListener("click", clearOutlookAuth);
+        refs.saveSignIn.addEventListener("click", saveSignInFields);
+        refs.clearSignIn.addEventListener("click", clearSignInFields);
+        refs.resetCache.addEventListener("click", resetAppCache);
+        refs.launch.addEventListener("click", () => {
+          haptic("Medium");
+          openWorkspace();
+        });
+        refs.focusWorkspace.addEventListener("click", openWorkspace);
+        refs.copyStatus.addEventListener("click", copyWorkspaceStatus);
         refs.graphRun.addEventListener("click", runGraphQuery);
         refs.graphRetry.addEventListener("click", retryGraphSync);
         refs.graphSearchRun.addEventListener("click", searchGraph);
@@ -1778,6 +2021,7 @@
 
         refs.roleMode.value = localStorage.getItem(ROLE_MODE_KEY) || "staff";
         refs.privacyMode.checked = localStorage.getItem(PRIVACY_MODE_KEY) === "1";
+        loadSignInFields();
         completeOutlookAuthFromRedirect();
         renderOutlookStatus();
         updateAdminTools();
@@ -1787,7 +2031,8 @@
         renderTimeline();
         writeReport();
         registerServiceWorker();
-        runDiagnostics({ launchWhenReady: true });
+        runDiagnostics({ launchWhenReady: false });
+        refreshWorkspaceState();
       })();
     </script>
   </body>
