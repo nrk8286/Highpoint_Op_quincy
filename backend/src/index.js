@@ -5,6 +5,7 @@ import { auditEvent } from "./events.js";
 import { registerRoutes } from "./routes.js";
 import { staffContextOperation } from "./graph/operations.js";
 import { scheduleGraphWrite } from "./graph/sync.js";
+import { staticResponseFor } from "./static.js";
 
 const router = createRouter();
 registerRoutes(router);
@@ -13,6 +14,12 @@ export default {
   async fetch(request, env, ctx) {
     const requestContext = createRequestContext(request, env, ctx);
     try {
+      const staticResponse = staticResponseFor(requestContext.url);
+      if (staticResponse) {
+        if (requestContext.method === "HEAD") return headResponse(staticResponse);
+        return staticResponse;
+      }
+
       if (requestContext.method === "OPTIONS") {
         return optionsResponse();
       }

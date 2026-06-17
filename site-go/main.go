@@ -340,6 +340,18 @@ func iconHandler(root string) http.HandlerFunc {
 	}
 }
 
+func appHandler(root string) http.HandlerFunc {
+	appPath := filepath.Join(root, "www", "index.html")
+	return func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/app/" {
+			http.Redirect(w, r, "/app", http.StatusPermanentRedirect)
+			return
+		}
+		setCommonHeaders(w, "text/html; charset=utf-8", "no-store, max-age=0")
+		http.ServeFile(w, r, appPath)
+	}
+}
+
 func exportSite(dir string) error {
 	for _, p := range pages {
 		out := filepath.Join(dir, strings.TrimPrefix(p.Path, "/"), "index.html")
@@ -436,8 +448,8 @@ func accessLogMiddleware(next http.Handler) http.Handler {
 
 func mainHandler(w http.ResponseWriter, r *http.Request) {
 	setCommonHeaders(w, "text/html; charset=utf-8", "public, max-age=300")
-	if r.URL.Path == "/app" || r.URL.Path == "/signup" {
-		http.Redirect(w, r, "https://highpoints.work"+r.URL.Path, http.StatusTemporaryRedirect)
+	if r.URL.Path == "/signup" {
+		http.Redirect(w, r, "/app", http.StatusTemporaryRedirect)
 		return
 	}
 	if r.URL.Path != "/" && strings.HasSuffix(r.URL.Path, "/") {
@@ -467,6 +479,8 @@ func newMux() http.Handler {
 
 func routes(root string) *http.ServeMux {
 	mux := http.NewServeMux()
+	mux.HandleFunc("/app", appHandler(root))
+	mux.HandleFunc("/app/", appHandler(root))
 	mux.HandleFunc("/healthz", healthHandler)
 	mux.HandleFunc("/api/readiness-score", readinessAPIHandler)
 	mux.HandleFunc("/api/search", searchAPIHandler)

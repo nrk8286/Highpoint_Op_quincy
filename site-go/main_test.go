@@ -140,17 +140,33 @@ func TestSitemapContainsPublicPages(t *testing.T) {
 	}
 }
 
-func TestAppRoutesRedirectToLiveSite(t *testing.T) {
-	for _, path := range []string{"/app", "/signup"} {
-		r := httptest.NewRequest(http.MethodGet, path, nil)
-		w := httptest.NewRecorder()
-		mainHandler(w, r)
-		if w.Code != http.StatusTemporaryRedirect {
-			t.Fatalf("%s status = %d, want %d", path, w.Code, http.StatusTemporaryRedirect)
-		}
-		if got := w.Header().Get("Location"); got != "https://highpoints.work"+path {
-			t.Fatalf("%s location = %q", path, got)
-		}
+func TestAppRouteServesShellAndSignupEntersApp(t *testing.T) {
+	root := t.TempDir()
+	if err := os.MkdirAll(filepath.Join(root, "www"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(root, "www", "index.html"), []byte("<!doctype html><title>High Point Ops</title>"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	mux := newMuxWithRoot(root)
+	app := httptest.NewRecorder()
+	mux.ServeHTTP(app, httptest.NewRequest(http.MethodGet, "/app", nil))
+	if app.Code != http.StatusOK {
+		t.Fatalf("/app status = %d, want %d", app.Code, http.StatusOK)
+	}
+	if !strings.Contains(app.Body.String(), "High Point Ops") {
+		t.Fatal("/app did not serve the shell")
+	}
+
+	r := httptest.NewRequest(http.MethodGet, "/signup", nil)
+	w := httptest.NewRecorder()
+	mainHandler(w, r)
+	if w.Code != http.StatusTemporaryRedirect {
+		t.Fatalf("/signup status = %d, want %d", w.Code, http.StatusTemporaryRedirect)
+	}
+	if got := w.Header().Get("Location"); got != "/app" {
+		t.Fatalf("/signup location = %q", got)
 	}
 }
 

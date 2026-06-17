@@ -3,7 +3,9 @@
   "name": "highpoints-backend-v2",
   "main": "src/index.js",
   "compatibility_date": "2026-05-23",
-  "compatibility_flags": ["nodejs_compat"],
+  "compatibility_flags": [
+    "nodejs_compat"
+  ],
   "observability": {
     "enabled": true,
     "head_sampling_rate": 0.1
@@ -42,6 +44,30 @@
   "routes": [
     {
       "pattern": "highpoints.work/api/*",
+      "zone_id": "0f5ea8d9b668cc5c7a029e635d46fcc9"
+    },
+    {
+      "pattern": "highpoints.work/app",
+      "zone_id": "0f5ea8d9b668cc5c7a029e635d46fcc9"
+    },
+    {
+      "pattern": "highpoints.work/app/*",
+      "zone_id": "0f5ea8d9b668cc5c7a029e635d46fcc9"
+    },
+    {
+      "pattern": "highpoints.work/signup",
+      "zone_id": "0f5ea8d9b668cc5c7a029e635d46fcc9"
+    },
+    {
+      "pattern": "highpoints.work/sw.js",
+      "zone_id": "0f5ea8d9b668cc5c7a029e635d46fcc9"
+    },
+    {
+      "pattern": "highpoints.work/manifest.json",
+      "zone_id": "0f5ea8d9b668cc5c7a029e635d46fcc9"
+    },
+    {
+      "pattern": "highpoints.work/icons/*",
       "zone_id": "0f5ea8d9b668cc5c7a029e635d46fcc9"
     }
   ]

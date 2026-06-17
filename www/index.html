@@ -828,8 +828,8 @@
     </main>
     <script>
       (() => {
-        const APP_URL = "https://highpoints.work/app";
-        const API_PROBE = "https://highpoints.work/api/v2/health";
+        const APP_URL = new URL("/app", window.location.origin).toString();
+        const API_PROBE = "/api/v2/health";
         const QUEUE_KEY = "hp:offlineQueue:v1";
         const LAST_HEALTH_KEY = "hp:lastHealth:v1";
         const LAST_REPORT_KEY = "hp:lastReport:v1";
@@ -1138,7 +1138,7 @@
 
         async function fetchSecurityCameraUrl() {
           try {
-            const response = await fetch("https://highpoints.work/api/v2/security/cameras", {
+            const response = await fetch("/api/v2/security/cameras", {
               headers: authHeaders(),
             });
             const payload = await response.json().catch(() => ({}));

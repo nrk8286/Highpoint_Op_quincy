@@ -20,7 +20,7 @@ The Azure VM `Highpoint/myVm` hosts an additive Highpoints origin server.
 - TLS certificate: `/etc/letsencrypt/live/origin.highpoints.work/` for `origin.highpoints.work`, `server.highpoints.work`, and `azure.highpoints.work`
 
 The public pages run from the Go site on `127.0.0.1:8080`.
-Nginx serves `/app` from `www/index.html`.
+Nginx proxies `/app`, `/app.bundle.js`, `/vendor/*`, and `/service-worker.js` to the production Highpoints app so the Azure origin and Cloudflare host present the same complete application instead of separate app shells.
 Nginx proxies `/api/*` to `https://highpoints.work/api/*` so Azure-hosted app screens keep using the production Cloudflare Worker and D1 backend.
 Nginx keeps `/api/search` local so public-site search is served by the Azure Go service.
 
