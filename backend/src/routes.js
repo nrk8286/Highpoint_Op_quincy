@@ -1,6 +1,7 @@
 import { jsonResponse, readJson } from "./runtime.js";
 import { visibleProfile } from "./policy.js";
 import { health } from "./modules/health.js";
+import { azureServices } from "./modules/azure.js";
 import { getFlow, postEvent } from "./modules/flow.js";
 import { getSecurityCameras, openSecurityCameras } from "./modules/security-cameras.js";
 import { completeOutlookAuth, disconnectOutlook, getOutlookStatus, startOutlookAuth, syncOutlookInbox, sendOutlookEmail } from "./modules/outlook.js";
@@ -10,6 +11,8 @@ import { listShellEvents, postShellEvent } from "./modules/shell.js";
 
 export function registerRoutes(router) {
   router.add("GET", "/api/v2/health", { auth: false, resource: "health", audit: "health_check" }, health);
+  router.add("GET", "/api/v2/azure/services", { auth: false, resource: "azure", audit: "azure_services" }, azureServices);
+  router.add("GET", "/api/azure/services", { auth: false, resource: "azure", audit: "azure_services_legacy" }, azureServices);
 
   const me = async (context) => {
     return jsonResponse({ user: visibleProfile(context.user), requestId: context.requestId });

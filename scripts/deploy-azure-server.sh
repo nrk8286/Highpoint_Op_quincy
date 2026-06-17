@@ -167,8 +167,8 @@ if [ "${HIGHPOINTS_SKIP_CERTBOT:-0}" != "1" ]; then
 fi
 sudo nginx -t
 sudo systemctl reload nginx
-curl -fsS http://127.0.0.1/azure/status
-curl -fsS http://127.0.0.1/api/v2/health
+curl -fsSL -H "Host: server.highpoints.work" http://127.0.0.1/azure/status
+curl -fsSL -H "Host: server.highpoints.work" http://127.0.0.1/api/v2/health
 REMOTE_SCRIPT
 
 curl -fsS "https://server.highpoints.work/azure/status" >/dev/null

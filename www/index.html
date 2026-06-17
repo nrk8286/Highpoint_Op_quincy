@@ -750,8 +750,10 @@
 		            <button class="action secondary" id="backendHealth" type="button">Backend Health</button>
 		            <button class="action secondary" id="reviewQueue" type="button">Review Queue</button>
 		            <button class="action secondary" id="captureQueue" type="button">Recent Captures</button>
+	            <button class="action secondary" id="azureServices" type="button">Azure Services</button>
 		          </div>
 	          <div class="log" id="systemStatus">System checks are ready.</div>
+	          <div class="log" id="azureStatus">Azure origin and services are ready to check.</div>
 	          <label class="field">
 	            <span>Outlook Self Auth</span>
             <input id="outlookClientId" type="text" inputmode="text" autocomplete="off" placeholder="Microsoft client ID, if direct auth is needed">
@@ -938,7 +940,9 @@
 		          backendHealth: $("backendHealth"),
 		          reviewQueue: $("reviewQueue"),
 		          captureQueue: $("captureQueue"),
+          azureServices: $("azureServices"),
 		          systemStatus: $("systemStatus"),
+          azureStatus: $("azureStatus"),
           graphTemplate: $("graphTemplate"),
           graphRun: $("graphRun"),
           graphRetry: $("graphRetry"),
@@ -1304,7 +1308,28 @@
 	          }
 	        }
 
-	        async function loadReviewQueue() {
+        async function checkAzureServices() {
+          await haptic("Medium");
+          setSystemStatus("Checking Azure services.");
+          refs.azureStatus.textContent = "Contacting Azure origin and service catalog.";
+          try {
+            const response = await fetch("/api/v2/azure/services", { cache: "no-store" });
+            const payload = await response.json().catch(() => ({}));
+            if (!response.ok) throw new Error(payload.error || "Azure services unavailable");
+            const services = Array.isArray(payload.services) ? payload.services : [];
+            const origin = payload.origin || {};
+            const latency = Number.isFinite(origin.latencyMs) ? ` in ${origin.latencyMs}ms` : "";
+            refs.azureStatus.textContent = `Azure ${origin.ok ? "ready" : "partial"}${latency}. ${services.length} services cataloged.`;
+            setSystemStatus(`Azure services ${origin.ok ? "ready" : "partially reachable"}.`);
+            rememberEvent("Azure services", `${services.length} services`);
+            writeReport({ azureServices: payload });
+          } catch (error) {
+            refs.azureStatus.textContent = error.message || "Azure services unavailable.";
+            setSystemStatus(error.message || "Azure services unavailable.");
+          }
+        }
+
+        async function loadReviewQueue() {
 	          await haptic("Medium");
 	          setSystemStatus("Loading review queue.");
 	          try {
@@ -1991,6 +2016,7 @@
 		        refs.backendHealth.addEventListener("click", checkBackendHealth);
 		        refs.reviewQueue.addEventListener("click", loadReviewQueue);
 		        refs.captureQueue.addEventListener("click", loadCaptureQueue);
+        refs.azureServices.addEventListener("click", checkAzureServices);
         refs.outlookAuth.addEventListener("click", startOutlookAuth);
         refs.clearOutlook.addEventListener("click", clearOutlookAuth);
         refs.saveSignIn.addEventListener("click", saveSignInFields);

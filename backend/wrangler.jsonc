@@ -17,7 +17,13 @@
     "DOCUMENT_AI_ENDPOINT": "",
     "DOCUMENT_AI_MODEL": "",
     "NEO4J_QUERY_ENDPOINT": "http://127.0.0.1:7474/db/neo4j/tx/commit",
-    "NEO4J_DATABASE": "neo4j"
+    "NEO4J_DATABASE": "neo4j",
+    "AZURE_SUBSCRIPTION_NAME": "Azure subscription 1",
+    "AZURE_RESOURCE_GROUP": "Highpoint",
+    "AZURE_VMSS_RESOURCE_GROUP": "vmss-rg",
+    "AZURE_ORIGIN_URL": "https://server.highpoints.work",
+    "AZURE_STATUS_ENDPOINT": "https://server.highpoints.work/azure/status",
+    "AZURE_APP_ENDPOINT": "https://server.highpoints.work/app"
   },
   "d1_databases": [
     {
