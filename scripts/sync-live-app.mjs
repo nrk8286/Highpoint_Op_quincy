@@ -5,6 +5,8 @@ import { mkdir, writeFile } from "node:fs/promises";
 import { dirname, join, resolve } from "node:path";
 
 const LIVE_APP_URL = process.env.HIGHPOINTS_APP_URL || "https://highpoints.work/app";
+const ZENDESK_WIDGET_SNIPPET =
+  '<script id="ze-snippet" src="https://static.zdassets.com/ekr/snippet.js?key=6af3af13-3204-4338-8786-9586f1eb2b92"></script>';
 const outputDir = process.argv[2]
   ? resolve(process.argv[2])
   : resolve(process.cwd(), "synced-live-app/current");
@@ -14,50 +16,57 @@ const summary = [];
 await mkdir(outputDir, { recursive: true });
 
 const html = await fetchText(LIVE_APP_URL);
-const bundlePath = matchRequired(html, /<script src="(\/app\.bundle\.js\?v=[^"]+)"><\/script>/, "app bundle path");
-const bundleUrl = new URL(bundlePath, LIVE_APP_URL).toString();
+const legacyBundleMatch = html.match(/<script src="(\/app\.bundle\.js\?v=[^"]+)"><\/script>/);
+const bundlePath = legacyBundleMatch ? legacyBundleMatch[1] : null;
+const bundleUrl = bundlePath ? new URL(bundlePath, LIVE_APP_URL).toString() : null;
 const serviceWorkerUrl = new URL("/service-worker.js", LIVE_APP_URL).toString();
 const manifestUrl = new URL("/manifest.json", LIVE_APP_URL).toString();
 
 const [bundle, serviceWorker, manifest] = await Promise.all([
-  fetchText(bundleUrl),
-  fetchText(serviceWorkerUrl),
-  fetchText(manifestUrl),
+  bundleUrl ? fetchTextOptional(bundleUrl) : Promise.resolve(null),
+  fetchTextOptional(serviceWorkerUrl),
+  fetchTextOptional(manifestUrl),
 ]);
 
 let patchedBundle = bundle;
-patchedBundle = replaceFunctionByAnchor(patchedBundle, "const[form,setForm]=useState(false)", outlookPanelPatch());
-patchedBundle = replaceFunctionByAnchor(patchedBundle, "data.userTasks || []", userTasksPanelPatch());
-patchedBundle = insertBeforeFunction(patchedBundle, "HighPointsPulsePanel", pulseMarqueePatch());
-patchedBundle = insertBeforeFunction(patchedBundle, "HighPointOps", documentReviewPanelPatch());
-patchedBundle = patchDashboardPulsePlacement(patchedBundle);
-patchedBundle = patchOpsRenderLoop(patchedBundle);
+if (bundlePath && bundle) {
+  patchedBundle = replaceFunctionByAnchor(patchedBundle, "const[form,setForm]=useState(false)", outlookPanelPatch());
+  patchedBundle = replaceFunctionByAnchor(patchedBundle, "data.userTasks || []", userTasksPanelPatch());
+  patchedBundle = insertBeforeFunction(patchedBundle, "HighPointsPulsePanel", pulseMarqueePatch());
+  patchedBundle = insertBeforeFunction(patchedBundle, "HighPointOps", documentReviewPanelPatch());
+  patchedBundle = patchDashboardPulsePlacement(patchedBundle);
+  patchedBundle = patchOpsRenderLoop(patchedBundle);
+}
 
-const patchedHtml = html
-  .replace(bundlePath, "./app.bundle.patched.js")
-  .replace(/src="\/vendor\//g, `src="${new URL("/vendor/", LIVE_APP_URL).toString()}`)
-  .replace(/href="\/apple-touch-icon\.png"/g, `href="${new URL("/apple-touch-icon.png", LIVE_APP_URL).toString()}"`)
-  .replace(/href="\/icons\//g, `href="${new URL("/icons/", LIVE_APP_URL).toString()}`)
-  .replace(/href="\/manifest\.json"/g, 'href="./manifest.json"')
-  .replace(/serviceWorker\.register\('\/service-worker\.js'\)/g, "serviceWorker.register('./service-worker.js')");
+let patchedHtml = html;
+if (bundlePath && patchedBundle) {
+  patchedHtml = patchedHtml
+    .replace(bundlePath, "./app.bundle.patched.js")
+    .replace(/src="\/vendor\//g, `src="${new URL("/vendor/", LIVE_APP_URL).toString()}`)
+    .replace(/href="\/apple-touch-icon\.png"/g, `href="${new URL("/apple-touch-icon.png", LIVE_APP_URL).toString()}"`)
+    .replace(/href="\/icons\//g, `href="${new URL("/icons/", LIVE_APP_URL).toString()}`)
+    .replace(/href="\/manifest\.json"/g, 'href="./manifest.json"')
+    .replace(/serviceWorker\.register\('\/service-worker\.js'\)/g, "serviceWorker.register('./service-worker.js')");
+}
+const patchedHtmlWithZendesk = injectZendeskWidget(patchedHtml);
 
 await Promise.all([
   writeText("index.live.html", html),
-  writeText("index.patched.html", patchedHtml),
-  writeText("app.bundle.live.js", bundle),
-  writeText("app.bundle.patched.js", patchedBundle),
-  writeText("service-worker.js", serviceWorker),
-  writeText("manifest.json", manifest),
+  writeText("index.patched.html", patchedHtmlWithZendesk),
+  ...(bundle ? [writeText("app.bundle.live.js", bundle), writeText("app.bundle.patched.js", patchedBundle)] : []),
+  ...(serviceWorker ? [writeText("service-worker.js", serviceWorker)] : []),
+  ...(manifest ? [writeText("manifest.json", manifest)] : []),
   writeText("sync-metadata.json", JSON.stringify({
     syncedAt: new Date().toISOString(),
     liveAppUrl: LIVE_APP_URL,
     bundleUrl,
     hashes: {
       html: sha256(html),
-      bundle: sha256(bundle),
-      patchedBundle: sha256(patchedBundle),
-      serviceWorker: sha256(serviceWorker),
-      manifest: sha256(manifest),
+      bundle: bundle ? sha256(bundle) : "",
+      patchedBundle: patchedBundle ? sha256(patchedBundle) : "",
+      patchedHtml: sha256(patchedHtmlWithZendesk),
+      serviceWorker: serviceWorker ? sha256(serviceWorker) : "",
+      manifest: manifest ? sha256(manifest) : "",
     },
     patches: summary,
   }, null, 2)),
@@ -70,8 +79,9 @@ console.log(JSON.stringify({
   bundleUrl,
   hashes: {
     html: sha256(html),
-    bundle: sha256(bundle),
-    patchedBundle: sha256(patchedBundle),
+    bundle: bundle ? sha256(bundle) : "",
+    patchedBundle: patchedBundle ? sha256(patchedBundle) : "",
+    patchedHtml: sha256(patchedHtmlWithZendesk),
   },
   patches: summary,
 }, null, 2));
@@ -80,6 +90,14 @@ async function fetchText(url) {
   const response = await fetch(url);
   if (!response.ok) {
     throw new Error(`Failed to fetch ${url}: ${response.status}`);
+  }
+  return response.text();
+}
+
+async function fetchTextOptional(url) {
+  const response = await fetch(url);
+  if (!response.ok) {
+    return null;
   }
   return response.text();
 }
@@ -256,6 +274,15 @@ function patchOpsRenderLoop(source) {
   if (!source.includes(needle)) throw new Error("Could not find DepartmentCopilotPanel render loop");
   summary.push({ type: "patch_render_loop", added: "DocumentReviewPanel" });
   return source.replace(needle, replacement);
+}
+
+function injectZendeskWidget(source) {
+  if (source.includes("static.zdassets.com/ekr/snippet.js")) return source;
+  const marker = "</body>";
+  const index = source.lastIndexOf(marker);
+  if (index === -1) throw new Error("Could not find closing body tag for Zendesk injection");
+  summary.push({ type: "inject_widget", widget: "zendesk" });
+  return source.slice(0, index) + ZENDESK_WIDGET_SNIPPET + source.slice(index);
 }
 
 function pulseMarqueePatch() {
