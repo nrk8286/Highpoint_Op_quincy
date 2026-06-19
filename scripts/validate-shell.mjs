@@ -1,5 +1,4 @@
 import { access, readFile } from "node:fs/promises";
-import ts from "typescript";
 
 const html = await readFile(new URL("../www/index.html", import.meta.url), "utf8");
 const manifestText = await readFile(new URL("../www/manifest.json", import.meta.url), "utf8");
@@ -7,16 +6,15 @@ const serviceWorker = await readFile(new URL("../www/sw.js", import.meta.url), "
 const robots = await readFile(new URL("../www/robots.txt", import.meta.url), "utf8");
 const sitemap = await readFile(new URL("../www/sitemap.xml", import.meta.url), "utf8");
 
-const scripts = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map((match) => match[1]);
-for (const script of scripts) {
-  new Function(script);
+const inlineScripts = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map((match) => match[1].trim()).filter(Boolean);
+if (inlineScripts.length !== 0) {
+  throw new Error(`app loader should not include inline scripts: ${inlineScripts.length}`);
 }
-assertShellFunctions(scripts);
-new Function(serviceWorker);
 
 const manifest = JSON.parse(manifestText);
 const requiredManifestFields = ["name", "short_name", "start_url", "display", "theme_color", "background_color", "icons"];
 const missingManifestFields = requiredManifestFields.filter((field) => !manifest[field]);
+
 const missingIconFiles = [];
 for (const icon of manifest.icons || []) {
   try {
@@ -29,92 +27,32 @@ for (const icon of manifest.icons || []) {
   }
 }
 
-const requiredElementIds = [
-  "launch",
-  "refresh",
-  "incident",
-  "captureType",
-  "captureDepartment",
-  "capturePriority",
-  "captureLocation",
-  "captureNote",
-  "captureFile",
-  "saveCapture",
-  "syncQueue",
-  "roleMode",
-  "privacyMode",
-  "quickGrid",
-  "contactGrid",
-  "queueList",
-  "shareReport",
-  "exportQueue",
-  "importQueue",
-  "clearQueue",
-  "purgeLocal",
-  "report",
-  "timeline",
-  "briefPanel",
-  "briefQueueMetric",
-  "briefReviewMetric",
-  "briefGraphMetric",
-  "briefOutlookMetric",
-  "briefSummary",
-  "briefActions",
-  "briefHighlights",
-  "briefStatus",
-  "refreshBrief",
-  "copyBrief",
-  "reviewPanel",
-  "reviewSummary",
-  "reviewList",
-  "reviewStatus",
-  "reviewRefresh",
-  "reviewSelectAll",
-  "reviewClearSelection",
-  "reviewApprove",
-  "reviewNeedsCorrection",
-  "reviewReject",
-  "graphTemplate",
-  "graphRun",
-  "graphRetry",
-  "graphSearch",
-  "graphSearchRun",
-  "graphResult",
-  "graphStatus",
-  "backendHealth",
+const loaderChecks = [
+  ["title", html.includes("<title>High Point Ops</title>")],
+  ["root mount", html.includes('<div id="root"></div>')],
+  ["react vendor script", html.includes('/vendor/react.production.min.js?v=18.3.1')],
+  ["react-dom vendor script", html.includes('/vendor/react-dom.production.min.js?v=18.3.1')],
+  ["bundle script", html.includes('/app.bundle.js?v=20260515-session')],
+  ["fonts", html.includes("Playfair+Display") && html.includes("DM+Sans") && html.includes("JetBrains+Mono")],
+];
+const forbiddenShellFragments = [
+  "API_PROBE",
+  "/api/v2/shell/events",
+  "refreshOperationsBrief",
   "reviewQueue",
   "captureQueue",
-  "systemStatus",
+  "serviceWorker.register",
 ];
-const missingElementIds = requiredElementIds.filter((id) => !html.includes(`id="${id}"`));
-const requiredShellFeatures = [
-  "recent_captures",
-  "/api/v2/shell/events",
-  "/api/v2/workspace/brief",
-  "/api/v2/documents/review/batch",
-];
-const missingShellFeatures = requiredShellFeatures.filter((feature) => !html.includes(feature));
-
-const requiredStorageKeys = [
-  "hp:offlineQueue:v1",
-  "hp:lastHealth:v1",
-  "hp:lastReport:v1",
-  "hp:roleMode:v1",
-  "hp:eventTimeline:v1",
-  "hp:privacyMode:v1",
-];
-const missingStorageKeys = requiredStorageKeys.filter((key) => !html.includes(key));
+const missingLoaderChecks = loaderChecks.filter(([, ok]) => !ok).map(([name]) => `app loader missing ${name}`);
+const shellFragmentsPresent = forbiddenShellFragments.filter((fragment) => html.includes(fragment)).map((fragment) => `app loader still contains shell fragment ${fragment}`);
 const serviceWorkerChecks = [
   ["CACHE_NAME", serviceWorker.includes("CACHE_NAME")],
-  ["install listener", serviceWorker.includes("addEventListener(\"install\"")],
-  ["fetch listener", serviceWorker.includes("addEventListener(\"fetch\"")],
-  ["service worker registration", html.includes("serviceWorker.register")],
+  ["install listener", serviceWorker.includes('addEventListener("install"')],
+  ["fetch listener", serviceWorker.includes('addEventListener("fetch"')],
 ];
+const missingServiceWorkerChecks = serviceWorkerChecks.filter(([, ok]) => !ok).map(([name]) => `service worker missing ${name}`);
+
 const seoChecks = [
-  ["canonical URL", html.includes("rel=\"canonical\" href=\"https://highpoints.work/\"")],
-  ["Open Graph title", html.includes("property=\"og:title\"")],
-  ["Twitter card", html.includes("name=\"twitter:card\"")],
-  ["JSON-LD schema", html.includes("application/ld+json")],
   ["robots sitemap", robots.includes("Sitemap: https://highpoints.work/sitemap.xml")],
   ["sitemap root", sitemap.includes("<loc>https://highpoints.work/</loc>")],
   ["sitemap features", sitemap.includes("<loc>https://highpoints.work/features</loc>")],
@@ -123,15 +61,15 @@ const seoChecks = [
   ["sitemap AI operations", sitemap.includes("<loc>https://highpoints.work/ai-operations</loc>")],
   ["sitemap readiness assessment", sitemap.includes("<loc>https://highpoints.work/readiness-assessment</loc>")],
 ];
+const missingSeoChecks = seoChecks.filter(([, ok]) => !ok).map(([name]) => `site asset missing ${name}`);
 
 const failures = [
   ...missingManifestFields.map((field) => `manifest missing ${field}`),
   ...missingIconFiles.map((icon) => `manifest icon problem: ${icon}`),
-  ...missingElementIds.map((id) => `shell missing #${id}`),
-  ...missingShellFeatures.map((feature) => `shell missing feature ${feature}`),
-  ...missingStorageKeys.map((key) => `shell missing storage key ${key}`),
-  ...serviceWorkerChecks.filter(([, ok]) => !ok).map(([name]) => `service worker missing ${name}`),
-  ...seoChecks.filter(([, ok]) => !ok).map(([name]) => "seo missing " + name),
+  ...missingLoaderChecks,
+  ...shellFragmentsPresent,
+  ...missingServiceWorkerChecks,
+  ...missingSeoChecks,
 ];
 
 if (failures.length) {
@@ -139,43 +77,4 @@ if (failures.length) {
   process.exit(1);
 }
 
-console.log(`validated shell: ${scripts.length} inline script(s), ${manifest.icons.length} icon(s)`);
-
-function assertShellFunctions(inlineScripts) {
-  const requiredFunctions = [
-    "refreshOperationsBrief",
-    "renderOperationsBrief",
-    "copyOperationsBrief",
-    "runBriefAction",
-    "loadReviewConsole",
-    "renderReviewConsole",
-    "toggleReviewSelection",
-    "clearReviewSelection",
-    "selectAllReviewItems",
-    "decideReviewItem",
-    "batchReviewDecision",
-    "retryGraphSync",
-    "checkBackendHealth",
-    "loadReviewQueue",
-    "loadCaptureQueue",
-    "saveCapture",
-    "syncOfflineQueue",
-  ];
-  const directFunctions = new Set();
-  for (const script of inlineScripts) {
-    const source = ts.createSourceFile("shell-inline.js", script, ts.ScriptTarget.Latest, true, ts.ScriptKind.JS);
-    for (const statement of source.statements) {
-      const expression = statement.expression;
-      if (!expression || !ts.isCallExpression(expression)) continue;
-      const callee = ts.isParenthesizedExpression(expression.expression) ? expression.expression.expression : expression.expression;
-      if (!ts.isArrowFunction(callee) || !ts.isBlock(callee.body)) continue;
-      for (const child of callee.body.statements) {
-        if (ts.isFunctionDeclaration(child) && child.name) {
-          directFunctions.add(child.name.text);
-        }
-      }
-    }
-  }
-  const missing = requiredFunctions.filter((name) => !directFunctions.has(name));
-  if (missing.length) throw new Error(`shell functions must be top-level in app initializer: ${missing.join(", ")}`);
-}
+console.log(`validated app loader: ${inlineScripts.length} inline script(s), ${manifest.icons.length} icon(s)`);

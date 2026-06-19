@@ -226,6 +226,8 @@ REMOTE_SCRIPT
 
 curl -fsS "https://server.highpoints.work/azure/status" >/dev/null
 curl -fsS "https://server.highpoints.work/api/v2/health" >/dev/null
-curl -fsS "https://server.highpoints.work/app" | grep -q 'const API_PROBE = "/api/v2/health"'
+curl -fsS "https://server.highpoints.work/app" | grep -q '<div id="root"></div>'
+curl -fsS "https://server.highpoints.work/app" | grep -q '/vendor/react.production.min.js?v=18.3.1'
+curl -fsS "https://server.highpoints.work/app" | grep -q '/app.bundle.js?v=20260515-session'
 curl -fsS "https://origin.highpoints.work/azure/status" >/dev/null
 echo "Highpoints Azure server deployed: https://server.highpoints.work"

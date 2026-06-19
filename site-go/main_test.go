@@ -140,12 +140,26 @@ func TestSitemapContainsPublicPages(t *testing.T) {
 	}
 }
 
-func TestAppRouteServesShellAndSignupEntersApp(t *testing.T) {
+func TestAppRouteServesLoaderAndSignupEntersApp(t *testing.T) {
 	root := t.TempDir()
 	if err := os.MkdirAll(filepath.Join(root, "www"), 0o755); err != nil {
 		t.Fatal(err)
 	}
-	if err := os.WriteFile(filepath.Join(root, "www", "index.html"), []byte("<!doctype html><title>High Point Ops</title>"), 0o644); err != nil {
+	loader := `<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>High Point Ops</title>
+    <script src="/vendor/react.production.min.js?v=18.3.1"></script>
+    <script src="/vendor/react-dom.production.min.js?v=18.3.1"></script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script src="/app.bundle.js?v=20260515-session"></script>
+  </body>
+</html>`
+	if err := os.WriteFile(filepath.Join(root, "www", "index.html"), []byte(loader), 0o644); err != nil {
 		t.Fatal(err)
 	}
 
@@ -155,8 +169,10 @@ func TestAppRouteServesShellAndSignupEntersApp(t *testing.T) {
 	if app.Code != http.StatusOK {
 		t.Fatalf("/app status = %d, want %d", app.Code, http.StatusOK)
 	}
-	if !strings.Contains(app.Body.String(), "High Point Ops") {
-		t.Fatal("/app did not serve the shell")
+	for _, needle := range []string{"<div id=\"root\"></div>", "/vendor/react.production.min.js", "/vendor/react-dom.production.min.js", "/app.bundle.js"} {
+		if !strings.Contains(app.Body.String(), needle) {
+			t.Fatalf("/app did not serve %q", needle)
+		}
 	}
 
 	r := httptest.NewRequest(http.MethodGet, "/signup", nil)
