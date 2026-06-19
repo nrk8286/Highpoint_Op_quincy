@@ -7,8 +7,326 @@ import { dirname, join, resolve } from "node:path";
 const LIVE_APP_URL = process.env.HIGHPOINTS_APP_URL || "https://highpoints.work/app";
 const ZENDESK_WIDGET_SNIPPET =
   '<script id="ze-snippet" src="https://static.zdassets.com/ekr/snippet.js?key=6af3af13-3204-4338-8786-9586f1eb2b92"></script>';
-const ZENDESK_SUPPORT_BOOTSTRAP =
-  '<script>(function(){var ROOT_ID="hp-zendesk-support";var USER_KEYS=["hp_support_name","hp_support_email","hp_support_phone","hp_role_mode","hp_user_name","hp_user_email"];function getStored(key){try{return localStorage.getItem(key)||""}catch{return""}}function setStored(key,value){try{if(value)localStorage.setItem(key,value);else localStorage.removeItem(key)}catch{}}function pickName(){var candidates=[getStored("hp_support_name"),getStored("hp_user_name"),getStored("hp_user_display"),document.querySelector(\'input[autocomplete="username"]\')?.value||"",document.querySelector(\'input[type="email"]\')?.value||""];for(var i=0;i<candidates.length;i++){var value=String(candidates[i]||"").trim();if(value){return value}}return""}function pickEmail(){var candidates=[getStored("hp_support_email"),getStored("hp_user_email"),document.querySelector(\'input[type="email"]\')?.value||"",document.querySelector(\'input[autocomplete="username"]\')?.value||""];for(var i=0;i<candidates.length;i++){var value=String(candidates[i]||"").trim();if(value&&value.includes("@")){return value}}return""}function syncIdentityFromInputs(){var username=document.querySelector(\'input[autocomplete="username"]\');var email=document.querySelector(\'input[type="email"]\');var value=String(email?.value||username?.value||"").trim();if(email&&value.includes("@")){setStored("hp_support_email",value)}else if(username&&value){setStored("hp_support_name",value)}}function applyWidgetContext(){try{var locale=(navigator.language||"en-US");var title=document.title||"HighPoints";var url=location.href;var name=pickName();var email=pickEmail();if(window.zE){window.zE("webWidget","setLocale",locale);window.zE("webWidget","updatePath",{title:title,url:url});if(name||email){var identify={};if(name)identify.name=name;if(email)identify.email=email;window.zE("webWidget","identify",identify);var prefill={};if(name)prefill.name={value:name,readOnly:false};if(email)prefill.email={value:email,readOnly:false};window.zE("webWidget","prefill",prefill)}window.zE("webWidget","updateSettings",{webWidget:{contactForm:{title:{"*":"HighPoints support"}},helpCenter:{title:{"*":"Search help"}}}})}}catch(e){console.warn("Zendesk bootstrap failed",e)}}function createLauncher(){if(document.getElementById(ROOT_ID))return;var host=document.createElement("div");host.id=ROOT_ID;host.style.cssText="position:fixed;right:18px;bottom:18px;z-index:2147483647;display:flex;flex-direction:column;align-items:flex-end;gap:10px;pointer-events:none;";var label=document.createElement("div");label.textContent="Need help?";label.style.cssText="pointer-events:none;background:rgba(11,10,18,0.92);color:#f8f5eb;border:1px solid rgba(201,162,64,0.35);border-radius:999px;padding:8px 12px;font:600 12px/1.1 Inter,system-ui,sans-serif;box-shadow:0 12px 32px rgba(0,0,0,0.32);backdrop-filter:blur(10px);";var btn=document.createElement("button");btn.type="button";btn.textContent="Support";btn.setAttribute("aria-label","Open Zendesk support");btn.style.cssText="pointer-events:auto;border:0;border-radius:999px;padding:12px 16px;background:linear-gradient(135deg,#e0c464,#c9a240);color:#0b0a12;font:800 14px/1.1 Inter,system-ui,sans-serif;box-shadow:0 14px 36px rgba(0,0,0,0.34),0 8px 0 #765719;cursor:pointer;";btn.addEventListener("click",function(){try{if(window.zE){window.zE("webWidget","open");window.zE("webWidget","show")}}catch(_){}});host.appendChild(label);host.appendChild(btn);document.body.appendChild(host)}function attachListeners(){syncIdentityFromInputs();var watched=document.querySelectorAll(\'input, textarea, select\');for(var i=0;i<watched.length;i++){watched[i].addEventListener("input",syncIdentityFromInputs,{passive:true})}window.addEventListener("storage",function(event){if(USER_KEYS.indexOf(event.key)>=0){applyWidgetContext()}})}function boot(){createLauncher();attachListeners();applyWidgetContext();setTimeout(applyWidgetContext,500);setTimeout(applyWidgetContext,2000)}if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",boot,{once:true})}else{boot()}if(window.zE){window.zE(function(){applyWidgetContext()})}window.addEventListener("load",applyWidgetContext)})();</script>';
+const ZENDESK_SUPPORT_BOOTSTRAP = String.raw`<script>(function(){
+  var ROOT_ID = "hp-zendesk-support";
+  var CATEGORY_KEY = "hp_support_issue_category";
+  var USER_KEYS = ["hp_support_name", "hp_support_email", "hp_support_phone", "hp_role_mode", "hp_user_name", "hp_user_email", "hp_session_name", "hp_session_email"];
+  var CATEGORIES = {
+    bug: {
+      label: "Report a bug",
+      subject: "Bug report",
+      tags: ["bug", "regression", "login", "session", "ui"],
+      title: "Bug report",
+      hint: "Describe what broke and what you expected to happen.",
+    },
+    access: {
+      label: "Access issue",
+      subject: "Access issue",
+      tags: ["access", "permission", "role", "rbac"],
+      title: "Access issue",
+      hint: "Tell us which screen or action is blocked.",
+    },
+    data: {
+      label: "Data issue",
+      subject: "Data issue",
+      tags: ["data", "sync", "records", "audit"],
+      title: "Data issue",
+      hint: "Describe the record, screen, or sync problem.",
+    },
+    question: {
+      label: "General question",
+      subject: "General question",
+      tags: ["question", "how-to"],
+      title: "General question",
+      hint: "Ask anything about the current workflow.",
+    }
+  };
+
+  function getStored(key) {
+    try { return localStorage.getItem(key) || ""; } catch (error) { return ""; }
+  }
+
+  function setStored(key, value) {
+    try {
+      if (value) localStorage.setItem(key, value);
+      else localStorage.removeItem(key);
+    } catch (error) {}
+  }
+
+  function readUserValue(source) {
+    if (!source) return { name: "", email: "", phone: "", role: "" };
+    if (typeof source !== "object") return { name: "", email: "", phone: "", role: "" };
+    var directName = source.name || source.displayName || source.fullName || source.username || "";
+    var directEmail = source.email || source.mail || source.preferredEmail || "";
+    var directPhone = source.phone || source.mobile || "";
+    var directRole = source.role || source.type || source.access || "";
+    return {
+      name: String(directName || "").trim(),
+      email: String(directEmail || "").trim(),
+      phone: String(directPhone || "").trim(),
+      role: String(directRole || "").trim(),
+    };
+  }
+
+  function readSessionUser() {
+    var candidates = [
+      window.__HP_USER__,
+      window.__HP_SESSION__ && window.__HP_SESSION__.user,
+      window.__HIGHPOINTS_SESSION__ && window.__HIGHPOINTS_SESSION__.user,
+      window.__NEXT_DATA__ && window.__NEXT_DATA__.props && window.__NEXT_DATA__.props.pageProps && window.__NEXT_DATA__.props.pageProps.session && window.__NEXT_DATA__.props.pageProps.session.user,
+      window.__NEXT_DATA__ && window.__NEXT_DATA__.props && window.__NEXT_DATA__.props.pageProps && window.__NEXT_DATA__.props.pageProps.user,
+      window.__NEXT_DATA__ && window.__NEXT_DATA__.props && window.__NEXT_DATA__.props.user,
+      window.__HP_AUTH_USER__,
+      window.__HP_PROFILE__
+    ];
+    for (var i = 0; i < candidates.length; i += 1) {
+      var user = readUserValue(candidates[i]);
+      if (user.name || user.email || user.phone || user.role) return user;
+    }
+    var stored = readUserValue({
+      name: getStored("hp_support_name") || getStored("hp_user_name") || getStored("hp_user_display"),
+      email: getStored("hp_support_email") || getStored("hp_user_email"),
+      phone: getStored("hp_support_phone"),
+      role: getStored("hp_role_mode"),
+    });
+    return stored;
+  }
+
+  function pickName() {
+    var user = readSessionUser();
+    var candidates = [user.name, getStored("hp_support_name"), getStored("hp_user_name"), getStored("hp_user_display"), document.querySelector('input[autocomplete="username"]')?.value || "", document.querySelector('input[type="email"]')?.value || ""];
+    for (var i = 0; i < candidates.length; i += 1) {
+      var value = String(candidates[i] || "").trim();
+      if (value) return value;
+    }
+    return "";
+  }
+
+  function pickEmail() {
+    var user = readSessionUser();
+    var candidates = [user.email, getStored("hp_support_email"), getStored("hp_user_email"), document.querySelector('input[type="email"]')?.value || "", document.querySelector('input[autocomplete="username"]')?.value || ""];
+    for (var i = 0; i < candidates.length; i += 1) {
+      var value = String(candidates[i] || "").trim();
+      if (value && value.indexOf("@") > -1) return value;
+    }
+    return "";
+  }
+
+  function pickRole() {
+    var user = readSessionUser();
+    return user.role || getStored("hp_role_mode") || "";
+  }
+
+  function syncIdentityFromInputs() {
+    var username = document.querySelector('input[autocomplete="username"]');
+    var email = document.querySelector('input[type="email"]');
+    var value = String((email && email.value) || (username && username.value) || "").trim();
+    if (email && value.indexOf("@") > -1) {
+      setStored("hp_support_email", value);
+    } else if (username && value) {
+      setStored("hp_support_name", value);
+    }
+  }
+
+  function syncIdentityFromSession() {
+    var user = readSessionUser();
+    if (user.name) setStored("hp_support_name", user.name);
+    if (user.email) setStored("hp_support_email", user.email);
+    if (user.phone) setStored("hp_support_phone", user.phone);
+    if (user.role) setStored("hp_role_mode", user.role);
+  }
+
+  function categoryFor(key) {
+    return CATEGORIES[key] || CATEGORIES.bug;
+  }
+
+  function buildIssueDescription(categoryKey) {
+    var category = categoryFor(categoryKey);
+    var user = readSessionUser();
+    var tags = category.tags.slice(0).join(", ");
+    var lines = [
+      "Issue category: " + category.label,
+      "Suggested tags: " + tags,
+      "Page title: " + (document.title || "HighPoints"),
+      "Page path: " + location.pathname + (location.search || ""),
+      "Page URL: " + location.href,
+      "User name: " + (user.name || pickName() || "unknown"),
+      "User email: " + (user.email || pickEmail() || "unknown"),
+      "User role: " + (pickRole() || "unknown"),
+      "Browser: " + navigator.userAgent,
+      "Time: " + new Date().toISOString(),
+      "",
+      category.hint
+    ];
+    return lines.join("\n");
+  }
+
+  function applyWidgetContext(categoryKey) {
+    try {
+      var locale = navigator.language || "en-US";
+      var category = categoryFor(categoryKey || getStored(CATEGORY_KEY) || "bug");
+      var title = document.title || "HighPoints";
+      var url = location.href;
+      var name = pickName();
+      var email = pickEmail();
+      if (!window.zE) return;
+
+      window.zE("webWidget", "setLocale", locale);
+      window.zE("webWidget", "updatePath", { title: title, url: url });
+      window.zE("webWidget", "updateSettings", {
+        webWidget: {
+          contactForm: {
+            title: { "*": category.title },
+            subject: true,
+            fields: [
+              {
+                id: "description",
+                prefill: {
+                  "*": buildIssueDescription(categoryKey || getStored(CATEGORY_KEY) || "bug"),
+                },
+              },
+            ],
+          },
+          helpCenter: {
+            title: { "*": "Search help" },
+          },
+          launcher: {
+            labelVisible: true,
+          },
+        }
+      });
+      if (name || email) {
+        var identify = {};
+        var prefill = {};
+        if (name) {
+          identify.name = name;
+          prefill.name = { value: name, readOnly: false };
+        }
+        if (email) {
+          identify.email = email;
+          prefill.email = { value: email, readOnly: false };
+        }
+        if (userHasIdentity()) {
+          window.zE("webWidget", "identify", identify);
+        }
+        if (Object.keys(prefill).length) {
+          window.zE("webWidget", "prefill", prefill);
+        }
+      }
+    } catch (error) {
+      console.warn("Zendesk bootstrap failed", error);
+    }
+  }
+
+  function userHasIdentity() {
+    var user = readSessionUser();
+    return Boolean(user.name || user.email || user.phone || user.role);
+  }
+
+  function openSupport(categoryKey) {
+    var nextKey = categoryKey || "bug";
+    setStored(CATEGORY_KEY, nextKey || "bug");
+    applyWidgetContext(nextKey || "bug");
+    if (window.zE) {
+      window.zE("webWidget", "show");
+      window.zE("webWidget", "open");
+    }
+  }
+
+  function createButton(text, categoryKey, accent, compact) {
+    var button = document.createElement("button");
+    button.type = "button";
+    button.textContent = text;
+    button.style.cssText = [
+      "pointer-events:auto",
+      "border:0",
+      "border-radius:999px",
+      "padding:" + (compact ? "9px 12px" : "12px 16px"),
+      "background:" + accent,
+      "color:#0b0a12",
+      "font:" + (compact ? "800 12px/1.1 Inter,system-ui,sans-serif" : "800 14px/1.1 Inter,system-ui,sans-serif"),
+      "box-shadow:0 14px 36px rgba(0,0,0,0.34),0 8px 0 #765719",
+      "cursor:pointer"
+    ].join(";");
+    button.addEventListener("click", function () {
+      openSupport(categoryKey);
+    });
+    return button;
+  }
+
+  function createLauncher() {
+    if (document.getElementById(ROOT_ID)) return;
+    var host = document.createElement("div");
+    host.id = ROOT_ID;
+    host.style.cssText = "position:fixed;right:18px;bottom:18px;z-index:2147483647;display:flex;flex-direction:column;align-items:flex-end;gap:10px;pointer-events:none;max-width:260px;";
+
+    var label = document.createElement("div");
+    label.textContent = "Need help?";
+    label.style.cssText = "pointer-events:none;background:rgba(11,10,18,0.92);color:#f8f5eb;border:1px solid rgba(201,162,64,0.35);border-radius:999px;padding:8px 12px;font:600 12px/1.1 Inter,system-ui,sans-serif;box-shadow:0 12px 32px rgba(0,0,0,0.32);backdrop-filter:blur(10px);";
+
+    var stack = document.createElement("div");
+    stack.style.cssText = "display:flex;flex-wrap:wrap;justify-content:flex-end;gap:8px;pointer-events:none;";
+    stack.appendChild(createButton("Support", "bug", "linear-gradient(135deg,#e0c464,#c9a240)", false));
+    stack.appendChild(createButton("Bug", "bug", "linear-gradient(135deg,#fca5a5,#fb7185)", true));
+    stack.appendChild(createButton("Access", "access", "linear-gradient(135deg,#93c5fd,#60a5fa)", true));
+    stack.appendChild(createButton("Data", "data", "linear-gradient(135deg,#86efac,#22c55e)", true));
+    stack.appendChild(createButton("Question", "question", "linear-gradient(135deg,#fde68a,#f59e0b)", true));
+
+    host.appendChild(label);
+    host.appendChild(stack);
+    document.body.appendChild(host);
+  }
+
+  function attachListeners() {
+    syncIdentityFromInputs();
+    var watched = document.querySelectorAll("input, textarea, select");
+    for (var i = 0; i < watched.length; i += 1) {
+      watched[i].addEventListener("input", syncIdentityFromInputs, { passive: true });
+    }
+    window.addEventListener("storage", function (event) {
+      if (USER_KEYS.indexOf(event.key) >= 0 || event.key === CATEGORY_KEY) {
+        syncIdentityFromSession();
+        applyWidgetContext();
+      }
+    });
+    document.addEventListener("visibilitychange", function () {
+      if (!document.hidden) {
+        syncIdentityFromSession();
+        applyWidgetContext();
+      }
+    });
+  }
+
+  function boot() {
+    createLauncher();
+    attachListeners();
+    syncIdentityFromSession();
+    applyWidgetContext(getStored(CATEGORY_KEY) || "bug");
+    setTimeout(function () { applyWidgetContext(getStored(CATEGORY_KEY) || "bug"); }, 500);
+    setTimeout(function () { applyWidgetContext(getStored(CATEGORY_KEY) || "bug"); }, 2000);
+    setInterval(function () {
+      syncIdentityFromSession();
+      applyWidgetContext(getStored(CATEGORY_KEY) || "bug");
+    }, 10000);
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", boot, { once: true });
+  } else {
+    boot();
+  }
+
+  if (window.zE) {
+    window.zE(function () {
+      applyWidgetContext(getStored(CATEGORY_KEY) || "bug");
+    });
+  }
+
+  window.addEventListener("load", function () {
+    syncIdentityFromSession();
+    applyWidgetContext(getStored(CATEGORY_KEY) || "bug");
+  });
+})();</script>`;
 const outputDir = process.argv[2]
   ? resolve(process.argv[2])
   : resolve(process.cwd(), "synced-live-app/current");
