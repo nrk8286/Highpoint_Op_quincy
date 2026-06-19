@@ -4,6 +4,17 @@
 <dict>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>work.highpoints.app.zendesk</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>highpointops</string>
+			</array>
+		</dict>
+	</array>
 	<key>CFBundleDisplayName</key>
         <string>High Point Ops</string>
 	<key>CFBundleExecutable</key>

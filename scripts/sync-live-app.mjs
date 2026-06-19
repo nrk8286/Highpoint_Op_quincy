@@ -10,7 +10,10 @@ const ZENDESK_WIDGET_SNIPPET =
 const ZENDESK_SUPPORT_BOOTSTRAP = String.raw`<script>(function(){
   var ROOT_ID = "hp-zendesk-support";
   var CATEGORY_KEY = "hp_support_issue_category";
+  var ACTION_KEY = "hp_support_action";
   var USER_KEYS = ["hp_support_name", "hp_support_email", "hp_support_phone", "hp_role_mode", "hp_user_name", "hp_user_email", "hp_session_name", "hp_session_email"];
+  var NATIVE_SCHEME = "highpointops";
+  var NATIVE_HOST = "zendesk";
   var CATEGORIES = {
     bug: {
       label: "Report a bug",
@@ -140,6 +143,40 @@ const ZENDESK_SUPPORT_BOOTSTRAP = String.raw`<script>(function(){
     return CATEGORIES[key] || CATEGORIES.bug;
   }
 
+  function isNativeZendeskShell() {
+    try {
+      return Boolean(window.Capacitor && typeof window.Capacitor.isNativePlatform === "function" && window.Capacitor.isNativePlatform());
+    } catch (error) {
+      return false;
+    }
+  }
+
+  function buildNativeZendeskUrl(action, categoryKey) {
+    var params = [];
+    var name = pickName();
+    var email = pickEmail();
+    var role = pickRole();
+    var category = categoryKey || getStored(CATEGORY_KEY) || "bug";
+
+    params.push("action=" + encodeURIComponent(action || "support"));
+    params.push("category=" + encodeURIComponent(category));
+    params.push("title=" + encodeURIComponent(document.title || "HighPoints"));
+    params.push("url=" + encodeURIComponent(location.href));
+    params.push("path=" + encodeURIComponent(location.pathname + (location.search || "")));
+    params.push("locale=" + encodeURIComponent(navigator.language || "en-US"));
+    if (name) params.push("name=" + encodeURIComponent(name));
+    if (email) params.push("email=" + encodeURIComponent(email));
+    if (role) params.push("role=" + encodeURIComponent(role));
+
+    return NATIVE_SCHEME + "://" + NATIVE_HOST + "/" + encodeURIComponent(action || "support") + "?" + params.join("&");
+  }
+
+  function openNativeZendesk(action, categoryKey) {
+    var url = buildNativeZendeskUrl(action, categoryKey);
+    setStored(ACTION_KEY, action || "support");
+    window.location.href = url;
+  }
+
   function buildIssueDescription(categoryKey) {
     var category = categoryFor(categoryKey);
     var user = readSessionUser();
@@ -153,6 +190,7 @@ const ZENDESK_SUPPORT_BOOTSTRAP = String.raw`<script>(function(){
       "User name: " + (user.name || pickName() || "unknown"),
       "User email: " + (user.email || pickEmail() || "unknown"),
       "User role: " + (pickRole() || "unknown"),
+      "Launcher mode: " + (isNativeZendeskShell() ? "native" : "web"),
       "Browser: " + navigator.userAgent,
       "Time: " + new Date().toISOString(),
       "",
@@ -223,9 +261,14 @@ const ZENDESK_SUPPORT_BOOTSTRAP = String.raw`<script>(function(){
     return Boolean(user.name || user.email || user.phone || user.role);
   }
 
-  function openSupport(categoryKey) {
+  function openZendesk(action, categoryKey) {
     var nextKey = categoryKey || "bug";
     setStored(CATEGORY_KEY, nextKey || "bug");
+    setStored(ACTION_KEY, action || "support");
+    if (isNativeZendeskShell()) {
+      openNativeZendesk(action || "support", nextKey || "bug");
+      return;
+    }
     applyWidgetContext(nextKey || "bug");
     if (window.zE) {
       window.zE("webWidget", "show");
@@ -233,7 +276,15 @@ const ZENDESK_SUPPORT_BOOTSTRAP = String.raw`<script>(function(){
     }
   }
 
-  function createButton(text, categoryKey, accent, compact) {
+  function openHelpCenter() {
+    openZendesk("help-center", "question");
+  }
+
+  function openRequestList() {
+    openZendesk("requests", getStored(CATEGORY_KEY) || "bug");
+  }
+
+  function createButton(text, action, accent, compact, categoryKey) {
     var button = document.createElement("button");
     button.type = "button";
     button.textContent = text;
@@ -249,7 +300,7 @@ const ZENDESK_SUPPORT_BOOTSTRAP = String.raw`<script>(function(){
       "cursor:pointer"
     ].join(";");
     button.addEventListener("click", function () {
-      openSupport(categoryKey);
+      openZendesk(action, categoryKey);
     });
     return button;
   }
@@ -266,11 +317,13 @@ const ZENDESK_SUPPORT_BOOTSTRAP = String.raw`<script>(function(){
 
     var stack = document.createElement("div");
     stack.style.cssText = "display:flex;flex-wrap:wrap;justify-content:flex-end;gap:8px;pointer-events:none;";
-    stack.appendChild(createButton("Support", "bug", "linear-gradient(135deg,#e0c464,#c9a240)", false));
-    stack.appendChild(createButton("Bug", "bug", "linear-gradient(135deg,#fca5a5,#fb7185)", true));
-    stack.appendChild(createButton("Access", "access", "linear-gradient(135deg,#93c5fd,#60a5fa)", true));
-    stack.appendChild(createButton("Data", "data", "linear-gradient(135deg,#86efac,#22c55e)", true));
-    stack.appendChild(createButton("Question", "question", "linear-gradient(135deg,#fde68a,#f59e0b)", true));
+    stack.appendChild(createButton("Support", "support", "linear-gradient(135deg,#e0c464,#c9a240)", false, "bug"));
+    stack.appendChild(createButton("Tickets", "requests", "linear-gradient(135deg,#c4b5fd,#8b5cf6)", true, "bug"));
+    stack.appendChild(createButton("Help", "help-center", "linear-gradient(135deg,#a7f3d0,#34d399)", true, "question"));
+    stack.appendChild(createButton("Bug", "support", "linear-gradient(135deg,#fca5a5,#fb7185)", true, "bug"));
+    stack.appendChild(createButton("Access", "support", "linear-gradient(135deg,#93c5fd,#60a5fa)", true, "access"));
+    stack.appendChild(createButton("Data", "support", "linear-gradient(135deg,#86efac,#22c55e)", true, "data"));
+    stack.appendChild(createButton("Question", "support", "linear-gradient(135deg,#fde68a,#f59e0b)", true, "question"));
 
     host.appendChild(label);
     host.appendChild(stack);
