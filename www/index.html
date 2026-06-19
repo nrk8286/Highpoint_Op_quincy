@@ -555,6 +555,189 @@
         white-space: pre-wrap;
         word-break: break-word;
       }
+      .brief-grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 8px;
+        margin: 12px 0;
+      }
+      .brief-card,
+      .review-card {
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 14px;
+        background:
+          linear-gradient(145deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.025)),
+          rgba(255, 255, 255, 0.04);
+        box-shadow: 0 8px 0 rgba(0, 0, 0, 0.18), 0 14px 24px rgba(0, 0, 0, 0.14);
+      }
+      .brief-card {
+        min-height: 94px;
+        padding: 12px;
+      }
+      .brief-card span,
+      .review-card span {
+        color: var(--muted);
+        display: block;
+        font-size: 0.72rem;
+        font-weight: 800;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+      }
+      .brief-card strong {
+        display: block;
+        font-size: 1.05rem;
+        margin-top: 8px;
+      }
+      .brief-card small {
+        color: var(--muted);
+        display: block;
+        line-height: 1.45;
+        margin-top: 6px;
+      }
+      .brief-banner {
+        border: 1px solid rgba(201, 162, 64, 0.22);
+        border-radius: 14px;
+        background:
+          linear-gradient(145deg, rgba(201, 162, 64, 0.12), rgba(255, 255, 255, 0.03)),
+          rgba(255, 255, 255, 0.04);
+        color: var(--text);
+        line-height: 1.55;
+        padding: 12px 14px;
+      }
+      .brief-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 12px;
+      }
+      .brief-actions .chip {
+        min-height: 40px;
+      }
+      .brief-list {
+        display: grid;
+        gap: 8px;
+        margin: 12px 0 0;
+        padding: 0;
+      }
+      .brief-list li {
+        align-items: start;
+        background:
+          linear-gradient(145deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.02)),
+          rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 12px;
+        color: var(--muted);
+        display: grid;
+        gap: 6px;
+        list-style: none;
+        padding: 10px 12px;
+      }
+      .brief-list b {
+        color: var(--text);
+        display: block;
+      }
+      .review-summary {
+        border: 1px solid rgba(143, 198, 216, 0.22);
+        border-radius: 14px;
+        background:
+          linear-gradient(145deg, rgba(143, 198, 216, 0.14), rgba(255, 255, 255, 0.03)),
+          rgba(255, 255, 255, 0.04);
+        color: var(--text);
+        line-height: 1.55;
+        padding: 12px 14px;
+      }
+      .review-actions-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 10px;
+      }
+      .review-actions-row .action {
+        flex: 1 1 160px;
+      }
+      .review-list {
+        display: grid;
+        gap: 10px;
+        margin-top: 12px;
+      }
+      .review-item {
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 14px;
+        background:
+          linear-gradient(145deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.025)),
+          rgba(255, 255, 255, 0.04);
+        box-shadow: 0 8px 0 rgba(0, 0, 0, 0.18), 0 14px 24px rgba(0, 0, 0, 0.14);
+        padding: 12px;
+      }
+      .review-item.is-selected {
+        border-color: rgba(201, 162, 64, 0.7);
+        box-shadow: 0 0 0 1px rgba(201, 162, 64, 0.3), 0 8px 0 rgba(0, 0, 0, 0.18), 0 14px 24px rgba(0, 0, 0, 0.14);
+      }
+      .review-item-head {
+        display: grid;
+        grid-template-columns: auto 1fr auto;
+        gap: 10px;
+        align-items: start;
+      }
+      .review-check {
+        margin-top: 4px;
+        width: 18px;
+        height: 18px;
+      }
+      .review-title strong {
+        display: block;
+        font-size: 0.98rem;
+        margin-top: 2px;
+      }
+      .review-meta {
+        color: var(--muted);
+        font-size: 0.8rem;
+        line-height: 1.45;
+        margin-top: 4px;
+      }
+      .review-badge {
+        align-self: start;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 999px;
+        color: var(--gold);
+        font-size: 0.72rem;
+        font-weight: 850;
+        padding: 5px 8px;
+        white-space: nowrap;
+      }
+      .review-grid {
+        display: grid;
+        gap: 8px;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        margin-top: 12px;
+      }
+      .review-column {
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.03);
+        padding: 10px 12px;
+      }
+      .review-column b {
+        display: block;
+        color: var(--text);
+        margin-bottom: 6px;
+      }
+      .review-column pre {
+        margin: 0;
+        max-height: 120px;
+        overflow: auto;
+        white-space: pre-wrap;
+        word-break: break-word;
+        color: var(--muted);
+        font: inherit;
+        font-size: 0.74rem;
+        line-height: 1.5;
+      }
+      .review-warnings {
+        color: var(--warn);
+        font-size: 0.78rem;
+        line-height: 1.45;
+      }
       @media (max-width: 380px) {
         section { padding: 18px; }
         .top { grid-template-columns: 48px 1fr auto; }
@@ -562,8 +745,11 @@
         h1 { font-size: 1.28rem; }
         .flow-head,
         .flow-lane { grid-template-columns: 1fr; }
+        .brief-grid,
+        .review-grid,
         .quick-grid,
         .tool-row { grid-template-columns: 1fr; }
+        .review-item-head { grid-template-columns: 1fr; }
       }
       @media (max-width: 560px) {
         main {
@@ -740,6 +926,40 @@
           </div>
         </div>
 
+        <div class="panel" id="briefPanel">
+          <h2>Operations Brief</h2>
+          <div class="brief-grid">
+            <article class="brief-card">
+              <span>Local Queue</span>
+              <strong id="briefQueueMetric">0</strong>
+              <small>Queued offline records on this device.</small>
+            </article>
+            <article class="brief-card">
+              <span>Review Queue</span>
+              <strong id="briefReviewMetric">0</strong>
+              <small>Pending document review items.</small>
+            </article>
+            <article class="brief-card">
+              <span>Graph Sync</span>
+              <strong id="briefGraphMetric">Clear</strong>
+              <small>Neo4j outbox and retries.</small>
+            </article>
+            <article class="brief-card">
+              <span>Outlook</span>
+              <strong id="briefOutlookMetric">Ready</strong>
+              <small>Mail and calendar sync status.</small>
+            </article>
+          </div>
+          <div class="brief-banner" id="briefSummary">Loading operations brief.</div>
+          <div class="brief-actions" id="briefActions" aria-label="Operations brief actions"></div>
+          <ul class="brief-list" id="briefHighlights"></ul>
+          <div class="tool-row">
+            <button class="action secondary" id="refreshBrief" type="button">Refresh Brief</button>
+            <button class="action secondary" id="copyBrief" type="button">Copy Brief</button>
+          </div>
+          <div class="log" id="briefStatus">Operations brief has not been loaded yet.</div>
+        </div>
+
         <div class="panel" id="adminTools" hidden>
           <h2>Admin Tools</h2>
 	          <div class="tool-row">
@@ -791,6 +1011,23 @@
             <div class="graph-result" id="graphResult" aria-live="polite"></div>
             <div class="log" id="graphStatus">Graph tools are available to Admin and Executive users.</div>
           </div>
+        </div>
+
+        <div class="panel" id="reviewPanel" hidden>
+          <h2>Document Review Console</h2>
+          <div class="review-summary" id="reviewSummary">Review the pending documents waiting for approval.</div>
+          <div class="review-actions-row">
+            <button class="action secondary" id="reviewRefresh" type="button">Refresh Review</button>
+            <button class="action secondary" id="reviewSelectAll" type="button">Select All</button>
+            <button class="action secondary" id="reviewClearSelection" type="button">Clear Selection</button>
+          </div>
+          <div class="review-actions-row">
+            <button class="action secondary" id="reviewApprove" type="button">Approve Selected</button>
+            <button class="action secondary" id="reviewNeedsCorrection" type="button">Needs Correction</button>
+            <button class="action secondary" id="reviewReject" type="button">Reject Selected</button>
+          </div>
+          <div class="review-list" id="reviewList"></div>
+          <div class="log" id="reviewStatus">Document review console is ready.</div>
         </div>
 
         <div class="panel">
@@ -914,8 +1151,29 @@
           workspaceStatus: $("workspaceStatus"),
           focusWorkspace: $("focusWorkspace"),
           copyStatus: $("copyStatus"),
+          briefPanel: $("briefPanel"),
+          briefQueueMetric: $("briefQueueMetric"),
+          briefReviewMetric: $("briefReviewMetric"),
+          briefGraphMetric: $("briefGraphMetric"),
+          briefOutlookMetric: $("briefOutlookMetric"),
+          briefSummary: $("briefSummary"),
+          briefActions: $("briefActions"),
+          briefHighlights: $("briefHighlights"),
+          briefStatus: $("briefStatus"),
+          refreshBrief: $("refreshBrief"),
+          copyBrief: $("copyBrief"),
           flowSummary: $("flowSummary"),
           adminTools: $("adminTools"),
+          reviewPanel: $("reviewPanel"),
+          reviewSummary: $("reviewSummary"),
+          reviewList: $("reviewList"),
+          reviewStatus: $("reviewStatus"),
+          reviewRefresh: $("reviewRefresh"),
+          reviewSelectAll: $("reviewSelectAll"),
+          reviewClearSelection: $("reviewClearSelection"),
+          reviewApprove: $("reviewApprove"),
+          reviewNeedsCorrection: $("reviewNeedsCorrection"),
+          reviewReject: $("reviewReject"),
           queue: $("queueList"),
           log: $("log"),
           launch: $("launch"),
@@ -962,6 +1220,10 @@
         };
         let authReady = false;
         let authCheckGeneration = 0;
+        let currentUser = null;
+        let briefState = null;
+        let reviewItemsState = [];
+        let reviewSelectedIds = new Set();
 
         function setMetric(node, state, value) {
           if (!node) return;
@@ -1131,11 +1393,404 @@
 
 	        function updateAdminTools() {
 	          refs.adminTools.hidden = refs.roleMode.value !== "admin";
+          updateOperationalPanels();
 	        }
+
+        function updateOperationalPanels() {
+          const mode = refs.roleMode.value || "staff";
+          if (refs.reviewPanel) refs.reviewPanel.hidden = !authReady || mode === "staff";
+          if (refs.briefPanel) refs.briefPanel.hidden = false;
+        }
 
 	        function setSystemStatus(message) {
 	          refs.systemStatus.textContent = message;
 	        }
+
+        function setBriefStatus(message) {
+          if (refs.briefStatus) refs.briefStatus.textContent = message;
+        }
+
+        function setReviewStatus(message) {
+          if (refs.reviewStatus) refs.reviewStatus.textContent = message;
+        }
+
+        async function refreshOperationsBrief({ quiet = false } = {}) {
+          try {
+            const response = await fetch("/api/v2/workspace/brief", {
+              method: "POST",
+              headers: { "Content-Type": "application/json", ...authHeaders() },
+              body: JSON.stringify({
+                queueCount: queueItems().length,
+                roleMode: refs.roleMode.value || "staff",
+                privacyMode: privacyEnabled(),
+              }),
+            });
+            const payload = await response.json().catch(() => ({}));
+            if (!response.ok) throw new Error(payload.error || "Operations brief unavailable");
+            briefState = payload;
+            renderOperationsBrief(payload, quiet ? "" : "Operations brief refreshed.");
+            if (!quiet) rememberEvent("Operations brief", payload.summary || "updated");
+            writeReport({ operationsBrief: payload.summary, operationsBriefUpdatedAt: payload.generatedAt });
+            return payload;
+          } catch (error) {
+            if (!briefState) {
+              renderOperationsBrief(null, error.message || "Sign in to load live operations brief.");
+            } else {
+              renderOperationsBrief(briefState, error.message || "Operations brief refresh failed.");
+            }
+            if (!quiet) setBriefStatus(error.message || "Operations brief refresh failed.");
+            return null;
+          }
+        }
+
+        function renderOperationsBrief(payload, statusMessage = "") {
+          const data = payload || briefState || null;
+          const queueCount = Number(data?.local?.queueCount ?? queueItems().length);
+          const reviewCount = Number(data?.review?.count ?? 0);
+          const graphCount = Number(data?.graph?.count ?? 0);
+          const graphConfigured = Boolean(data?.health?.graphConfigured);
+          const outlookConnected = Boolean(data?.outlook?.connected);
+          const outlookLabel = outlookConnected ? "Ready" : (data?.outlook?.status === "active" ? "Ready" : "Need sign-in");
+
+          if (refs.briefQueueMetric) refs.briefQueueMetric.textContent = String(queueCount);
+          if (refs.briefReviewMetric) refs.briefReviewMetric.textContent = String(reviewCount);
+          if (refs.briefGraphMetric) refs.briefGraphMetric.textContent = graphCount > 0 ? `${graphCount} pending` : graphConfigured ? "Clear" : "Off";
+          if (refs.briefOutlookMetric) refs.briefOutlookMetric.textContent = outlookLabel;
+          if (refs.briefSummary) {
+            refs.briefSummary.dataset.state = data?.summary?.startsWith("Attention") ? "warn" : "good";
+            refs.briefSummary.textContent = data?.summary || statusMessage || (authReady ? "Workspace is clear. No immediate handoff items." : "Sign in to load live operations brief.");
+          }
+
+          if (refs.briefHighlights) {
+            refs.briefHighlights.innerHTML = "";
+            const highlights = Array.isArray(data?.highlights) && data.highlights.length
+              ? data.highlights
+              : [authReady ? "Refresh to load live operations data." : "Sign in to load live operations data."];
+            for (const text of highlights.slice(0, 8)) {
+              const item = document.createElement("li");
+              const title = document.createElement("b");
+              title.textContent = text;
+              item.append(title);
+              refs.briefHighlights.appendChild(item);
+            }
+          }
+
+          if (refs.briefActions) {
+            refs.briefActions.innerHTML = "";
+            const actions = Array.isArray(data?.actions) ? data.actions : [];
+            for (const action of actions) {
+              const button = document.createElement("button");
+              button.className = "chip";
+              button.type = "button";
+              button.textContent = action.label || "Action";
+              if (action.detail) button.title = action.detail;
+              button.addEventListener("click", () => runBriefAction(action.id || "steady"));
+              refs.briefActions.appendChild(button);
+            }
+          }
+
+          if (refs.briefStatus) {
+            if (statusMessage) {
+              refs.briefStatus.textContent = statusMessage;
+            } else if (data?.generatedAt) {
+              refs.briefStatus.textContent = `Updated ${new Date(data.generatedAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}`;
+            } else {
+              refs.briefStatus.textContent = authReady ? "Operations brief is ready." : "Sign in to load live operations brief.";
+            }
+          }
+
+          briefState = data;
+        }
+
+        async function runBriefAction(actionId) {
+          await haptic("Medium");
+          switch (actionId) {
+            case "sync_queue":
+              return syncOfflineQueue();
+            case "review_queue":
+              return loadReviewConsole();
+            case "retry_graph":
+              return retryGraphSync();
+            case "open_outlook":
+              return startOutlookAuth();
+            case "capture_queue":
+              return loadCaptureQueue();
+            default:
+              return refreshOperationsBrief({ quiet: true });
+          }
+        }
+
+        async function copyOperationsBrief() {
+          await haptic("Medium");
+          const text = briefState?.briefText || refs.briefSummary?.textContent || "Operations brief unavailable.";
+          try {
+            await navigator.clipboard.writeText(text);
+            setBriefStatus("Operations brief copied to clipboard.");
+          } catch {
+            setBriefStatus("Unable to copy the operations brief from this device.");
+          }
+        }
+
+        async function loadReviewConsole() {
+          await haptic("Medium");
+          if (refs.reviewPanel) refs.reviewPanel.hidden = false;
+          setSystemStatus("Loading document review queue.");
+          setReviewStatus("Loading pending documents.");
+          try {
+            const response = await fetch("/api/v2/documents/review", { cache: "no-store", headers: authHeaders() });
+            const payload = await response.json().catch(() => ({}));
+            if (!response.ok) throw new Error(payload.error || "Review queue unavailable");
+            reviewItemsState = normalizeReviewRows(payload.items || []);
+            reviewSelectedIds = new Set();
+            renderReviewConsole();
+            const count = reviewItemsState.length;
+            setSystemStatus(`${count} document review item${count === 1 ? "" : "s"}.`);
+            setReviewStatus(count ? `${count} pending document review item${count === 1 ? "" : "s"} ready.` : "Review queue is clear.");
+            rememberEvent("Review queue", `${count} items`);
+            writeReport({
+              reviewQueueCount: count,
+              reviewQueueItems: reviewItemsState.slice(0, 4).map((item) => ({
+                id: item.id,
+                status: item.status,
+                confidence: item.confidence,
+              })),
+            });
+            await refreshOperationsBrief({ quiet: true });
+            refs.reviewPanel?.scrollIntoView({ behavior: "smooth", block: "start" });
+          } catch (error) {
+            reviewItemsState = [];
+            reviewSelectedIds = new Set();
+            renderReviewConsole();
+            setSystemStatus(error.message || "Review queue unavailable.");
+            setReviewStatus(error.message || "Review queue unavailable.");
+          }
+        }
+
+        function renderReviewConsole() {
+          const items = reviewItemsState;
+          const selectedCount = reviewSelectedIds.size;
+          const lowConfidenceCount = items.filter((item) => item.confidence < 0.7).length;
+          const warningCount = items.reduce((total, item) => total + item.warnings.length, 0);
+          if (refs.reviewSummary) {
+            refs.reviewSummary.textContent = items.length
+              ? `${items.length} pending item${items.length === 1 ? "" : "s"} · ${lowConfidenceCount} low confidence · ${warningCount} warning${warningCount === 1 ? "" : "s"}${selectedCount ? ` · ${selectedCount} selected` : ""}`
+              : "No pending documents right now.";
+          }
+          if (!refs.reviewList) return;
+          refs.reviewList.innerHTML = "";
+          if (!items.length) {
+            const empty = document.createElement("article");
+            empty.className = "review-item";
+            const title = document.createElement("b");
+            title.textContent = "Review queue is clear";
+            const detail = document.createElement("div");
+            detail.className = "review-meta";
+            detail.textContent = "New document drafts will appear here for approval.";
+            empty.append(title, detail);
+            refs.reviewList.appendChild(empty);
+            return;
+          }
+          for (const item of items.slice(0, 24)) {
+            const card = document.createElement("article");
+            card.className = "review-item";
+            if (reviewSelectedIds.has(item.id)) card.classList.add("is-selected");
+
+            const head = document.createElement("div");
+            head.className = "review-item-head";
+
+            const checkbox = document.createElement("input");
+            checkbox.type = "checkbox";
+            checkbox.className = "review-check";
+            checkbox.checked = reviewSelectedIds.has(item.id);
+            checkbox.addEventListener("change", () => toggleReviewSelection(item.id, checkbox.checked));
+
+            const titleBlock = document.createElement("div");
+            titleBlock.className = "review-title";
+            const title = document.createElement("b");
+            title.textContent = item.fileName || item.id || "Review item";
+            const meta = document.createElement("div");
+            meta.className = "review-meta";
+            const uploaded = item.uploadedAt ? new Date(item.uploadedAt).toLocaleString([], { dateStyle: "short", timeStyle: "short" }) : "unknown time";
+            meta.textContent = `ID: ${item.id} · Uploaded ${uploaded} · ${Math.round(item.confidence * 100)}% confidence`;
+            titleBlock.append(title, meta);
+
+            const badge = document.createElement("span");
+            badge.className = "review-badge";
+            badge.textContent = item.destinationResource || "Review";
+
+            head.append(checkbox, titleBlock, badge);
+            card.append(head);
+
+            if (item.warnings.length) {
+              const warnings = document.createElement("div");
+              warnings.className = "review-warnings";
+              warnings.textContent = item.warnings.map((warning) => String(warning)).join(" · ");
+              card.appendChild(warnings);
+            }
+
+            const grid = document.createElement("div");
+            grid.className = "review-grid";
+
+            const extracted = document.createElement("div");
+            extracted.className = "review-column";
+            const extractedTitle = document.createElement("b");
+            extractedTitle.textContent = "Extracted Fields";
+            const extractedBody = document.createElement("pre");
+            extractedBody.textContent = formatCompactObject(item.extracted);
+            extracted.append(extractedTitle, extractedBody);
+
+            const destination = document.createElement("div");
+            destination.className = "review-column";
+            const destinationTitle = document.createElement("b");
+            destinationTitle.textContent = "Destination";
+            const destinationBody = document.createElement("pre");
+            destinationBody.textContent = [
+              `Department: ${item.assignedDepartmentId || "None"}`,
+              `Resource: ${item.destinationResource || "documents"}`,
+              `Record: ${item.destinationRecordId || "draft"}`,
+              item.reviewerNotes ? `Notes: ${item.reviewerNotes}` : "",
+              item.reviewedBy ? `Reviewed by: ${item.reviewedBy}` : "",
+              item.reviewedAt ? `Reviewed at: ${new Date(item.reviewedAt).toLocaleString([], { dateStyle: "short", timeStyle: "short" })}` : "",
+            ].filter(Boolean).join("\n");
+            destination.append(destinationTitle, destinationBody);
+
+            grid.append(extracted, destination);
+            card.append(grid);
+
+            const actions = document.createElement("div");
+            actions.className = "review-actions-row review-item-actions";
+            for (const [label, decision, tone] of [
+              ["Approve", "approved", "good"],
+              ["Needs Correction", "needs_correction", "warn"],
+              ["Reject", "rejected", "bad"],
+            ]) {
+              const button = document.createElement("button");
+              button.className = "chip";
+              button.type = "button";
+              button.textContent = label;
+              button.dataset.tone = tone;
+              button.addEventListener("click", () => decideReviewItem(item.id, decision));
+              actions.appendChild(button);
+            }
+            card.appendChild(actions);
+
+            refs.reviewList.appendChild(card);
+          }
+        }
+
+        function toggleReviewSelection(id, checked) {
+          if (checked) reviewSelectedIds.add(id);
+          else reviewSelectedIds.delete(id);
+          renderReviewConsole();
+        }
+
+        function clearReviewSelection() {
+          reviewSelectedIds = new Set();
+          renderReviewConsole();
+          setReviewStatus("Selection cleared.");
+        }
+
+        function selectAllReviewItems() {
+          reviewSelectedIds = new Set(reviewItemsState.map((item) => item.id));
+          renderReviewConsole();
+          setReviewStatus(`${reviewSelectedIds.size} item${reviewSelectedIds.size === 1 ? "" : "s"} selected.`);
+        }
+
+        async function decideReviewItem(id, decision) {
+          await haptic("Medium");
+          setReviewStatus(`Submitting ${decision} for ${id}.`);
+          try {
+            const response = await fetch(`/api/v2/documents/review/${encodeURIComponent(id)}/decision`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json", ...authHeaders() },
+              body: JSON.stringify({ decision, notes: "Updated via High Points Ops review console" }),
+            });
+            const payload = await response.json().catch(() => ({}));
+            if (!response.ok) throw new Error(payload.error || "Review update failed");
+            reviewItemsState = reviewItemsState.filter((item) => item.id !== id);
+            reviewSelectedIds.delete(id);
+            renderReviewConsole();
+            setReviewStatus(`Item ${decision} successfully.`);
+            setSystemStatus(`Review item ${decision}.`);
+            rememberEvent("Review decision", `${decision} ${id}`);
+            writeReport({ reviewQueueCount: reviewItemsState.length, reviewQueueDecision: { id, decision } });
+            await refreshOperationsBrief({ quiet: true });
+          } catch (error) {
+            setReviewStatus(error.message || "Review update failed.");
+          }
+        }
+
+        async function batchReviewDecision(decision) {
+          const ids = [...reviewSelectedIds];
+          if (!ids.length) {
+            setReviewStatus("Select one or more documents before applying a batch decision.");
+            return;
+          }
+          if (!confirm(`Apply ${decision} to ${ids.length} selected item${ids.length === 1 ? "" : "s"}?`)) return;
+          await haptic("Medium");
+          setReviewStatus(`Submitting ${decision} for ${ids.length} item${ids.length === 1 ? "" : "s"}.`);
+          try {
+            const response = await fetch("/api/v2/documents/review/batch", {
+              method: "POST",
+              headers: { "Content-Type": "application/json", ...authHeaders() },
+              body: JSON.stringify({ ids, decision, notes: "Updated via High Points Ops review console" }),
+            });
+            const payload = await response.json().catch(() => ({}));
+            if (!response.ok) throw new Error(payload.error || "Batch review update failed");
+            const succeeded = new Set((payload.results || []).filter((item) => item.ok).map((item) => item.id));
+            reviewItemsState = reviewItemsState.filter((item) => !succeeded.has(item.id));
+            reviewSelectedIds = new Set([...reviewSelectedIds].filter((itemId) => !succeeded.has(itemId)));
+            renderReviewConsole();
+            setReviewStatus(`${succeeded.size} item${succeeded.size === 1 ? "" : "s"} ${decision}.`);
+            setSystemStatus(`Review batch ${decision}.`);
+            rememberEvent("Review batch", `${decision} ${succeeded.size} items`);
+            writeReport({ reviewQueueCount: reviewItemsState.length, reviewQueueDecision: { decision, processed: succeeded.size } });
+            await refreshOperationsBrief({ quiet: true });
+          } catch (error) {
+            setReviewStatus(error.message || "Batch review update failed.");
+          }
+        }
+
+        function normalizeReviewRows(items) {
+          return (Array.isArray(items) ? items : []).map((item) => ({
+            id: String(item.id || ""),
+            fileName: item.file_name || item.fileName || "Document",
+            status: item.status || "pending",
+            assignedDepartmentId: item.assigned_department_id || item.assignedDepartmentId || "",
+            destinationResource: item.destination_resource || item.destinationResource || "",
+            destinationRecordId: item.destination_record_id || item.destinationRecordId || "",
+            confidence: Number(item.confidence || 0),
+            extracted: parseMaybeJson(item.extracted_json ?? item.extracted, {}),
+            warnings: parseMaybeJson(item.warnings_json ?? item.warnings, []),
+            uploadedAt: item.uploaded_at || item.uploadedAt || item.created_at || item.createdAt || "",
+            createdAt: item.created_at || item.createdAt || "",
+            reviewerNotes: item.reviewer_notes || item.reviewerNotes || "",
+            reviewedBy: item.reviewed_by || item.reviewedBy || "",
+            reviewedAt: item.reviewed_at || item.reviewedAt || "",
+          }));
+        }
+
+        function formatCompactObject(value) {
+          const source = value && typeof value === "object" ? value : {};
+          const entries = Object.entries(source).slice(0, 12);
+          if (!entries.length) return "No extracted fields.";
+          return entries
+            .map(([key, entry]) => `${key}: ${typeof entry === "object" ? JSON.stringify(entry) : entry}`)
+            .join("\n");
+        }
+
+        function parseMaybeJson(value, fallback) {
+          if (value && typeof value === "object") return value;
+          try {
+            return JSON.parse(value || "null") ?? fallback;
+          } catch {
+            return fallback;
+          }
+        }
+
+        function pluralSuffix(value) {
+          return Number(value) === 1 ? "" : "s";
+        }
 
         async function fetchSecurityCameraUrl() {
           try {
@@ -1293,7 +1948,7 @@
 	        }
         }
 
-	        async function checkBackendHealth() {
+        async function checkBackendHealth() {
 	          await haptic("Medium");
 	          setSystemStatus("Checking backend.");
 	          try {
@@ -1304,6 +1959,7 @@
 	            setSystemStatus(`Backend ok. D1 ${bindings.db ? "ready" : "missing"} · documents ${bindings.documents ? "ready" : "missing"}`);
 	            rememberEvent("Backend health", bindings.db ? "ready" : "partial");
 	            writeReport({ backendHealth: payload });
+              refreshOperationsBrief({ quiet: true });
 	          } catch (error) {
 	            setSystemStatus(error.message || "Backend health failed.");
 	          }
@@ -1324,6 +1980,7 @@
             setSystemStatus(`Azure services ${origin.ok ? "ready" : "partially reachable"}.`);
             rememberEvent("Azure services", `${services.length} services`);
             writeReport({ azureServices: payload });
+            refreshOperationsBrief({ quiet: true });
           } catch (error) {
             refs.azureStatus.textContent = error.message || "Azure services unavailable.";
             setSystemStatus(error.message || "Azure services unavailable.");
@@ -1331,20 +1988,8 @@
         }
 
         async function loadReviewQueue() {
-	          await haptic("Medium");
-	          setSystemStatus("Loading review queue.");
-	          try {
-		            const response = await fetch("/api/v2/documents/review", { cache: "no-store", headers: authHeaders() });
-	            const payload = await response.json().catch(() => ({}));
-	            if (!response.ok) throw new Error(payload.error || "Review queue unavailable");
-	            const count = Array.isArray(payload.items) ? payload.items.length : 0;
-	            setSystemStatus(`${count} document review item${count === 1 ? "" : "s"}.`);
-	            rememberEvent("Review queue", `${count} items`);
-	            writeReport({ reviewQueueCount: count });
-		          } catch (error) {
-		            setSystemStatus(error.message || "Review queue unavailable.");
-		          }
-		        }
+          return loadReviewConsole();
+        }
 
 		        async function loadCaptureQueue() {
 		          await haptic("Medium");
@@ -1357,6 +2002,7 @@
 		            setSystemStatus(`${count} recent capture${count === 1 ? "" : "s"} available.`);
 		            rememberEvent("Recent captures", `${count} items`);
 		            writeReport({ recentCaptureCount: count });
+                refreshOperationsBrief({ quiet: true });
 		          } catch (error) {
 		            setSystemStatus(error.message || "Recent captures unavailable.");
 		          }
@@ -1444,6 +2090,7 @@
               throw new Error(detail);
             }
             const user = payload.user || {};
+            currentUser = user;
             const label = [user.name, user.role, user.department].filter(Boolean).join(" · ");
             authReady = true;
             localStorage.setItem(WORKSPACE_READY_KEY, "1");
@@ -1452,10 +2099,12 @@
             setSignInHelp("Sign-in verified. The workspace is unlocked.");
             rememberEvent("Auth check", "signed in");
             writeReport({ authStatus: payload });
+            await refreshOperationsBrief({ quiet: true });
             return true;
           } catch (error) {
             if (checkGeneration !== authCheckGeneration) return false;
             authReady = false;
+            currentUser = null;
             localStorage.removeItem(WORKSPACE_READY_KEY);
             refreshWorkspaceState();
             const message = error.message || "Sign in required";
@@ -1469,6 +2118,8 @@
               setAuthStatus(message);
               setSignInHelp(message);
             }
+            briefState = null;
+            renderOperationsBrief(null, "Sign in to load live operations brief.");
             rememberEvent("Auth check failed", message);
             return false;
           }
@@ -1582,10 +2233,16 @@
         function clearSignInFields() {
           authCheckGeneration += 1;
           authReady = false;
+          currentUser = null;
           ["hp:userId","highpoints:userId","hp:session","highpoints:session","hp:authToken","highpoints:authToken","hp:accessEmail","highpoints:accessEmail"].forEach((key) => localStorage.removeItem(key));
           localStorage.removeItem(WORKSPACE_READY_KEY);
           loadSignInFields();
+          briefState = null;
+          reviewItemsState = [];
+          reviewSelectedIds = new Set();
           refreshWorkspaceState();
+          renderOperationsBrief(null, "Sign in to load live operations brief.");
+          renderReviewConsole();
           setSignInHelp("Sign-in data cleared from this device.");
           rememberEvent("Sign in cleared", "local device");
           writeReport();
@@ -1656,6 +2313,7 @@
               : "Not signed in yet. Enter staff credentials above, then save and verify auth."
           );
           setSignInState(authReady ? "Signed in. Login panel hidden." : "Not signed in.");
+          updateOperationalPanels();
           if (refs.buildBanner) refs.buildBanner.textContent = `Build 1.1 (2)`;
         }
 
@@ -1869,6 +2527,7 @@
 	          haptic("Medium");
 	          rememberEvent("Capture saved", refs.captureType.value);
 	          log("Capture saved to the offline queue.");
+            refreshOperationsBrief({ quiet: true });
 	        }
 
 	        async function syncOfflineQueue() {
@@ -1903,6 +2562,7 @@
 	          saveQueue(remaining);
 	          rememberEvent("Queue sync", `${synced} synced, ${remaining.length} pending`);
 	          log(`${synced} record${synced === 1 ? "" : "s"} synced. ${remaining.length} pending.`);
+            refreshOperationsBrief({ quiet: true });
 	        }
 
         async function shareDiagnostics() {
@@ -1934,6 +2594,7 @@
           haptic("Medium");
           rememberEvent("Queue cleared", "local device");
           log("Offline queue cleared on this device.");
+          refreshOperationsBrief({ quiet: true });
         }
 
         async function exportQueue() {
@@ -1988,6 +2649,7 @@
             haptic("Medium");
             rememberEvent("Queue imported", `${normalized.length} records`);
             log(`${normalized.length} queue records imported.`);
+            refreshOperationsBrief({ quiet: true });
           } catch (error) {
             log(error.message || "Queue import failed.");
           }
@@ -2003,6 +2665,7 @@
           writeReport();
           haptic("Medium");
           log("Local app data purged.");
+          refreshOperationsBrief({ quiet: true });
         }
 
         function setRoleMode(value) {
@@ -2037,6 +2700,14 @@
         refs.azureServices.addEventListener("click", checkAzureServices);
         refs.outlookAuth.addEventListener("click", startOutlookAuth);
         refs.clearOutlook.addEventListener("click", clearOutlookAuth);
+        refs.refreshBrief.addEventListener("click", () => refreshOperationsBrief());
+        refs.copyBrief.addEventListener("click", copyOperationsBrief);
+        refs.reviewRefresh.addEventListener("click", loadReviewQueue);
+        refs.reviewSelectAll.addEventListener("click", selectAllReviewItems);
+        refs.reviewClearSelection.addEventListener("click", clearReviewSelection);
+        refs.reviewApprove.addEventListener("click", () => batchReviewDecision("approved"));
+        refs.reviewNeedsCorrection.addEventListener("click", () => batchReviewDecision("needs_correction"));
+        refs.reviewReject.addEventListener("click", () => batchReviewDecision("rejected"));
         refs.saveSignIn.addEventListener("click", saveSignInFields);
         refs.clearSignIn.addEventListener("click", clearSignInFields);
         refs.resetCache.addEventListener("click", resetAppCache);

@@ -4,8 +4,18 @@ import { repositories } from "../repositories.js";
 import { flowSnapshotOperation } from "../graph/operations.js";
 import { scheduleGraphWrite } from "../graph/sync.js";
 
+export function workspaceFlow(user) {
+  const resources = resourcesFor(user);
+  return {
+    network: "client-reported",
+    workspace: "available",
+    recovery: "armed",
+    resources,
+    next: resources.includes("*") ? ["admin", "security_cameras", "reports"] : resources,
+  };
+}
+
 export async function getFlow(context) {
-  const resources = resourcesFor(context.user);
   return jsonResponse({
     requestId: context.requestId,
     user: {
@@ -13,13 +23,7 @@ export async function getFlow(context) {
       role: context.user.role,
       department: context.user.department,
     },
-    flow: {
-      network: "client-reported",
-      workspace: "available",
-      recovery: "armed",
-      resources,
-      next: resources.includes("*") ? ["admin", "security_cameras", "reports"] : resources,
-    },
+    flow: workspaceFlow(context.user),
   });
 }
 

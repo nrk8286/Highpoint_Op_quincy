@@ -8,6 +8,7 @@ import { completeOutlookAuth, disconnectOutlook, getOutlookStatus, startOutlookA
 import { approveReview, batchApproveReview, listReviewQueue } from "./modules/documents.js";
 import { graphEntity, graphFailures, graphHealth, graphQuery, graphRetry, graphSearch } from "./modules/graph.js";
 import { listShellEvents, postShellEvent } from "./modules/shell.js";
+import { workspaceBrief } from "./modules/workspace.js";
 
 export function registerRoutes(router) {
   router.add("GET", "/api/v2/health", { auth: false, resource: "health", audit: "health_check" }, health);
@@ -21,6 +22,10 @@ export function registerRoutes(router) {
   router.add("GET", "/api/me/access", { resource: "profile", audit: "profile_read_legacy" }, me);
 
   router.add("GET", "/api/v2/flow", { resource: "flow", audit: "flow_read" }, getFlow);
+  router.add("POST", "/api/v2/workspace/brief", { resource: "dashboard", audit: "workspace_brief" }, async (context) => {
+    context.body = await readJson(context.request);
+    return workspaceBrief(context);
+  });
 
   router.add("POST", "/api/v2/events", { resource: "flow", audit: "flow_event" }, async (context) => {
     context.body = await readJson(context.request);

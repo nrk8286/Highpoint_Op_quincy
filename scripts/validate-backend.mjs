@@ -21,6 +21,7 @@ const required = [
   "src/events.js",
   "src/repositories.js",
   "src/routes.js",
+  "src/modules/workspace.js",
   "src/graph/client.js",
   "src/graph/cypher.js",
   "src/graph/errors.js",
@@ -70,6 +71,10 @@ assertIncludes(shellEventsMigration, "hp_shell_events", "Additive shell event mi
 assertIncludes(allSource, "/api/v2/shell/events", "Routes must include recovery shell event intake endpoint.");
 assertIncludes(allSource, "shell_events_read", "Routes must include secured shell event listing endpoint.");
 assertIncludes(allSource, "shell_event", "Shell captures must be scheduled for graph sync.");
+assertIncludes(allSource, "workspaceBrief", "Routes must include the workspace brief handler.");
+assertIncludes(allSource, "workspaceFlow", "Flow handler must expose workspace flow helpers.");
+assertIncludes(allSource, "/api/v2/workspace/brief", "Routes must include the workspace brief endpoint.");
+assertIncludes(allSource, "/api/v2/documents/review/batch", "Routes must include the batch review endpoint.");
 assertIncludes(allSource, "NEO4J_QUERY_ENDPOINT", "Graph client must validate Neo4j endpoint configuration.");
 assertIncludes(allSource, "hp_graph_sync_outbox", "Graph sync must persist failed writes in D1.");
 assertIncludes(allSource, "ON CONFLICT(id) DO UPDATE", "Graph outbox must deduplicate idempotent entity sync writes.");
@@ -97,9 +102,13 @@ registerRoutes(router);
 for (const [method, path] of [
   ["GET", "/api/v2/health"],
   ["GET", "/api/v2/outlook/status"],
+  ["GET", "/api/v2/documents/review"],
+  ["POST", "/api/v2/workspace/brief"],
   ["POST", "/api/v2/outlook/disconnect"],
   ["GET", "/api/v2/shell/events"],
   ["POST", "/api/v2/shell/events"],
+  ["POST", "/api/v2/documents/review/abc/decision"],
+  ["POST", "/api/v2/documents/review/batch"],
   ["GET", "/api/v2/graph/health"],
   ["GET", "/api/v2/graph/entity/Staff/staff-1"],
 ]) {
