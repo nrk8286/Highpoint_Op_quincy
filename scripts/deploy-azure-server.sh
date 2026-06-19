@@ -70,43 +70,12 @@ server {
     add_header Referrer-Policy same-origin always;
 
     location = /app/ {
-        return 308 /app;
+        return 308 /app$is_args$args;
     }
 
     location = /app {
-        proxy_pass https://highpoints.work/app;
-        proxy_ssl_server_name on;
-        proxy_http_version 1.1;
-        proxy_set_header Host highpoints.work;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto https;
-        proxy_redirect off;
+        return 307 https://highpoints.work/next/login$is_args$args;
         add_header Cache-Control "no-store, max-age=0" always;
-    }
-
-    location = /app.bundle.js {
-        proxy_pass https://highpoints.work/app.bundle.js;
-        proxy_ssl_server_name on;
-        proxy_http_version 1.1;
-        proxy_set_header Host highpoints.work;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto https;
-        proxy_redirect off;
-        add_header Cache-Control "no-store, max-age=0" always;
-    }
-
-    location /vendor/ {
-        proxy_pass https://highpoints.work/vendor/;
-        proxy_ssl_server_name on;
-        proxy_http_version 1.1;
-        proxy_set_header Host highpoints.work;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto https;
-        proxy_redirect off;
-        add_header Cache-Control "public, max-age=3600" always;
     }
 
     location = /service-worker.js {
@@ -226,8 +195,8 @@ REMOTE_SCRIPT
 
 curl -fsS "https://server.highpoints.work/azure/status" >/dev/null
 curl -fsS "https://server.highpoints.work/api/v2/health" >/dev/null
-curl -fsS "https://server.highpoints.work/app" | grep -q '<div id="root"></div>'
-curl -fsS "https://server.highpoints.work/app" | grep -q '/vendor/react.production.min.js?v=18.3.1'
-curl -fsS "https://server.highpoints.work/app" | grep -q '/app.bundle.js?v=20260515-session'
+curl -fsSL "https://server.highpoints.work/app" -o "$TMP_DIR/server-app.html"
+grep -q '/_next/static/' "$TMP_DIR/server-app.html"
+grep -q 'HighPoint Operations' "$TMP_DIR/server-app.html"
 curl -fsS "https://origin.highpoints.work/azure/status" >/dev/null
 echo "Highpoints Azure server deployed: https://server.highpoints.work"

@@ -140,39 +140,32 @@ func TestSitemapContainsPublicPages(t *testing.T) {
 	}
 }
 
-func TestAppRouteServesLoaderAndSignupEntersApp(t *testing.T) {
+func TestAppRouteRedirectsToProductionAppEntry(t *testing.T) {
 	root := t.TempDir()
 	if err := os.MkdirAll(filepath.Join(root, "www"), 0o755); err != nil {
 		t.Fatal(err)
 	}
-	loader := `<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>High Point Ops</title>
-    <script src="/vendor/react.production.min.js?v=18.3.1"></script>
-    <script src="/vendor/react-dom.production.min.js?v=18.3.1"></script>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script src="/app.bundle.js?v=20260515-session"></script>
-  </body>
-</html>`
-	if err := os.WriteFile(filepath.Join(root, "www", "index.html"), []byte(loader), 0o644); err != nil {
+	if err := os.WriteFile(filepath.Join(root, "www", "index.html"), []byte("unused fallback"), 0o644); err != nil {
 		t.Fatal(err)
 	}
 
 	mux := newMuxWithRoot(root)
 	app := httptest.NewRecorder()
 	mux.ServeHTTP(app, httptest.NewRequest(http.MethodGet, "/app", nil))
-	if app.Code != http.StatusOK {
-		t.Fatalf("/app status = %d, want %d", app.Code, http.StatusOK)
+	if app.Code != http.StatusTemporaryRedirect {
+		t.Fatalf("/app status = %d, want %d", app.Code, http.StatusTemporaryRedirect)
 	}
-	for _, needle := range []string{"<div id=\"root\"></div>", "/vendor/react.production.min.js", "/vendor/react-dom.production.min.js", "/app.bundle.js"} {
-		if !strings.Contains(app.Body.String(), needle) {
-			t.Fatalf("/app did not serve %q", needle)
-		}
+	if got := app.Header().Get("Location"); got != appEntryURL {
+		t.Fatalf("/app location = %q", got)
+	}
+
+	callback := httptest.NewRecorder()
+	mux.ServeHTTP(callback, httptest.NewRequest(http.MethodGet, "/app?code=abc&state=xyz", nil))
+	if callback.Code != http.StatusTemporaryRedirect {
+		t.Fatalf("/app callback status = %d, want %d", callback.Code, http.StatusTemporaryRedirect)
+	}
+	if got := callback.Header().Get("Location"); got != appEntryURL+"?code=abc&state=xyz" {
+		t.Fatalf("/app callback location = %q", got)
 	}
 
 	r := httptest.NewRequest(http.MethodGet, "/signup", nil)
@@ -181,7 +174,7 @@ func TestAppRouteServesLoaderAndSignupEntersApp(t *testing.T) {
 	if w.Code != http.StatusTemporaryRedirect {
 		t.Fatalf("/signup status = %d, want %d", w.Code, http.StatusTemporaryRedirect)
 	}
-	if got := w.Header().Get("Location"); got != "/app" {
+	if got := w.Header().Get("Location"); got != appEntryURL {
 		t.Fatalf("/signup location = %q", got)
 	}
 }

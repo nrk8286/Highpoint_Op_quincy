@@ -58,7 +58,7 @@ export async function authenticate(context) {
   // headers are client-controlled unless Access verification is enforced before
   // this Worker.
   const email = trustedAccessEmail(context);
-  const fallbackId = userId || email.split("@")[0] || "";
+  const fallbackId = email ? email.split("@")[0] : "";
   if (!fallbackId && !email) {
     if (bearerConfigError) throw bearerConfigError;
     throw new HttpError(401, "Staff session missing: provide a valid session token or Cloudflare Access identity");

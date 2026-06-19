@@ -55,6 +55,18 @@
       "zone_id": "0f5ea8d9b668cc5c7a029e635d46fcc9"
     },
     {
+      "pattern": "highpoints.work/app*",
+      "zone_id": "0f5ea8d9b668cc5c7a029e635d46fcc9"
+    },
+    {
+      "pattern": "highpoints.work/app.bundle.js",
+      "zone_id": "0f5ea8d9b668cc5c7a029e635d46fcc9"
+    },
+    {
+      "pattern": "highpoints.work/vendor/*",
+      "zone_id": "0f5ea8d9b668cc5c7a029e635d46fcc9"
+    },
+    {
       "pattern": "highpoints.work/signup",
       "zone_id": "0f5ea8d9b668cc5c7a029e635d46fcc9"
     },

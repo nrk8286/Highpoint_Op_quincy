@@ -8,7 +8,7 @@ const sitemap = await readFile(new URL("../www/sitemap.xml", import.meta.url), "
 
 const inlineScripts = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map((match) => match[1].trim()).filter(Boolean);
 if (inlineScripts.length !== 0) {
-  throw new Error(`app loader should not include inline scripts: ${inlineScripts.length}`);
+  throw new Error(`app entry should not include inline scripts: ${inlineScripts.length}`);
 }
 
 const manifest = JSON.parse(manifestText);
@@ -27,15 +27,17 @@ for (const icon of manifest.icons || []) {
   }
 }
 
-const loaderChecks = [
+const entryChecks = [
   ["title", html.includes("<title>High Point Ops</title>")],
-  ["root mount", html.includes('<div id="root"></div>')],
-  ["react vendor script", html.includes('/vendor/react.production.min.js?v=18.3.1')],
-  ["react-dom vendor script", html.includes('/vendor/react-dom.production.min.js?v=18.3.1')],
-  ["bundle script", html.includes('/app.bundle.js?v=20260515-session')],
+  ["app entry", html.includes("https://highpoints.work/next/login")],
+  ["fallback copy", html.includes("Launching HighPoint Operations")],
+  ["meta refresh", html.includes('http-equiv="refresh"')],
   ["fonts", html.includes("Playfair+Display") && html.includes("DM+Sans") && html.includes("JetBrains+Mono")],
 ];
 const forbiddenShellFragments = [
+  "/vendor/react.production.min.js",
+  "/vendor/react-dom.production.min.js",
+  "/app.bundle.js",
   "API_PROBE",
   "/api/v2/shell/events",
   "refreshOperationsBrief",
@@ -43,8 +45,8 @@ const forbiddenShellFragments = [
   "captureQueue",
   "serviceWorker.register",
 ];
-const missingLoaderChecks = loaderChecks.filter(([, ok]) => !ok).map(([name]) => `app loader missing ${name}`);
-const shellFragmentsPresent = forbiddenShellFragments.filter((fragment) => html.includes(fragment)).map((fragment) => `app loader still contains shell fragment ${fragment}`);
+const missingEntryChecks = entryChecks.filter(([, ok]) => !ok).map(([name]) => `app entry missing ${name}`);
+const shellFragmentsPresent = forbiddenShellFragments.filter((fragment) => html.includes(fragment)).map((fragment) => `app entry still contains shell fragment ${fragment}`);
 const serviceWorkerChecks = [
   ["CACHE_NAME", serviceWorker.includes("CACHE_NAME")],
   ["install listener", serviceWorker.includes('addEventListener("install"')],
@@ -66,7 +68,7 @@ const missingSeoChecks = seoChecks.filter(([, ok]) => !ok).map(([name]) => `site
 const failures = [
   ...missingManifestFields.map((field) => `manifest missing ${field}`),
   ...missingIconFiles.map((icon) => `manifest icon problem: ${icon}`),
-  ...missingLoaderChecks,
+  ...missingEntryChecks,
   ...shellFragmentsPresent,
   ...missingServiceWorkerChecks,
   ...missingSeoChecks,
@@ -77,4 +79,4 @@ if (failures.length) {
   process.exit(1);
 }
 
-console.log(`validated app loader: ${inlineScripts.length} inline script(s), ${manifest.icons.length} icon(s)`);
+console.log(`validated app entry: ${inlineScripts.length} inline script(s), ${manifest.icons.length} icon(s)`);

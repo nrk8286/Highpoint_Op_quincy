@@ -1,44 +1,7 @@
 import { iconWebpBase64, manifestJson, serviceWorkerJs } from "./static-assets.js";
 
-const appLoaderHtml = `<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>High Point Ops</title>
-    <link
-      rel="icon"
-      href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏢</text></svg>"
-    />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap"
-      rel="stylesheet"
-    />
-    <style>
-      * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-      }
-
-      html,
-      body,
-      #root {
-        min-height: 100vh;
-        background: #0b0a12;
-        color: #eae8f0;
-        font-family: "DM Sans", sans-serif;
-      }
-    </style>
-    <script src="/vendor/react.production.min.js?v=18.3.1"></script>
-    <script src="/vendor/react-dom.production.min.js?v=18.3.1"></script>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script src="/app.bundle.js?v=20260515-session"></script>
-  </body>
-</html>`;
+const APP_ENTRY_URL = "https://highpoints.work/next/login";
+const APPLE_TOUCH_ICON_URL = "https://highpoints.work/icons/icon-192.webp";
 
 const baseHeaders = {
   "referrer-policy": "same-origin",
@@ -57,6 +20,45 @@ function textResponse(body, contentType, cacheControl = "no-store") {
   });
 }
 
+function appEntryLocation(url) {
+  const target = new URL(APP_ENTRY_URL);
+  target.search = url.search;
+  return target.toString();
+}
+
+function appEntryRedirect(url, status) {
+  return new Response(null, {
+    status,
+    headers: {
+      ...baseHeaders,
+      "cache-control": "no-store, max-age=0",
+      location: appEntryLocation(url),
+    },
+  });
+}
+
+function retiredAssetResponse() {
+  return new Response("Retired HighPoints app loader asset. Use https://highpoints.work/next/login.\n", {
+    status: 410,
+    headers: {
+      ...baseHeaders,
+      "cache-control": "no-store, max-age=0",
+      "content-type": "text/plain;charset=UTF-8",
+    },
+  });
+}
+
+function iconRedirect() {
+  return new Response(null, {
+    status: 302,
+    headers: {
+      ...baseHeaders,
+      "cache-control": "public, max-age=3600",
+      location: APPLE_TOUCH_ICON_URL,
+    },
+  });
+}
+
 function bytesFromBase64(value) {
   const binary = atob(value);
   const bytes = new Uint8Array(binary.length);
@@ -68,13 +70,19 @@ function bytesFromBase64(value) {
 
 export function staticResponseFor(url) {
   if (url.pathname === "/app") {
-    return textResponse(appLoaderHtml, "text/html;charset=UTF-8");
+    return appEntryRedirect(url, 307);
   }
   if (url.pathname === "/signup") {
-    return Response.redirect(`${url.origin}/app`, 307);
+    return appEntryRedirect(url, 307);
   }
   if (url.pathname === "/app/") {
-    return Response.redirect(`${url.origin}/app`, 308);
+    return appEntryRedirect(url, 308);
+  }
+  if (url.pathname === "/app.bundle.js" || url.pathname.startsWith("/vendor/")) {
+    return retiredAssetResponse();
+  }
+  if (url.pathname === "/apple-touch-icon.png") {
+    return iconRedirect();
   }
   if (url.pathname === "/sw.js") {
     return textResponse(serviceWorkerJs, "application/javascript;charset=UTF-8");

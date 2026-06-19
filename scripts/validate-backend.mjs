@@ -3,6 +3,7 @@ import { join } from "node:path";
 import { spawnSync } from "node:child_process";
 import { createRouter } from "../backend/src/router.js";
 import { registerRoutes } from "../backend/src/routes.js";
+import { staticResponseFor } from "../backend/src/static.js";
 
 const root = process.cwd();
 const backend = join(root, "backend");
@@ -96,6 +97,52 @@ assertIncludes(config, "NEO4J_QUERY_ENDPOINT", "Wrangler example must include Ne
 assertIncludes(config, "NEO4J_DATABASE", "Wrangler example must include Neo4j database placeholder.");
 assertIncludes(config, "\"nodejs_compat\"", "Wrangler example must enable nodejs_compat.");
 assertIncludes(config, "\"observability\"", "Wrangler example must enable observability.");
+assertIncludes(config, "highpoints.work/app.bundle.js", "Wrangler config must route retired app bundle requests through the Worker.");
+assertIncludes(config, "highpoints.work/app*", "Wrangler config must route app-entry query strings through the Worker.");
+assertIncludes(config, "highpoints.work/vendor/*", "Wrangler config must route retired vendor requests through the Worker.");
+
+assertIncludes(allSource, "const fallbackId = email ? email.split(\"@\")", "Auth fallback must only use trusted Cloudflare Access email.");
+assertExcludes(allSource, "const fallbackId = userId ||", "Auth fallback must not trust x-highpoints-user-id without a valid session proof.");
+assertIncludes(allSource, "Number(error?.status) !== 403", "Workspace brief must only hide review queue authorization failures.");
+assertIncludes(allSource, "Retired HighPoints app loader asset", "Static routes must reject retired loader assets instead of returning HTML as JavaScript.");
+
+for (const [path, status] of [
+  ["/app", 307],
+  ["/signup", 307],
+  ["/app/", 308],
+]) {
+  const response = staticResponseFor(new URL(`https://highpoints.work${path}`));
+  if (!response) throw new Error(`Static app entry smoke check failed for ${path}`);
+  if (response.status !== status) throw new Error(`Static app entry ${path} status ${response.status}, expected ${status}`);
+  if (response.headers.get("location") !== "https://highpoints.work/next/login") {
+    throw new Error(`Static app entry ${path} redirects to ${response.headers.get("location")}`);
+  }
+}
+
+const callbackRedirect = staticResponseFor(new URL("https://highpoints.work/app?code=abc&state=xyz"));
+if (callbackRedirect.headers.get("location") !== "https://highpoints.work/next/login?code=abc&state=xyz") {
+  throw new Error(`Static app entry must preserve callback query strings, got ${callbackRedirect.headers.get("location")}`);
+}
+
+for (const path of ["/next/login", "/api/v2/health"]) {
+  if (staticResponseFor(new URL(`https://highpoints.work${path}`))) {
+    throw new Error(`Static route must not intercept ${path}`);
+  }
+}
+
+for (const path of ["/app.bundle.js", "/vendor/react.production.min.js"]) {
+  const response = staticResponseFor(new URL(`https://highpoints.work${path}`));
+  if (!response) throw new Error(`Retired app asset smoke check failed for ${path}`);
+  if (response.status !== 410) throw new Error(`Retired app asset ${path} status ${response.status}, expected 410`);
+  if (!response.headers.get("content-type")?.includes("text/plain")) {
+    throw new Error(`Retired app asset ${path} content type ${response.headers.get("content-type")}`);
+  }
+}
+
+const appleIcon = staticResponseFor(new URL("https://highpoints.work/apple-touch-icon.png"));
+if (!appleIcon || appleIcon.status !== 302 || appleIcon.headers.get("location") !== "https://highpoints.work/icons/icon-192.webp") {
+  throw new Error("Static route must redirect apple-touch-icon.png when app* catches it");
+}
 
 const router = createRouter();
 registerRoutes(router);
@@ -126,4 +173,8 @@ function walk(dir) {
 
 function assertIncludes(text, needle, message) {
   if (!text.includes(needle)) throw new Error(message);
+}
+
+function assertExcludes(text, needle, message) {
+  if (text.includes(needle)) throw new Error(message);
 }

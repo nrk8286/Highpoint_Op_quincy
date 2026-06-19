@@ -22,6 +22,7 @@ export async function workspaceBrief(context) {
       department: context.user.department,
     });
   } catch (error) {
+    if (Number(error?.status) !== 403) throw error;
     reviewRows = [];
     reviewAccess = false;
   }

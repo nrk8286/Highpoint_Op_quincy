@@ -73,6 +73,15 @@ var pageByPath = func() map[string]Page {
 	return m
 }()
 
+const appEntryURL = "https://highpoints.work/next/login"
+
+func appEntryLocation(r *http.Request) string {
+	if r.URL.RawQuery == "" {
+		return appEntryURL
+	}
+	return appEntryURL + "?" + r.URL.RawQuery
+}
+
 var layout = template.Must(template.New("layout").Parse(`<!doctype html>
 <html lang="en">
 <head>
@@ -341,14 +350,17 @@ func iconHandler(root string) http.HandlerFunc {
 }
 
 func appHandler(root string) http.HandlerFunc {
-	appPath := filepath.Join(root, "www", "index.html")
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path == "/app/" {
-			http.Redirect(w, r, "/app", http.StatusPermanentRedirect)
+			location := "/app"
+			if r.URL.RawQuery != "" {
+				location += "?" + r.URL.RawQuery
+			}
+			http.Redirect(w, r, location, http.StatusPermanentRedirect)
 			return
 		}
-		setCommonHeaders(w, "text/html; charset=utf-8", "no-store, max-age=0")
-		http.ServeFile(w, r, appPath)
+		w.Header().Set("Cache-Control", "no-store, max-age=0")
+		http.Redirect(w, r, appEntryLocation(r), http.StatusTemporaryRedirect)
 	}
 }
 
@@ -447,11 +459,12 @@ func accessLogMiddleware(next http.Handler) http.Handler {
 }
 
 func mainHandler(w http.ResponseWriter, r *http.Request) {
-	setCommonHeaders(w, "text/html; charset=utf-8", "public, max-age=300")
 	if r.URL.Path == "/signup" {
-		http.Redirect(w, r, "/app", http.StatusTemporaryRedirect)
+		setCommonHeaders(w, "text/html; charset=utf-8", "no-store, max-age=0")
+		http.Redirect(w, r, appEntryLocation(r), http.StatusTemporaryRedirect)
 		return
 	}
+	setCommonHeaders(w, "text/html; charset=utf-8", "public, max-age=300")
 	if r.URL.Path != "/" && strings.HasSuffix(r.URL.Path, "/") {
 		http.Redirect(w, r, strings.TrimRight(r.URL.Path, "/"), http.StatusPermanentRedirect)
 		return
