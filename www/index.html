@@ -961,6 +961,7 @@
           timeline: $("timeline"),
         };
         let authReady = false;
+        let authCheckGeneration = 0;
 
         function setMetric(node, state, value) {
           if (!node) return;
@@ -1429,6 +1430,7 @@
         }
 
         async function checkAuthStatus() {
+          const checkGeneration = ++authCheckGeneration;
           setAuthStatus("Checking staff session.");
           try {
             const response = await fetch("/api/v2/me", {
@@ -1436,6 +1438,7 @@
               headers: authHeaders(),
             });
             const payload = await response.json().catch(() => ({}));
+            if (checkGeneration !== authCheckGeneration) return false;
             if (!response.ok) {
               const detail = payload.error || "Sign in required";
               throw new Error(detail);
@@ -1444,20 +1447,27 @@
             const label = [user.name, user.role, user.department].filter(Boolean).join(" · ");
             authReady = true;
             localStorage.setItem(WORKSPACE_READY_KEY, "1");
+            refreshWorkspaceState();
             setAuthStatus(label ? `Signed in as ${label}` : "Signed in.");
+            setSignInHelp("Sign-in verified. The workspace is unlocked.");
             rememberEvent("Auth check", "signed in");
             writeReport({ authStatus: payload });
             return true;
           } catch (error) {
+            if (checkGeneration !== authCheckGeneration) return false;
             authReady = false;
             localStorage.removeItem(WORKSPACE_READY_KEY);
+            refreshWorkspaceState();
             const message = error.message || "Sign in required";
             if (message.includes("Staff session missing")) {
               setAuthStatus("No staff session found. Sign in with a valid HighPoints staff ID and session token.");
+              setSignInHelp("Enter a valid staff ID and session token, then save again.");
             } else if (message.includes("Staff account not found")) {
               setAuthStatus("Identity found, but no active staff profile matched it. Check the D1 staff tables.");
+              setSignInHelp("The credentials matched no active staff profile. Check the D1 staff tables.");
             } else {
               setAuthStatus(message);
+              setSignInHelp(message);
             }
             rememberEvent("Auth check failed", message);
             return false;
@@ -1530,10 +1540,13 @@
           refs.staffEmail.value = localStorage.getItem("hp:accessEmail") || localStorage.getItem("highpoints:accessEmail") || "";
         }
 
-        function saveSignInFields() {
+        async function saveSignInFields() {
           const staffId = refs.staffId.value.trim();
           const session = refs.staffSession.value.trim();
           const email = refs.staffEmail.value.trim();
+          authCheckGeneration += 1;
+          authReady = false;
+          localStorage.removeItem(WORKSPACE_READY_KEY);
           if (staffId) {
             localStorage.setItem("hp:userId", staffId);
             localStorage.setItem("highpoints:userId", staffId);
@@ -1559,15 +1572,20 @@
             localStorage.removeItem("hp:accessEmail");
             localStorage.removeItem("highpoints:accessEmail");
           }
-          setSignInHelp("Sign-in data saved locally. Refresh or run diagnostics to verify access.");
+          refreshWorkspaceState();
+          setSignInHelp("Sign-in data saved locally. Verifying session now.");
           rememberEvent("Sign in saved", staffId || email || "session");
           writeReport();
+          await checkAuthStatus();
         }
 
         function clearSignInFields() {
+          authCheckGeneration += 1;
+          authReady = false;
           ["hp:userId","highpoints:userId","hp:session","highpoints:session","hp:authToken","highpoints:authToken","hp:accessEmail","highpoints:accessEmail"].forEach((key) => localStorage.removeItem(key));
           localStorage.removeItem(WORKSPACE_READY_KEY);
           loadSignInFields();
+          refreshWorkspaceState();
           setSignInHelp("Sign-in data cleared from this device.");
           rememberEvent("Sign in cleared", "local device");
           writeReport();

@@ -4,21 +4,31 @@ import { verifySessionToken } from "./session.js";
 export async function authenticate(context) {
   const db = requireBinding(context.env, "DB");
   const secret = context.env.SESSION_SECRET;
+  let bearerConfigError = null;
 
   // 1. Try Strong Session Proof (JWT-like)
   const authHeader = context.request.headers.get("authorization") || "";
   if (authHeader.startsWith("Bearer ")) {
     const token = authHeader.substring(7);
     if (token.includes(".")) {
-      if (!secret) throw new HttpError(500, "Missing SESSION_SECRET");
-      const session = await verifySessionToken(token, secret);
-      if (session) {
-        return {
-          id: String(session.id),
-          role: String(session.role),
-          department: normalizeId(session.dept, "admin"),
-          name: String(session.id), // Fallback name
-        };
+      if (!secret) {
+        bearerConfigError = new HttpError(500, "Missing SESSION_SECRET");
+      } else {
+        try {
+          const session = await verifySessionToken(token, secret);
+          if (session) {
+            return {
+              id: String(session.id),
+              role: String(session.role),
+              department: normalizeId(session.dept, "admin"),
+              name: String(session.id), // Fallback name
+            };
+          }
+        } catch (error) {
+          if (!(error instanceof HttpError) || error.status >= 500) {
+            throw error;
+          }
+        }
       }
     }
   }
@@ -50,6 +60,7 @@ export async function authenticate(context) {
   const email = trustedAccessEmail(context);
   const fallbackId = userId || email.split("@")[0] || "";
   if (!fallbackId && !email) {
+    if (bearerConfigError) throw bearerConfigError;
     throw new HttpError(401, "Staff session missing: provide a valid session token or Cloudflare Access identity");
   }
 
@@ -61,6 +72,7 @@ export async function authenticate(context) {
   );
 
   if (!profile) {
+    if (bearerConfigError) throw bearerConfigError;
     throw new HttpError(401, "Staff account not found: the authenticated identity does not match an active staff profile");
   }
   return normalizeUser(profile);
