@@ -1,0 +1,86 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "highpoints-backend-v2",
+  "main": "src/index.js",
+  "compatibility_date": "2026-05-23",
+  "compatibility_flags": [
+    "nodejs_compat"
+  ],
+  "observability": {
+    "enabled": true,
+    "head_sampling_rate": 0.1
+  },
+  "vars": {
+    "APP_ORIGIN": "https://highpoints.work",
+    "SECURITY_CAMERA_URL": "https://cameras.highpoints.work",
+    "OUTLOOK_CLIENT_ID": "",
+    "OUTLOOK_REDIRECT_URI": "https://highpoints.work/app",
+    "OUTLOOK_SCOPES": "openid profile offline_access User.Read Mail.Read Mail.Send Calendars.ReadWrite",
+    "DOCUMENT_AI_ENDPOINT": "",
+    "DOCUMENT_AI_MODEL": "",
+    "NEO4J_QUERY_ENDPOINT": "http://127.0.0.1:7474/db/neo4j/tx/commit",
+    "NEO4J_DATABASE": "neo4j",
+    "AZURE_SUBSCRIPTION_NAME": "Azure subscription 1",
+    "AZURE_RESOURCE_GROUP": "Highpoint",
+    "AZURE_VMSS_RESOURCE_GROUP": "vmss-rg",
+    "AZURE_ORIGIN_URL": "https://server.highpoints.work",
+    "AZURE_STATUS_ENDPOINT": "https://server.highpoints.work/azure/status",
+    "AZURE_APP_ENDPOINT": "https://server.highpoints.work/app"
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "highpoints",
+      "database_id": "replace-with-d1-database-id",
+      "migrations_dir": "migrations"
+    }
+  ],
+  "r2_buckets": [
+    {
+      "binding": "DOCUMENTS",
+      "bucket_name": "highpoints-documents"
+    }
+  ],
+  "routes": [
+    {
+      "pattern": "highpoints.work/api/*",
+      "zone_id": "0f5ea8d9b668cc5c7a029e635d46fcc9"
+    },
+    {
+      "pattern": "highpoints.work/app",
+      "zone_id": "0f5ea8d9b668cc5c7a029e635d46fcc9"
+    },
+    {
+      "pattern": "highpoints.work/app/*",
+      "zone_id": "0f5ea8d9b668cc5c7a029e635d46fcc9"
+    },
+    {
+      "pattern": "highpoints.work/app*",
+      "zone_id": "0f5ea8d9b668cc5c7a029e635d46fcc9"
+    },
+    {
+      "pattern": "highpoints.work/app.bundle.js",
+      "zone_id": "0f5ea8d9b668cc5c7a029e635d46fcc9"
+    },
+    {
+      "pattern": "highpoints.work/vendor/*",
+      "zone_id": "0f5ea8d9b668cc5c7a029e635d46fcc9"
+    },
+    {
+      "pattern": "highpoints.work/signup",
+      "zone_id": "0f5ea8d9b668cc5c7a029e635d46fcc9"
+    },
+    {
+      "pattern": "highpoints.work/sw.js",
+      "zone_id": "0f5ea8d9b668cc5c7a029e635d46fcc9"
+    },
+    {
+      "pattern": "highpoints.work/manifest.json",
+      "zone_id": "0f5ea8d9b668cc5c7a029e635d46fcc9"
+    },
+    {
+      "pattern": "highpoints.work/icons/*",
+      "zone_id": "0f5ea8d9b668cc5c7a029e635d46fcc9"
+    }
+  ]
+}

@@ -1,121 +1,51 @@
-# Highpoint Operations - Quincy Facility Management
+# High Point Ops Mobile
 
-An intelligent facility management system powered by a multi-agent AI architecture.
+Native store packaging for the HighPoints operations app.
 
-## Features
+## App Identity
 
-### 🤖 Multi-Agent AI System
-- **Manager Agent**: Coordinates all agents and decomposes complex objectives
-- **Compliance Agent**: Monitors regulations and generates audit reports
-- **Operations Agent**: Manages maintenance, inventory, and scheduling
-- **Training Agent**: Creates multi-modal training content and certifications
-- **Critic Agent**: Evaluates outputs and ensures quality standards
+- App name: `High Point Ops`
+- Bundle/package ID: `work.highpoints.app`
+- Version: `1.0.0`
+- Production app URL: `https://highpoints.work/app`
 
-### 🏢 Facility Management
-- **Asset Lifecycle Management**: Track assets from purchase to disposal
-- **Maintenance Scheduling**: Automated preventive and reactive maintenance
-- **Work Order System**: AI-powered creation, assignment, and tracking
-- **Inventory Control**: Automated monitoring and reordering
-- **Compliance Tracking**: Regulatory monitoring and audit preparation
+## Build Targets
 
-### 📚 Training & Learning
-- **Multi-Modal Training**: In-person, online, video, and interactive formats
-- **Role-Specific Content**: Tailored onboarding for all positions
-- **Certification Management**: Track completions and expirations
-- **Compliance Training**: Automatically updated for regulatory changes
+- Android: Capacitor Android project, ready for Android Studio / Google Play App Bundle generation.
+- iOS: Capacitor iOS project, ready for Xcode archive on macOS.
 
-### 📊 Analytics & Reporting
-- **Real-Time Dashboards**: Monitor KPIs and system status
-- **Agent Performance**: Track metrics and quality scores
-- **Compliance Reports**: Automated generation for state audits
-- **Event Logging**: Complete audit trail of all activities
+## Commands
 
-## Quick Start
-
-### Development
 ```bash
 npm install
-npm run dev
+npm run sync
+npm run build:android
+npm run build:android:apk
 ```
 
-Visit http://localhost:9002/dashboard/multi-agent to access the AI agent dashboard.
+## Android Production Pretrial
 
-### Key Pages
-- `/dashboard` - Main dashboard
-- `/dashboard/multi-agent` - Multi-agent system control panel
-- `/dashboard/ai-chat` - AI assistant chat interface
-- `/dashboard/maintenance` - Maintenance management
-- `/dashboard/inventory` - Inventory tracking
-- `/dashboard/tasks` - Task management
-- `/dashboard/inspections` - Inspection scheduling
-- `/dashboard/training` - Training modules (coming soon)
+Use the signed release APK for direct pretrial installs and the signed AAB for
+Google Play internal testing.
 
-## Multi-Agent System Usage
-
-### Process Complex Objectives
-```typescript
-import { processObjective } from '@/ai/multi-agent-api';
-
-const result = await processObjective(
-  "Prepare for state audit: generate compliance report, schedule inspections, and update training materials"
-);
+```bash
+JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64 npm run sync:android
+JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64 npm run build:android:apk
+JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64 npm run build:android
 ```
 
-### Quick Actions
-```typescript
-// Auto-schedule preventive maintenance
-await autoScheduleMaintenance();
+Artifacts:
 
-// Monitor inventory and reorder
-await monitorInventoryAndReorder();
+- Direct install APK: `android/app/build/outputs/apk/release/app-release.apk`
+- Play Console bundle: `android/app/build/outputs/bundle/release/app-release.aab`
 
-// Generate compliance report
-await generateComplianceReport('2024-01-01', '2024-03-31');
+iOS archive requires macOS with Xcode:
 
-// Create training content
-await generateTrainingContent('Housekeeper');
+```bash
+npm run sync:ios
+npm run open:ios
 ```
 
-## Documentation
+## Store Readiness Notes
 
-- [Multi-Agent System Guide](./docs/MULTI_AGENT_SYSTEM.md) - Complete documentation of the AI agent architecture
-
-## Tech Stack
-
-- **Frontend**: Next.js 15, React 19, TypeScript
-- **UI**: Tailwind CSS, Radix UI
-- **Backend**: Firebase (Firestore, Auth)
-- **AI**: Google Gemini via Genkit
-- **Multi-Agent**: Custom orchestration system
-
-## System Requirements
-
-- Node.js 20+
-- Firebase project configured
-- Environment variables set in `.env.local`:
-  - `NEXT_PUBLIC_FIREBASE_*` - Firebase configuration
-  - `GOOGLE_GENAI_API_KEY` - Google AI API key
-
-## Architecture Highlights
-
-### Multi-Agent Coordination
-- **Task Decomposition**: Manager breaks down complex objectives
-- **Parallel Execution**: Agents work simultaneously when possible
-- **Message Passing**: Structured communication via orchestrator
-- **Quality Assurance**: Critic agent evaluates all outputs
-- **Adaptive Learning**: Agents maintain memory and improve over time
-
-### Scalability
-- Handles unlimited facilities and assets
-- Automated preventive maintenance scheduling
-- Real-time inventory monitoring
-- Continuous compliance monitoring
-- Concurrent agent execution
-
-## License
-
-Proprietary - Highpoint Operations
-
-## Support
-
-For system issues or questions, please contact the development team.
+This package wraps the live HighPoints web app in native Android/iOS shells and includes install icons, splash resources, bundle IDs, and store metadata drafts. Apple review can reject apps that are only a website in a WebView, so keep the app positioned as an authenticated operations tool for facility staff and add native integrations over time where useful.
