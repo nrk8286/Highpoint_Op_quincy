@@ -119,6 +119,74 @@ func TestSearchPageAndAPI(t *testing.T) {
 	}
 }
 
+func TestOperationsStatusPageRendersLiveChecks(t *testing.T) {
+	page, ok := pageByPath["/operations-status"]
+	if !ok {
+		t.Fatal("missing operations status page")
+	}
+	body, err := renderPage(page)
+	if err != nil {
+		t.Fatalf("render operations status page: %v", err)
+	}
+	bodyText := string(body)
+	for _, needle := range []string{"Live status snapshot", "/api/v2/health", "/api/v2/azure/services", "/api/v2/graph/health", "/healthz", "Copy support bundle"} {
+		if !strings.Contains(bodyText, needle) {
+			t.Fatalf("operations status page missing %q", needle)
+		}
+	}
+}
+
+func TestFeaturesPageHighlightsCoreFlows(t *testing.T) {
+	page, ok := pageByPath["/features"]
+	if !ok {
+		t.Fatal("missing features page")
+	}
+	body, err := renderPage(page)
+	if err != nil {
+		t.Fatalf("render features page: %v", err)
+	}
+	bodyText := string(body)
+	for _, needle := range []string{"See how the platform fits the daily work", "Command center", "AI-assisted flow", "App and support"} {
+		if !strings.Contains(bodyText, needle) {
+			t.Fatalf("features page missing %q", needle)
+		}
+	}
+}
+
+func TestPrivacyPageExplainsDataHandling(t *testing.T) {
+	page, ok := pageByPath["/privacy"]
+	if !ok {
+		t.Fatal("missing privacy page")
+	}
+	body, err := renderPage(page)
+	if err != nil {
+		t.Fatalf("render privacy page: %v", err)
+	}
+	bodyText := string(body)
+	for _, needle := range []string{"Privacy and data handling", "Public pages", "Authenticated app", "Support details"} {
+		if !strings.Contains(bodyText, needle) {
+			t.Fatalf("privacy page missing %q", needle)
+		}
+	}
+}
+
+func TestSupportPageRendersSupportBundleAndRoutes(t *testing.T) {
+	page, ok := pageByPath["/support"]
+	if !ok {
+		t.Fatal("missing support page")
+	}
+	body, err := renderPage(page)
+	if err != nil {
+		t.Fatalf("render support page: %v", err)
+	}
+	bodyText := string(body)
+	for _, needle := range []string{"Get help without losing the thread", "Open app support", "/operations-status", "Copy support bundle", "HighPoints support bundle"} {
+		if !strings.Contains(bodyText, needle) {
+			t.Fatalf("support page missing %q", needle)
+		}
+	}
+}
+
 func TestSitemapContainsPublicPages(t *testing.T) {
 	s := sitemap()
 	for _, path := range []string{
@@ -126,6 +194,10 @@ func TestSitemapContainsPublicPages(t *testing.T) {
 		"/ai-operations",
 		"/workflow-automation",
 		"/readiness-assessment",
+		"/operations-status",
+		"/support",
+		"/features",
+		"/privacy",
 		"/integrations",
 		"/pricing",
 		"/senior-living-operations",
@@ -218,7 +290,7 @@ func TestExportIncludesManifestRobotsAndSitemap(t *testing.T) {
 	if err := exportSite(dir); err != nil {
 		t.Fatalf("export site: %v", err)
 	}
-	for _, name := range []string{"index.html", "manifest.json", "robots.txt", "sitemap.xml", filepath.Join("pricing", "index.html"), filepath.Join("search", "index.html")} {
+	for _, name := range []string{"index.html", "manifest.json", "robots.txt", "sitemap.xml", filepath.Join("pricing", "index.html"), filepath.Join("operations-status", "index.html"), filepath.Join("support", "index.html"), filepath.Join("features", "index.html"), filepath.Join("privacy", "index.html"), filepath.Join("search", "index.html")} {
 		body, err := os.ReadFile(filepath.Join(dir, name))
 		if err != nil {
 			t.Fatalf("read exported %s: %v", name, err)

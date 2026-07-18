@@ -43,6 +43,26 @@
   ],
   "routes": [
     {
+      "pattern": "highpoints.work/",
+      "zone_id": "0f5ea8d9b668cc5c7a029e635d46fcc9"
+    },
+    {
+      "pattern": "highpoints.work/robots.txt",
+      "zone_id": "0f5ea8d9b668cc5c7a029e635d46fcc9"
+    },
+    {
+      "pattern": "highpoints.work/sitemap.xml",
+      "zone_id": "0f5ea8d9b668cc5c7a029e635d46fcc9"
+    },
+    {
+      "pattern": "highpoints.work/.well-known/*",
+      "zone_id": "0f5ea8d9b668cc5c7a029e635d46fcc9"
+    },
+    {
+      "pattern": "highpoints.work/healthz",
+      "zone_id": "0f5ea8d9b668cc5c7a029e635d46fcc9"
+    },
+    {
       "pattern": "highpoints.work/api/*",
       "zone_id": "0f5ea8d9b668cc5c7a029e635d46fcc9"
     },
@@ -68,6 +88,70 @@
     },
     {
       "pattern": "highpoints.work/signup",
+      "zone_id": "0f5ea8d9b668cc5c7a029e635d46fcc9"
+    },
+    {
+      "pattern": "highpoints.work/features",
+      "zone_id": "0f5ea8d9b668cc5c7a029e635d46fcc9"
+    },
+    {
+      "pattern": "highpoints.work/privacy",
+      "zone_id": "0f5ea8d9b668cc5c7a029e635d46fcc9"
+    },
+    {
+      "pattern": "highpoints.work/support",
+      "zone_id": "0f5ea8d9b668cc5c7a029e635d46fcc9"
+    },
+    {
+      "pattern": "highpoints.work/operations-status",
+      "zone_id": "0f5ea8d9b668cc5c7a029e635d46fcc9"
+    },
+    {
+      "pattern": "highpoints.work/search",
+      "zone_id": "0f5ea8d9b668cc5c7a029e635d46fcc9"
+    },
+    {
+      "pattern": "highpoints.work/pricing",
+      "zone_id": "0f5ea8d9b668cc5c7a029e635d46fcc9"
+    },
+    {
+      "pattern": "highpoints.work/executive-command-center",
+      "zone_id": "0f5ea8d9b668cc5c7a029e635d46fcc9"
+    },
+    {
+      "pattern": "highpoints.work/ai-operations",
+      "zone_id": "0f5ea8d9b668cc5c7a029e635d46fcc9"
+    },
+    {
+      "pattern": "highpoints.work/workflow-automation",
+      "zone_id": "0f5ea8d9b668cc5c7a029e635d46fcc9"
+    },
+    {
+      "pattern": "highpoints.work/readiness-assessment",
+      "zone_id": "0f5ea8d9b668cc5c7a029e635d46fcc9"
+    },
+    {
+      "pattern": "highpoints.work/azure-services",
+      "zone_id": "0f5ea8d9b668cc5c7a029e635d46fcc9"
+    },
+    {
+      "pattern": "highpoints.work/integrations",
+      "zone_id": "0f5ea8d9b668cc5c7a029e635d46fcc9"
+    },
+    {
+      "pattern": "highpoints.work/senior-living-operations",
+      "zone_id": "0f5ea8d9b668cc5c7a029e635d46fcc9"
+    },
+    {
+      "pattern": "highpoints.work/facility-maintenance-software",
+      "zone_id": "0f5ea8d9b668cc5c7a029e635d46fcc9"
+    },
+    {
+      "pattern": "highpoints.work/survey-readiness",
+      "zone_id": "0f5ea8d9b668cc5c7a029e635d46fcc9"
+    },
+    {
+      "pattern": "highpoints.work/housekeeping-management",
       "zone_id": "0f5ea8d9b668cc5c7a029e635d46fcc9"
     },
     {

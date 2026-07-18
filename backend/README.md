@@ -1,6 +1,6 @@
 # Highpoints Backend v2
 
-This is a modular Cloudflare Workers backend for High Point Ops. It is designed to replace one-off route files with a request pipeline:
+This is the canonical Cloudflare Worker for `highpoints.work`. It serves the public HighPoints pages, protected app handoff, API routes, and operational bindings from one edge deployment using this request pipeline:
 
 1. Request context
 2. Auth session
@@ -10,7 +10,7 @@ This is a modular Cloudflare Workers backend for High Point Ops. It is designed 
 6. Audit event
 7. Structured response
 
-The backend is additive. It does not replace the live `highpoint-ops` or `highpoints-gateway` Workers until you deploy and route it.
+The Worker replaces the former split between the `highpoints-work` Pages marketing project and the `highpoints-backend-v2` edge runtime. Cloudflare keeps the internal Worker service name `highpoints-backend-v2`, while `highpoints.work` is the single public hostname and deployment surface.
 
 ## Core Ideas
 

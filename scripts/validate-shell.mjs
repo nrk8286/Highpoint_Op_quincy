@@ -60,6 +60,9 @@ const seoChecks = [
   ["sitemap features", sitemap.includes("<loc>https://highpoints.work/features</loc>")],
   ["sitemap survey readiness", sitemap.includes("<loc>https://highpoints.work/survey-readiness</loc>")],
   ["sitemap command center", sitemap.includes("<loc>https://highpoints.work/executive-command-center</loc>")],
+  ["sitemap operations status", sitemap.includes("<loc>https://highpoints.work/operations-status</loc>")],
+  ["sitemap support", sitemap.includes("<loc>https://highpoints.work/support</loc>")],
+  ["sitemap privacy", sitemap.includes("<loc>https://highpoints.work/privacy</loc>")],
   ["sitemap AI operations", sitemap.includes("<loc>https://highpoints.work/ai-operations</loc>")],
   ["sitemap readiness assessment", sitemap.includes("<loc>https://highpoints.work/readiness-assessment</loc>")],
 ];
