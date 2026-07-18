@@ -6,6 +6,7 @@ import { registerRoutes } from "./routes.js";
 import { staffContextOperation } from "./graph/operations.js";
 import { scheduleGraphWrite } from "./graph/sync.js";
 import { staticResponseFor } from "./static.js";
+import { isNextAppAsset, proxyNextAppAsset } from "./next-app.js";
 
 const router = createRouter();
 registerRoutes(router);
@@ -59,6 +60,10 @@ export default {
       if (staticResponse) {
         if (requestContext.method === "HEAD") return headResponse(staticResponse);
         return staticResponse;
+      }
+
+      if (isNextAppAsset(requestContext.url)) {
+        return proxyNextAppAsset(requestContext);
       }
 
       if (requestContext.method === "OPTIONS") {

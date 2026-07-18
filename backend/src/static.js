@@ -1,6 +1,6 @@
 import { iconWebpBase64, manifestJson, serviceWorkerJs } from "./static-assets.js";
 
-const APP_ENTRY_URL = "https://highpoints.work/next/login";
+const APP_ENTRY_URL = "https://highpoints.work/login";
 const APPLE_TOUCH_ICON_URL = "https://highpoints.work/icons/icon-192.webp";
 
 const baseHeaders = {
@@ -38,7 +38,7 @@ function appEntryRedirect(url, status) {
 }
 
 function retiredAssetResponse() {
-  return new Response("Retired HighPoints app loader asset. Use https://highpoints.work/next/login.\n", {
+  return new Response("Retired HighPoints app loader asset. Use https://highpoints.work/login.\n", {
     status: 410,
     headers: {
       ...baseHeaders,

@@ -4,6 +4,7 @@ import { spawnSync } from "node:child_process";
 import { createRouter } from "../backend/src/router.js";
 import { registerRoutes } from "../backend/src/routes.js";
 import { staticResponseFor } from "../backend/src/static.js";
+import { isNextAppAsset, patchNextAuthBundle } from "../backend/src/next-app.js";
 
 const root = process.cwd();
 const backend = join(root, "backend");
@@ -22,6 +23,7 @@ const required = [
   "src/events.js",
   "src/repositories.js",
   "src/routes.js",
+  "src/next-app.js",
   "src/modules/workspace.js",
   "src/graph/client.js",
   "src/graph/cypher.js",
@@ -102,6 +104,7 @@ assertIncludes(config, "\"observability\"", "Wrangler example must enable observ
 assertIncludes(config, "highpoints.work/app.bundle.js", "Wrangler config must route retired app bundle requests through the Worker.");
 assertIncludes(config, "highpoints.work/app*", "Wrangler config must route app-entry query strings through the Worker.");
 assertIncludes(config, "highpoints.work/vendor/*", "Wrangler config must route retired vendor requests through the Worker.");
+assertIncludes(config, "highpoints.work/_next/*", "Wrangler config must route Next app assets through the Worker auth compatibility fix.");
 for (const route of [
   '"pattern": "highpoints.work/"',
   "highpoints.work/robots.txt",
@@ -141,13 +144,13 @@ for (const [path, status] of [
   const response = staticResponseFor(new URL(`https://highpoints.work${path}`));
   if (!response) throw new Error(`Static app entry smoke check failed for ${path}`);
   if (response.status !== status) throw new Error(`Static app entry ${path} status ${response.status}, expected ${status}`);
-  if (response.headers.get("location") !== "https://highpoints.work/next/login") {
+  if (response.headers.get("location") !== "https://highpoints.work/login") {
     throw new Error(`Static app entry ${path} redirects to ${response.headers.get("location")}`);
   }
 }
 
 const callbackRedirect = staticResponseFor(new URL("https://highpoints.work/app?code=abc&state=xyz"));
-if (callbackRedirect.headers.get("location") !== "https://highpoints.work/next/login?code=abc&state=xyz") {
+if (callbackRedirect.headers.get("location") !== "https://highpoints.work/login?code=abc&state=xyz") {
   throw new Error(`Static app entry must preserve callback query strings, got ${callbackRedirect.headers.get("location")}`);
 }
 
@@ -155,6 +158,29 @@ for (const path of ["/next/login", "/api/v2/health"]) {
   if (staticResponseFor(new URL(`https://highpoints.work${path}`))) {
     throw new Error(`Static route must not intercept ${path}`);
   }
+}
+
+if (!isNextAppAsset(new URL("https://highpoints.work/_next/static/chunks/app/layout.js"))) {
+  throw new Error("Next app assets must be recognized for Worker proxying.");
+}
+if (isNextAppAsset(new URL("https://highpoints.work/login"))) {
+  throw new Error("Next app asset proxy must not intercept page routes.");
+}
+
+for (const source of [
+  "return await (0,n.BN)(r,{lastLoginAt:(0,n.O5)()},{merge:!0}),{uid:e.uid}",
+  "return await (0,i.BN)(t,{lastLoginAt:(0,i.O5)()},{merge:!0}),{uid:e.uid}",
+]) {
+  const patched = patchNextAuthBundle(source);
+  if (patched.patches !== 1) throw new Error("Next auth bundle lastLoginAt write was not patched exactly once.");
+  assertIncludes(patched.body, ".catch(error=>console.warn", "Next auth patch must make lastLoginAt best-effort.");
+  assertIncludes(patched.body, "{uid:e.uid}", "Next auth patch must preserve the loaded profile.");
+}
+
+const unrelatedBundle = "console.log('unrelated Next chunk')";
+const unpatched = patchNextAuthBundle(unrelatedBundle);
+if (unpatched.patches !== 0 || unpatched.body !== unrelatedBundle) {
+  throw new Error("Next auth patch must leave unrelated JavaScript unchanged.");
 }
 
 for (const path of ["/app.bundle.js", "/vendor/react.production.min.js"]) {
