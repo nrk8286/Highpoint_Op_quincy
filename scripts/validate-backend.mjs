@@ -63,6 +63,8 @@ const graphShellCaptureSchema = readFileSync(join(backend, "migrations/graph/000
 const config = readFileSync(join(backend, "wrangler.jsonc.example"), "utf8");
 
 assertIncludes(worker, "ctx.waitUntil", "Worker must use ctx.waitUntil for post-response audit work.");
+assertIncludes(worker, "shouldProxyPublicPage", "Worker must proxy public pages to the Azure origin.");
+assertIncludes(worker, "proxyPublicPage", "Worker must define a public page proxy helper.");
 assertIncludes(allSource, "crypto.randomUUID", "Worker must generate IDs with Web Crypto.");
 assertIncludes(migration, "hp_audit_events", "Migration must include audit events table.");
 assertIncludes(migration, "hp_outlook_connections", "Migration must include Outlook connection table.");
@@ -100,6 +102,31 @@ assertIncludes(config, "\"observability\"", "Wrangler example must enable observ
 assertIncludes(config, "highpoints.work/app.bundle.js", "Wrangler config must route retired app bundle requests through the Worker.");
 assertIncludes(config, "highpoints.work/app*", "Wrangler config must route app-entry query strings through the Worker.");
 assertIncludes(config, "highpoints.work/vendor/*", "Wrangler config must route retired vendor requests through the Worker.");
+for (const route of [
+  '"pattern": "highpoints.work/"',
+  "highpoints.work/robots.txt",
+  "highpoints.work/sitemap.xml",
+  "highpoints.work/.well-known/*",
+  "highpoints.work/healthz",
+  "highpoints.work/features",
+  "highpoints.work/privacy",
+  "highpoints.work/support",
+  "highpoints.work/operations-status",
+  "highpoints.work/search",
+  "highpoints.work/pricing",
+  "highpoints.work/executive-command-center",
+  "highpoints.work/ai-operations",
+  "highpoints.work/workflow-automation",
+  "highpoints.work/readiness-assessment",
+  "highpoints.work/azure-services",
+  "highpoints.work/integrations",
+  "highpoints.work/senior-living-operations",
+  "highpoints.work/facility-maintenance-software",
+  "highpoints.work/survey-readiness",
+  "highpoints.work/housekeeping-management",
+]) {
+  assertIncludes(config, route, `Wrangler config must route ${route} through the Worker.`);
+}
 
 assertIncludes(allSource, "const fallbackId = email ? email.split(\"@\")", "Auth fallback must only use trusted Cloudflare Access email.");
 assertExcludes(allSource, "const fallbackId = userId ||", "Auth fallback must not trust x-highpoints-user-id without a valid session proof.");
@@ -147,6 +174,11 @@ if (!appleIcon || appleIcon.status !== 302 || appleIcon.headers.get("location") 
 const router = createRouter();
 registerRoutes(router);
 for (const [method, path] of [
+  ["GET", "/"],
+  ["GET", "/robots.txt"],
+  ["GET", "/sitemap.xml"],
+  ["GET", "/.well-known/microsoft-identity-association.json"],
+  ["GET", "/healthz"],
   ["GET", "/api/v2/health"],
   ["GET", "/api/v2/outlook/status"],
   ["GET", "/api/v2/documents/review"],
@@ -160,6 +192,25 @@ for (const [method, path] of [
   ["GET", "/api/v2/graph/entity/Staff/staff-1"],
 ]) {
   if (!router.match(method, path)) throw new Error(`Route smoke check failed for ${method} ${path}`);
+}
+
+for (const [path, contentType, marker] of [
+  ["/", "text/html", "Run every facility workflow"],
+  ["/features", "text/html", "HighPoints features"],
+  ["/pricing", "text/html", "Pricing"],
+  ["/robots.txt", "text/plain", "Sitemap: https://highpoints.work/sitemap.xml"],
+  ["/sitemap.xml", "application/xml", "https://highpoints.work/features"],
+  ["/.well-known/microsoft-identity-association.json", "application/json", "associatedApplications"],
+  ["/healthz", "text/plain", "ok"],
+]) {
+  const match = router.match("GET", path);
+  const response = await match.route.handler({});
+  const body = await response.text();
+  if (response.status !== 200) throw new Error(`Public route ${path} status ${response.status}, expected 200`);
+  if (!response.headers.get("content-type")?.includes(contentType)) {
+    throw new Error(`Public route ${path} content type ${response.headers.get("content-type")}`);
+  }
+  assertIncludes(body, marker, `Public route ${path} must include ${marker}.`);
 }
 
 console.log(`validated backend: ${sourceFiles.length} source file(s), ${required.length} required artifact(s)`);

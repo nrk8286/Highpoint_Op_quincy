@@ -10,6 +10,47 @@ import { staticResponseFor } from "./static.js";
 const router = createRouter();
 registerRoutes(router);
 
+const PUBLIC_PAGE_PATHS = new Set([
+  "/",
+  "/features",
+  "/privacy",
+  "/support",
+  "/operations-status",
+  "/search",
+  "/pricing",
+  "/executive-command-center",
+  "/ai-operations",
+  "/workflow-automation",
+  "/readiness-assessment",
+  "/azure-services",
+  "/integrations",
+  "/senior-living-operations",
+  "/facility-maintenance-software",
+  "/survey-readiness",
+  "/housekeeping-management",
+]);
+
+function shouldProxyPublicPage(requestContext) {
+  if (requestContext.method !== "GET" && requestContext.method !== "HEAD") return false;
+  const pathname = requestContext.url.pathname;
+  if (PUBLIC_PAGE_PATHS.has(pathname)) return false;
+  if (pathname.startsWith("/api/")) return false;
+  if (pathname.startsWith("/next/")) return false;
+  if (pathname === "/app" || pathname === "/app/" || pathname === "/signup") return false;
+  if (pathname === "/app.bundle.js" || pathname.startsWith("/vendor/")) return false;
+  if (pathname === "/apple-touch-icon.png" || pathname === "/sw.js" || pathname === "/manifest.json") return false;
+  if (pathname.startsWith("/icons/") || pathname.startsWith("/.well-known/")) return false;
+  return true;
+}
+
+async function proxyPublicPage(requestContext) {
+  const targetUrl = new URL(requestContext.request.url);
+  targetUrl.hostname = "server.highpoints.work";
+  targetUrl.protocol = "https:";
+  const proxiedRequest = new Request(targetUrl.toString(), requestContext.request);
+  return fetch(proxiedRequest);
+}
+
 export default {
   async fetch(request, env, ctx) {
     const requestContext = createRequestContext(request, env, ctx);
@@ -27,6 +68,11 @@ export default {
       const routeMethod = requestContext.method === "HEAD" ? "GET" : requestContext.method;
       const match = router.match(routeMethod, requestContext.url.pathname);
       if (!match) {
+        if (shouldProxyPublicPage(requestContext)) {
+          const proxiedResponse = await proxyPublicPage(requestContext);
+          if (requestContext.method === "HEAD") return headResponse(proxiedResponse);
+          return proxiedResponse;
+        }
         return jsonResponse({ error: "Not found", requestId: requestContext.requestId }, 404);
       }
 
