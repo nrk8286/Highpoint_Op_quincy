@@ -70,6 +70,7 @@ const graphAccessSchema = readFileSync(join(backend, "migrations/graph/0002_rela
 const graphDepartmentSchema = readFileSync(join(backend, "migrations/graph/0003_departments_access.cypher"), "utf8");
 const graphShellCaptureSchema = readFileSync(join(backend, "migrations/graph/0004_shell_capture_relationships.cypher"), "utf8");
 const config = readFileSync(join(backend, "wrangler.jsonc.example"), "utf8");
+const productionConfig = readFileSync(join(backend, "wrangler.jsonc"), "utf8");
 
 assertIncludes(worker, "ctx.waitUntil", "Worker must use ctx.waitUntil for post-response audit work.");
 assertIncludes(worker, "shouldProxyPublicPage", "Worker must proxy public pages to the Azure origin.");
@@ -119,6 +120,9 @@ assertIncludes(config, "highpoints.work/next/login*", "Wrangler config must rout
 assertIncludes(config, "highpoints.work/favicon.ico", "Wrangler config must route the standard favicon through the Worker.");
 assertIncludes(config, "highpoints.work/favicon-16x16.png", "Wrangler config must route the Next app favicon fallback through the Worker.");
 assertIncludes(config, "www.highpoints.work/*", "Wrangler config must route www through the canonical-host redirect.");
+for (const [label, wranglerConfig] of [["example", config], ["production", productionConfig]]) {
+  assertIncludes(wranglerConfig, "highpoints.work/*", `Wrangler ${label} config must route every apex path through the Worker.`);
+}
 for (const route of [
   '"pattern": "highpoints.work/"',
   "highpoints.work/robots.txt",
@@ -203,8 +207,10 @@ if (isNextAppLoginPage(new URL("https://highpoints.work/dashboard"))) {
 }
 
 const loginDocument = [
+  "<html><head>",
   '<script src="/_next/static/chunks/webpack.js"></script>',
   '<link rel="preload" href="/_next/static/chunks/login.js" as="script">',
+  "</head><body><form><input id=\"email\"></form></body></html>",
 ].join("");
 const patchedLoginDocument = patchNextLoginPage(loginDocument);
 if (patchedLoginDocument.patches !== 2) {
@@ -215,6 +221,23 @@ assertIncludes(
   "?hp_auth_patch=20260719-1",
   "Next login document must use the current auth patch version.",
 );
+assertIncludes(
+  patchedLoginDocument.body,
+  'data-highpoints-login-polish="20260722-1"',
+  "Next login document must include the premium login presentation layer.",
+);
+if (!patchedLoginDocument.polished) {
+  throw new Error("Next login document must report the premium presentation layer as applied.");
+}
+const repatchedLoginDocument = patchNextLoginPage(patchedLoginDocument.body);
+if ((repatchedLoginDocument.body.match(/data-highpoints-login-polish=/g) || []).length !== 1) {
+  throw new Error("Next login presentation layer must remain idempotent across repeated transforms.");
+}
+const fragmentWithoutHead = '<script src="/_next/static/chunks/fragment.js"></script>';
+const patchedFragment = patchNextLoginPage(fragmentWithoutHead);
+if (!patchedFragment.body.includes("?hp_auth_patch=20260719-1") || patchedFragment.polished) {
+  throw new Error("Next login transform must preserve cache busting and skip polish safely when </head> is absent.");
+}
 assertIncludes(
   allSource,
   '"x-highpoints-auth-fix": `legacy-login-redirect-${AUTH_PATCH_VERSION}`',
