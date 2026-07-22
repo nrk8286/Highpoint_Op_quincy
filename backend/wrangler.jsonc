@@ -71,6 +71,22 @@
       "zone_id": "0f5ea8d9b668cc5c7a029e635d46fcc9"
     },
     {
+      "pattern": "highpoints.work/login",
+      "zone_id": "0f5ea8d9b668cc5c7a029e635d46fcc9"
+    },
+    {
+      "pattern": "highpoints.work/login*",
+      "zone_id": "0f5ea8d9b668cc5c7a029e635d46fcc9"
+    },
+    {
+      "pattern": "highpoints.work/next/login",
+      "zone_id": "0f5ea8d9b668cc5c7a029e635d46fcc9"
+    },
+    {
+      "pattern": "highpoints.work/next/login*",
+      "zone_id": "0f5ea8d9b668cc5c7a029e635d46fcc9"
+    },
+    {
       "pattern": "highpoints.work/app",
       "zone_id": "0f5ea8d9b668cc5c7a029e635d46fcc9"
     },
@@ -168,6 +184,18 @@
     },
     {
       "pattern": "highpoints.work/icons/*",
+      "zone_id": "0f5ea8d9b668cc5c7a029e635d46fcc9"
+    },
+    {
+      "pattern": "highpoints.work/favicon.ico",
+      "zone_id": "0f5ea8d9b668cc5c7a029e635d46fcc9"
+    },
+    {
+      "pattern": "highpoints.work/favicon-16x16.png",
+      "zone_id": "0f5ea8d9b668cc5c7a029e635d46fcc9"
+    },
+    {
+      "pattern": "www.highpoints.work/*",
       "zone_id": "0f5ea8d9b668cc5c7a029e635d46fcc9"
     }
   ]
