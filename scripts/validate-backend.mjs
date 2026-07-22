@@ -73,6 +73,7 @@ const config = readFileSync(join(backend, "wrangler.jsonc.example"), "utf8");
 const productionConfig = readFileSync(join(backend, "wrangler.jsonc"), "utf8");
 
 assertIncludes(worker, "ctx.waitUntil", "Worker must use ctx.waitUntil for post-response audit work.");
+assertIncludes(worker, 'message: "request_failed"', "Worker failures must emit structured runtime diagnostics.");
 assertIncludes(worker, "shouldProxyPublicPage", "Worker must proxy public pages to the Azure origin.");
 assertIncludes(worker, "proxyPublicPage", "Worker must define a public page proxy helper.");
 assertIncludes(worker, 'redirect: "manual"', "Worker public proxy must keep origin redirects under explicit control.");

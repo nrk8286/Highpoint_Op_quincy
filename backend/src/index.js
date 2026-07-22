@@ -127,6 +127,14 @@ export default {
       }
       return withSecurityHeaders(response);
     } catch (error) {
+      console.error(JSON.stringify({
+        level: "error",
+        message: "request_failed",
+        error: error?.message || String(error),
+        method: requestContext.method,
+        path: requestContext.url.pathname,
+        requestId: requestContext.requestId,
+      }));
       ctx.waitUntil(auditEvent(requestContext, {
         action: "request_failed",
         resource: requestContext.route?.resource || "api",
