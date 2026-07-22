@@ -75,6 +75,7 @@ const productionConfig = readFileSync(join(backend, "wrangler.jsonc"), "utf8");
 assertIncludes(worker, "ctx.waitUntil", "Worker must use ctx.waitUntil for post-response audit work.");
 assertIncludes(worker, "shouldProxyPublicPage", "Worker must proxy public pages to the Azure origin.");
 assertIncludes(worker, "proxyPublicPage", "Worker must define a public page proxy helper.");
+assertIncludes(worker, 'redirect: "follow"', "Worker public proxy must resolve origin redirects without leaking the origin hostname.");
 assertIncludes(allSource, "crypto.randomUUID", "Worker must generate IDs with Web Crypto.");
 assertIncludes(migration, "hp_audit_events", "Migration must include audit events table.");
 assertIncludes(migration, "hp_outlook_connections", "Migration must include Outlook connection table.");
