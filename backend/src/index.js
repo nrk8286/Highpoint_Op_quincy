@@ -48,10 +48,7 @@ async function proxyPublicPage(requestContext) {
   const targetUrl = new URL(requestContext.request.url);
   targetUrl.hostname = "server.highpoints.work";
   targetUrl.protocol = "https:";
-  const proxiedRequest = new Request(targetUrl.toString(), {
-    method: requestContext.request.method,
-    redirect: "manual",
-  });
+  const proxiedRequest = new Request(targetUrl.toString(), requestContext.request);
   return fetch(proxiedRequest);
 }
 

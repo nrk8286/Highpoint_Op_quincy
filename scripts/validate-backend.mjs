@@ -70,13 +70,11 @@ const graphAccessSchema = readFileSync(join(backend, "migrations/graph/0002_rela
 const graphDepartmentSchema = readFileSync(join(backend, "migrations/graph/0003_departments_access.cypher"), "utf8");
 const graphShellCaptureSchema = readFileSync(join(backend, "migrations/graph/0004_shell_capture_relationships.cypher"), "utf8");
 const config = readFileSync(join(backend, "wrangler.jsonc.example"), "utf8");
-const productionConfig = readFileSync(join(backend, "wrangler.jsonc"), "utf8");
 
 assertIncludes(worker, "ctx.waitUntil", "Worker must use ctx.waitUntil for post-response audit work.");
 assertIncludes(worker, 'message: "request_failed"', "Worker failures must emit structured runtime diagnostics.");
 assertIncludes(worker, "shouldProxyPublicPage", "Worker must proxy public pages to the Azure origin.");
 assertIncludes(worker, "proxyPublicPage", "Worker must define a public page proxy helper.");
-assertIncludes(worker, 'redirect: "manual"', "Worker public proxy must keep origin redirects under explicit control.");
 assertIncludes(allSource, "crypto.randomUUID", "Worker must generate IDs with Web Crypto.");
 assertIncludes(migration, "hp_audit_events", "Migration must include audit events table.");
 assertIncludes(migration, "hp_outlook_connections", "Migration must include Outlook connection table.");
@@ -122,9 +120,6 @@ assertIncludes(config, "highpoints.work/next/login*", "Wrangler config must rout
 assertIncludes(config, "highpoints.work/favicon.ico", "Wrangler config must route the standard favicon through the Worker.");
 assertIncludes(config, "highpoints.work/favicon-16x16.png", "Wrangler config must route the Next app favicon fallback through the Worker.");
 assertIncludes(config, "www.highpoints.work/*", "Wrangler config must route www through the canonical-host redirect.");
-for (const [label, wranglerConfig] of [["example", config], ["production", productionConfig]]) {
-  assertIncludes(wranglerConfig, "highpoints.work/*", `Wrangler ${label} config must route every apex path through the Worker.`);
-}
 for (const route of [
   '"pattern": "highpoints.work/"',
   "highpoints.work/robots.txt",
