@@ -4,7 +4,14 @@ import { spawnSync } from "node:child_process";
 import { createRouter } from "../backend/src/router.js";
 import { registerRoutes } from "../backend/src/routes.js";
 import { staticResponseFor } from "../backend/src/static.js";
-import { isNextAppAsset, patchNextAuthBundle } from "../backend/src/next-app.js";
+import {
+  isNextAppAsset,
+  isNextAppLoginPage,
+  patchNextAuthBundle,
+  patchNextLoginPage,
+} from "../backend/src/next-app.js";
+import { canonicalHostRedirect } from "../backend/src/index.js";
+import { withSecurityHeaders } from "../backend/src/runtime.js";
 
 const root = process.cwd();
 const backend = join(root, "backend");
@@ -65,6 +72,7 @@ const graphShellCaptureSchema = readFileSync(join(backend, "migrations/graph/000
 const config = readFileSync(join(backend, "wrangler.jsonc.example"), "utf8");
 
 assertIncludes(worker, "ctx.waitUntil", "Worker must use ctx.waitUntil for post-response audit work.");
+assertIncludes(worker, 'message: "request_failed"', "Worker failures must emit structured runtime diagnostics.");
 assertIncludes(worker, "shouldProxyPublicPage", "Worker must proxy public pages to the Azure origin.");
 assertIncludes(worker, "proxyPublicPage", "Worker must define a public page proxy helper.");
 assertIncludes(allSource, "crypto.randomUUID", "Worker must generate IDs with Web Crypto.");
@@ -105,6 +113,13 @@ assertIncludes(config, "highpoints.work/app.bundle.js", "Wrangler config must ro
 assertIncludes(config, "highpoints.work/app*", "Wrangler config must route app-entry query strings through the Worker.");
 assertIncludes(config, "highpoints.work/vendor/*", "Wrangler config must route retired vendor requests through the Worker.");
 assertIncludes(config, "highpoints.work/_next/*", "Wrangler config must route Next app assets through the Worker auth compatibility fix.");
+assertIncludes(config, '"pattern": "highpoints.work/login"', "Wrangler config must route the exact login document through the Worker cache fix.");
+assertIncludes(config, "highpoints.work/login*", "Wrangler config must route login documents through the Worker cache fix.");
+assertIncludes(config, '"pattern": "highpoints.work/next/login"', "Wrangler config must route the exact legacy login alias through the Worker cache fix.");
+assertIncludes(config, "highpoints.work/next/login*", "Wrangler config must route the legacy login alias through the Worker cache fix.");
+assertIncludes(config, "highpoints.work/favicon.ico", "Wrangler config must route the standard favicon through the Worker.");
+assertIncludes(config, "highpoints.work/favicon-16x16.png", "Wrangler config must route the Next app favicon fallback through the Worker.");
+assertIncludes(config, "www.highpoints.work/*", "Wrangler config must route www through the canonical-host redirect.");
 for (const route of [
   '"pattern": "highpoints.work/"',
   "highpoints.work/robots.txt",
@@ -154,6 +169,19 @@ if (callbackRedirect.headers.get("location") !== "https://highpoints.work/login?
   throw new Error(`Static app entry must preserve callback query strings, got ${callbackRedirect.headers.get("location")}`);
 }
 
+const canonicalRedirect = canonicalHostRedirect(new Request("https://www.highpoints.work/features?source=www"));
+if (!canonicalRedirect || canonicalRedirect.status !== 308) {
+  throw new Error("www Highpoints requests must permanently redirect to the canonical apex host.");
+}
+if (canonicalRedirect.headers.get("location") !== "https://highpoints.work/features?source=www") {
+  throw new Error(`www redirect target is ${canonicalRedirect.headers.get("location")}`);
+}
+
+const hardenedResponse = withSecurityHeaders(new Response("ok"));
+for (const header of ["strict-transport-security", "permissions-policy", "referrer-policy", "x-content-type-options", "x-frame-options"]) {
+  if (!hardenedResponse.headers.get(header)) throw new Error(`Hardened response is missing ${header}.`);
+}
+
 for (const path of ["/next/login", "/api/v2/health"]) {
   if (staticResponseFor(new URL(`https://highpoints.work${path}`))) {
     throw new Error(`Static route must not intercept ${path}`);
@@ -166,6 +194,52 @@ if (!isNextAppAsset(new URL("https://highpoints.work/_next/static/chunks/app/lay
 if (isNextAppAsset(new URL("https://highpoints.work/login"))) {
   throw new Error("Next app asset proxy must not intercept page routes.");
 }
+for (const path of ["/login", "/next/login"]) {
+  if (!isNextAppLoginPage(new URL(`https://highpoints.work${path}`))) {
+    throw new Error(`Next app login page must recognize ${path}.`);
+  }
+}
+if (isNextAppLoginPage(new URL("https://highpoints.work/dashboard"))) {
+  throw new Error("Next app login page proxy must not intercept dashboard routes.");
+}
+
+const loginDocument = [
+  "<html><head>",
+  '<script src="/_next/static/chunks/webpack.js"></script>',
+  '<link rel="preload" href="/_next/static/chunks/login.js" as="script">',
+  "</head><body><form><input id=\"email\"></form></body></html>",
+].join("");
+const patchedLoginDocument = patchNextLoginPage(loginDocument);
+if (patchedLoginDocument.patches !== 2) {
+  throw new Error("Next login document must cache-bust every initial JavaScript asset.");
+}
+assertIncludes(
+  patchedLoginDocument.body,
+  "?hp_auth_patch=20260719-1",
+  "Next login document must use the current auth patch version.",
+);
+assertIncludes(
+  patchedLoginDocument.body,
+  'data-highpoints-login-polish="20260722-1"',
+  "Next login document must include the premium login presentation layer.",
+);
+if (!patchedLoginDocument.polished) {
+  throw new Error("Next login document must report the premium presentation layer as applied.");
+}
+const repatchedLoginDocument = patchNextLoginPage(patchedLoginDocument.body);
+if ((repatchedLoginDocument.body.match(/data-highpoints-login-polish=/g) || []).length !== 1) {
+  throw new Error("Next login presentation layer must remain idempotent across repeated transforms.");
+}
+const fragmentWithoutHead = '<script src="/_next/static/chunks/fragment.js"></script>';
+const patchedFragment = patchNextLoginPage(fragmentWithoutHead);
+if (!patchedFragment.body.includes("?hp_auth_patch=20260719-1") || patchedFragment.polished) {
+  throw new Error("Next login transform must preserve cache busting and skip polish safely when </head> is absent.");
+}
+assertIncludes(
+  allSource,
+  '"x-highpoints-auth-fix": `legacy-login-redirect-${AUTH_PATCH_VERSION}`',
+  "The legacy /next/login alias must redirect to the cache-safe login document.",
+);
 
 for (const source of [
   "return await (0,n.BN)(r,{lastLoginAt:(0,n.O5)()},{merge:!0}),{uid:e.uid}",
@@ -192,9 +266,11 @@ for (const path of ["/app.bundle.js", "/vendor/react.production.min.js"]) {
   }
 }
 
-const appleIcon = staticResponseFor(new URL("https://highpoints.work/apple-touch-icon.png"));
-if (!appleIcon || appleIcon.status !== 302 || appleIcon.headers.get("location") !== "https://highpoints.work/icons/icon-192.webp") {
-  throw new Error("Static route must redirect apple-touch-icon.png when app* catches it");
+for (const path of ["/apple-touch-icon.png", "/favicon.ico", "/favicon-16x16.png"]) {
+  const icon = staticResponseFor(new URL(`https://highpoints.work${path}`));
+  if (!icon || icon.status !== 302 || icon.headers.get("location") !== "https://highpoints.work/icons/icon-192.webp") {
+    throw new Error(`Static route must redirect ${path} to the packaged app icon`);
+  }
 }
 
 const router = createRouter();

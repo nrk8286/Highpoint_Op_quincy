@@ -1,4 +1,4 @@
-import { createRequestContext, errorResponse, headResponse, jsonResponse, optionsResponse } from "./runtime.js";
+import { createRequestContext, errorResponse, headResponse, jsonResponse, optionsResponse, withSecurityHeaders } from "./runtime.js";
 import { createRouter } from "./router.js";
 import { authenticate } from "./auth.js";
 import { auditEvent } from "./events.js";
@@ -6,7 +6,7 @@ import { registerRoutes } from "./routes.js";
 import { staffContextOperation } from "./graph/operations.js";
 import { scheduleGraphWrite } from "./graph/sync.js";
 import { staticResponseFor } from "./static.js";
-import { isNextAppAsset, proxyNextAppAsset } from "./next-app.js";
+import { isNextAppAsset, isNextAppLoginPage, proxyNextAppAsset, proxyNextAppLoginPage } from "./next-app.js";
 
 const router = createRouter();
 registerRoutes(router);
@@ -52,22 +52,45 @@ async function proxyPublicPage(requestContext) {
   return fetch(proxiedRequest);
 }
 
+export function canonicalHostRedirect(request) {
+  const url = new URL(request.url);
+  if (url.hostname !== "www.highpoints.work") return null;
+  url.hostname = "highpoints.work";
+  url.protocol = "https:";
+  return withSecurityHeaders(new Response(null, {
+    status: 308,
+    headers: {
+      "cache-control": "public, max-age=3600",
+      location: url.toString(),
+    },
+  }));
+}
+
 export default {
   async fetch(request, env, ctx) {
+    const hostRedirect = canonicalHostRedirect(request);
+    if (hostRedirect) return hostRedirect;
     const requestContext = createRequestContext(request, env, ctx);
     try {
       const staticResponse = staticResponseFor(requestContext.url);
       if (staticResponse) {
-        if (requestContext.method === "HEAD") return headResponse(staticResponse);
-        return staticResponse;
+        if (requestContext.method === "HEAD") return withSecurityHeaders(headResponse(staticResponse));
+        return withSecurityHeaders(staticResponse);
       }
 
       if (isNextAppAsset(requestContext.url)) {
-        return proxyNextAppAsset(requestContext);
+        return withSecurityHeaders(await proxyNextAppAsset(requestContext));
+      }
+
+      if (
+        (requestContext.method === "GET" || requestContext.method === "HEAD") &&
+        isNextAppLoginPage(requestContext.url)
+      ) {
+        return withSecurityHeaders(await proxyNextAppLoginPage(requestContext));
       }
 
       if (requestContext.method === "OPTIONS") {
-        return optionsResponse();
+        return withSecurityHeaders(optionsResponse());
       }
 
       const routeMethod = requestContext.method === "HEAD" ? "GET" : requestContext.method;
@@ -75,10 +98,10 @@ export default {
       if (!match) {
         if (shouldProxyPublicPage(requestContext)) {
           const proxiedResponse = await proxyPublicPage(requestContext);
-          if (requestContext.method === "HEAD") return headResponse(proxiedResponse);
-          return proxiedResponse;
+          if (requestContext.method === "HEAD") return withSecurityHeaders(headResponse(proxiedResponse));
+          return withSecurityHeaders(proxiedResponse);
         }
-        return jsonResponse({ error: "Not found", requestId: requestContext.requestId }, 404);
+        return withSecurityHeaders(jsonResponse({ error: "Not found", requestId: requestContext.requestId }, 404));
       }
 
       requestContext.params = match.params;
@@ -97,16 +120,24 @@ export default {
         metadata: { status: response.status },
       }));
       if (requestContext.method === "HEAD") {
-        return headResponse(response);
+        return withSecurityHeaders(headResponse(response));
       }
-      return response;
+      return withSecurityHeaders(response);
     } catch (error) {
+      console.error(JSON.stringify({
+        level: "error",
+        message: "request_failed",
+        error: error?.message || String(error),
+        method: requestContext.method,
+        path: requestContext.url.pathname,
+        requestId: requestContext.requestId,
+      }));
       ctx.waitUntil(auditEvent(requestContext, {
         action: "request_failed",
         resource: requestContext.route?.resource || "api",
         metadata: { message: error.message, status: error.status || 500 },
       }));
-      return errorResponse(error, requestContext.requestId);
+      return withSecurityHeaders(errorResponse(error, requestContext.requestId));
     }
   },
 };

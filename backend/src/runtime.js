@@ -31,15 +31,33 @@ export async function readJson(request) {
   }
 }
 
+export const securityHeaders = {
+  "strict-transport-security": "max-age=31536000; includeSubDomains",
+  "permissions-policy": "camera=(), microphone=(), geolocation=()",
+  "referrer-policy": "same-origin",
+  "x-content-type-options": "nosniff",
+  "x-frame-options": "SAMEORIGIN",
+};
+
 export const apiHeaders = {
   "access-control-allow-origin": "*",
   "access-control-allow-methods": "GET, HEAD, POST, PUT, DELETE, OPTIONS",
   "access-control-allow-headers": "Content-Type, Authorization, X-Highpoints-User-Id, X-Highpoints-Session",
-  "referrer-policy": "same-origin",
-  "x-content-type-options": "nosniff",
-  "x-frame-options": "SAMEORIGIN",
+  ...securityHeaders,
   "x-xss-protection": "1; mode=block",
 };
+
+export function withSecurityHeaders(response) {
+  const headers = new Headers(response.headers);
+  for (const [name, value] of Object.entries(securityHeaders)) {
+    if (!headers.has(name)) headers.set(name, value);
+  }
+  return new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers,
+  });
+}
 
 export function optionsResponse() {
   return new Response(null, {

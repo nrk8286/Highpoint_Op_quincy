@@ -1,0 +1,41 @@
+{
+    "folders": [
+        {
+            "path": "."
+        }
+    ],
+
+    "settings": {
+        "files.autoSave": "onWindowChange",
+
+        "editor.formatOnSave": true,
+
+        "editor.rulers": [
+            100
+        ],
+
+        "terminal.integrated.defaultProfile.linux": "bash",
+
+        "search.exclude": {
+            "**/node_modules": true,
+            "**/.git": true,
+            "**/dist": true
+        },
+
+        "typescript.tsdk": "node_modules/typescript/lib"
+    },
+
+    "extensions": {
+        "recommendations": [
+            "openai.chatgpt",
+            "github.copilot",
+            "github.vscode-pull-request-github",
+            "ms-azuretools.vscode-docker",
+            "cloudflare.cloudflare-workers",
+            "dbaeumer.vscode-eslint",
+            "esbenp.prettier-vscode",
+            "bradlc.vscode-tailwindcss",
+            "firebase.firebase-vscode"
+        ]
+    }
+}

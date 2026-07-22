@@ -81,7 +81,7 @@ export function staticResponseFor(url) {
   if (url.pathname === "/app.bundle.js" || url.pathname.startsWith("/vendor/")) {
     return retiredAssetResponse();
   }
-  if (url.pathname === "/apple-touch-icon.png") {
+  if (["/apple-touch-icon.png", "/favicon.ico", "/favicon-16x16.png"].includes(url.pathname)) {
     return iconRedirect();
   }
   if (url.pathname === "/sw.js") {
